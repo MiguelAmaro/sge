@@ -153,26 +153,27 @@ u32 StringMatchKMP(readonly u8 *Text, readonly u32 BytesToRead, readonly u8 *Sea
 void 
 ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
 {
+    printf("\n\n************************\n  %s  \n ******************** \n", path);
     FILE *File = (void *)0x00;
     File = fopen(path, "r");
     ASSERT(File);
     
-    u32 j = 0;
-    u32 i = 1;
+    //u32 j = 0;
+    //u32 i = 1;
     
     u32 BytesToRead = GetFileSize(path);
-    u8 *Shader = calloc(BytesToRead + 10,  sizeof(u8));
+    u8 *Shader = calloc( ( BytesToRead + 10 ),  sizeof(u8));
     
     ASSERT(Shader);
     
     // ZERO INITIALIZATION
-    for(u32 i = 0; i < BytesToRead + 10; i++)
+    for(u32 i = 0; i < ( BytesToRead + 10 ); i++)
     {
         *(Shader + i) = 0x00;
     }
     
     // WRITE FILE INTO BUFFER
-    for(u32 i = 0; i < BytesToRead; i++)
+    for(u32 i = 0; i < BytesToRead || *(Shader + i) == EOF; i++)
     {
         *(Shader + i) = fgetc(File);
     }
@@ -184,12 +185,12 @@ ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
     u32 FSpos = StringMatchKMP(Shader, BytesToRead, FRAGSEC) + sizeof(FRAGSEC);
     
     *(Shader + FSpos - sizeof(FRAGSEC) - 1) = '\0';
-    *(Shader + BytesToRead) = '\0';
+    //*(Shader + BytesToRead) = '\0';
     
     *ShaderProgram = CreateShaderProgram(Shader + VSpos, Shader + FSpos);
     
-    printf("========== Vertex Shader\n%s \n\n", Shader + VSpos);
-    printf("========== Fragment Shade\n%s \n\n", Shader + FSpos);
+    printf("========== Vertex Shader\n%s \nDONE\n\n", Shader + VSpos);
+    printf("========== Fragment Shader\n%s \nDONE\n\n", Shader + FSpos);
     
     //printf("String Match: %d \n", StringMatchKMP(Shader, BytesToRead, ENDSEC));
     //printf("String Match: %d \n", VSpos);

@@ -26,7 +26,7 @@ ECHO ************************************************************
 PUSHD build
 
 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
-SET path=p:\4coder\Projects\3DGraphicsSimple\build;%path%
+SET path=p:\4coder\Projects\SimpleGameEngine\build;%path%
 
 REM CL [option...] file... [option | file]... [lib...] [@command-file] [/link link-opt...]
 
