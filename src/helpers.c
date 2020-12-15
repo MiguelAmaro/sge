@@ -287,7 +287,7 @@ CreateShaderProgram(readonly u8* vertexShaderSource, readonly u8* fragmentShader
 
 
 GLenum 
-glCheckError_(const char *file, int line)
+GL_CheckError_(readonly u8 *file, u32 line)
 {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR)
@@ -296,7 +296,7 @@ glCheckError_(const char *file, int line)
         switch (errorCode)
         {
             case GL_INVALID_ENUM:                  strcpy(error, "INVALID_ENUM\0" ); break;
-            case GL_INVALID_VALUE:                 strcpy(error, "INVALID_VALUE\0"); break;
+            case GL_INVALID_VALUE:                 strcpy(error, "INVALID_VALUE\0"); break; 
             case GL_INVALID_OPERATION:             strcpy(error, "INVALID_OPERATION\0"); break;
             case GL_STACK_OVERFLOW:                strcpy(error, "STACK_OVERFLOW\0"); break;
             case GL_STACK_UNDERFLOW:               strcpy(error, "STACK_UNDERFLOW\0"); break;
@@ -308,3 +308,33 @@ glCheckError_(const char *file, int line)
     return errorCode;
 }
 
+b32 GL_Log(readonly u8 *file, readonly u32 line, readonly u8* function)
+{
+    GLenum errorCode;
+    while (errorCode = glGetError())
+    {
+        u8 error[100];
+        switch (errorCode)
+        {
+            case GL_INVALID_ENUM:                  strcpy(error, "INVALID_ENUM" ); break;
+            case GL_INVALID_VALUE:                 strcpy(error, "INVALID_VALUE"); break; 
+            case GL_INVALID_OPERATION:             strcpy(error, "INVALID_OPERATION"); break;
+            case GL_STACK_OVERFLOW:                strcpy(error, "STACK_OVERFLOW"); break;
+            case GL_STACK_UNDERFLOW:               strcpy(error, "STACK_UNDERFLOW"); break;
+            case GL_OUT_OF_MEMORY:                 strcpy(error, "OUT_OF_MEMORY"); break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: strcpy(error, "INVALID_FRAMEBUFFER_OPERATION"); break;
+        }
+        printf("%s | %s ( %d ) %s \r\n", error, file, line, function);
+        
+        return false;
+    }
+    
+    return true;
+}
+
+void GL_ClearError(void)
+{
+    while(glGetError() != GL_NO_ERROR);
+    
+    return;
+}

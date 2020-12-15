@@ -14,9 +14,20 @@
 #include <stdio.h>
 #include <LAL.h>
 
+#define DEBUGASSERT(expression) if(!expression) __debugbreak();
 
-#define glCheckError() glCheckError_(__FILE__, __LINE__) 
-GLenum glCheckError_(const char *file, int line);
+#define GL_CheckError() GL_CheckError_(__FILE__, __LINE__)
+
+GLenum  GL_CheckError_(readonly u8 *file, u32 line);
+
+#define GL_Call(function) GL_ClearError();\
+function;\
+GL_Log(__FILE__, __LINE__, #function);
+
+b32 GL_Log(readonly u8 *file, readonly u32 line, readonly u8 *function);
+
+void GL_ClearError(void);
+
 
 // NOTE(MIGUEL): Change name of this function???
 void InitElement(u32 EBO, u32 VertexBuffer, u32 VertexAttributes, f32* elementVertices, u32 sizeVertBuffer, u32 *indices, u32 sizeOfIndicies);

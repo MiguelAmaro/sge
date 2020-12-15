@@ -32,7 +32,6 @@ internal u32 CubeVAO;
 internal u32 CubeVBO;
 internal u32 CubeEBO;
 
-
 internal u32 VertexArrayObject;
 internal u32 VertexBufferElement;
 internal u32 EBO;
@@ -42,7 +41,7 @@ internal u32 VertexAttributes;
 // CREATING A VERTEX BUFFER OBJECT
 // AND BINDING VERTEX BUFFER TO IT
 
-internal u32 VertexBuffer;
+internal u32 TriVertexBuffer;
 internal f32 TriVerts[18];
 
 // DEFINING VERTEX BUFFER
@@ -57,10 +56,13 @@ internal u32 textureVAO;
 internal u32 textureEBO;
 internal u32 texture_texture;
 
+internal u32 SpriteShader;
 internal u32 spriteVBO;
 internal u32 spriteVAO;
-internal u32 SpriteShader;
-internal u32 Sprite_texture;
+internal u32 sprite_texture;
+internal u32 ufrm_sprite_model;
+internal u32 ufrm_sprite_color;
+internal u32 ufrm_sprite_projection;
 
 void GraphicsSetup();
 void UpdateAndRender(GLFWwindow *window);
