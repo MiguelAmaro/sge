@@ -6,7 +6,7 @@
 
 void DisplayMatrix(mat4 matrix, u8 *string)
 {
-    printf("Ya gotta write dis shit agaan");
+    //printf("Ya gotta write dis shit agaan");
 }
 
 // NOTE(MIGUEL): This is old hear just to hold things together until  ReadAShaderFile is done
@@ -27,7 +27,7 @@ ReadAFile(u8 *Buffer, u32 BytesToRead, readonly u8* path)
 void 
 BuildPrefixSuffixTable(u32* table, u32 table_size,readonly u8 *SearchTerm)
 {
-    printf("Before: %p \n", table);
+    //printf("Before: %p \n", table);
     //printf("Before: %p \n", table);
     u32* tableOG = table;
     u32 i = 1;
@@ -134,7 +134,7 @@ u32 StringMatchKMP(readonly u8 *Text, readonly u32 BytesToRead, readonly u8 *Sea
             }
         }
     }
-    printf("MATCH: i = %d - %d = j = %d \n", i , j, (i -j));
+    //printf("MATCH: i = %d - %d = j = %d \n", i , j, (i -j));
     //printf("After : %p \n", table);
     
     ASSERT(table == tableCopy);
@@ -153,7 +153,7 @@ u32 StringMatchKMP(readonly u8 *Text, readonly u32 BytesToRead, readonly u8 *Sea
 void 
 ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
 {
-    printf("\n\n************************\n  %s  \n ******************** \n", path);
+    //printf("\n\n************************\n  %s  \n ******************** \n", path);
     FILE *File = (void *)0x00;
     File = fopen(path, "r");
     ASSERT(File);
@@ -178,7 +178,7 @@ ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
         *(Shader + i) = fgetc(File);
     }
     
-    printf("\n\n************************\n  %s \nsize: %d \n ******************** \n", path, BytesToRead);
+    //printf("\n\n************************\n  %s \nsize: %d \n ******************** \n", path, BytesToRead);
     //printf("Shader\n %s \n\n", Shader);
     
     u32 VSpos = StringMatchKMP(Shader, BytesToRead, VERTSEC) + sizeof(VERTSEC);
@@ -189,8 +189,8 @@ ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
     
     *ShaderProgram = CreateShaderProgram(Shader + VSpos, Shader + FSpos);
     
-    printf("========== Vertex Shader\n%s \nDONE\n\n", Shader + VSpos);
-    printf("========== Fragment Shader\n%s \nDONE\n\n", Shader + FSpos);
+    //printf("========== Vertex Shader\n%s \nDONE\n\n", Shader + VSpos);
+    //printf("========== Fragment Shader\n%s \nDONE\n\n", Shader + FSpos);
     
     //printf("String Match: %d \n", StringMatchKMP(Shader, BytesToRead, ENDSEC));
     //printf("String Match: %d \n", VSpos);
@@ -324,7 +324,7 @@ b32 GL_Log(readonly u8 *file, readonly u32 line, readonly u8* function)
             case GL_OUT_OF_MEMORY:                 strcpy(error, "OUT_OF_MEMORY"); break;
             case GL_INVALID_FRAMEBUFFER_OPERATION: strcpy(error, "INVALID_FRAMEBUFFER_OPERATION"); break;
         }
-        printf("%s | %s ( %d ) %s \r\n", error, file, line, function);
+        printf("%s | %s ( %d ) | %s \r\n", error, file, line, function);
         
         return false;
     }

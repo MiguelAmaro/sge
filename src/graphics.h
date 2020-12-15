@@ -64,6 +64,7 @@ internal u32 ufrm_sprite_model;
 internal u32 ufrm_sprite_color;
 internal u32 ufrm_sprite_projection;
 
+internal u32 nick_texture;
 void GraphicsSetup();
 void UpdateAndRender(GLFWwindow *window);
 void DrawElement(GLFWwindow *window, u32 VertexAttributes, u32 shaderProgram, u32 VBO, u32 numIndices);

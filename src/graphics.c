@@ -228,9 +228,10 @@ void GraphicsSetup()
     
     // LOAD TEXTURE
     s32 width, height, nrChannels;
-    u8 *data = stbi_load("../res/images/container.jpg", &width, &height, &nrChannels, 0); 
+    u8 *data = stbi_load("../res/images/container.jpg", &width, &height, &nrChannels, STBI_rgb); 
     if(data)
     {
+        //printf("Tex Data: \n %s \n", data);
         // NOTE(MIGUEL): NO AFFECT
         GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data));
         GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
@@ -272,29 +273,9 @@ void GraphicsSetup()
     GL_Call(glBindBuffer(GL_ARRAY_BUFFER, spriteVBO));
     GL_Call(glBufferData(GL_ARRAY_BUFFER, sizeof(sprite_vertices), sprite_vertices, GL_DYNAMIC_DRAW));
     
-    GL_Call(glBindVertexArray(spriteVAO);
-            GL_Call(glEnableVertexAttribArray(0));
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)0x00));
-    GL_Call(glBindBuffer(GL_ARRAY_BUFFER, 0));
-    GL_Call(glBindVertexArray(0));
-    
-    GL_CheckError();
-    
-    // LOAD TEXTURE
-    s32 sprite_tex_width, sprite_tex_height, sprite_nrChannels;
-    u8 *sprite_tex_data = stbi_load("../res/images/cross.png", &width, &height, &nrChannels, 0); 
-    if(data)
-    {
-        // NOTE(MIGUEL): NO AFFECT
-        GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sprite_tex_width, sprite_tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, sprite_tex_data));
-        GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
-    }
-    else
-    {
-        printf("Failed to load texture");
-    }
-    
-    stbi_image_free(sprite_tex_data);
+    GL_Call(glBindVertexArray(spriteVAO));
+    GL_Call(glEnableVertexAttribArray(0));
+    GL_Call(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)0x00));
     
     
     // THE AFFECTS OF THIS MIGHT NOT BE APPARENT UNSLESS THERE ARE CERTAIN CONDITIONS
@@ -306,6 +287,27 @@ void GraphicsSetup()
     // CONFIGURE OPENGL FILTERING OPTIONS
     GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    
+    GL_Call(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, texture_border_color)); 
+    
+    // LOAD TEXTURE
+    s32 sprite_tex_width, sprite_tex_height, sprite_nrChannels;
+    stbi_set_flip_vertically_on_load(true);  
+    u8 *sprite_tex_data = stbi_load("../res/images/geo.png", &sprite_tex_width, &sprite_tex_height, &sprite_nrChannels, STBI_rgb_alpha); 
+    if(sprite_tex_data)
+    {
+        //printf("Tex Data: \n %d | %d | %s  \n", sprite_tex_width, sprite_tex_height, sprite_tex_data);
+        //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        // NOTE(MIGUEL): NO AFFECT
+        GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite_tex_width, sprite_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sprite_tex_data));
+        GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
+    }
+    else
+    {
+        printf("Failed to load texture");
+    }
+    
+    stbi_image_free(sprite_tex_data);
     
     
     // THIS SHADER MAyBE FUCKED UP
@@ -328,6 +330,41 @@ void GraphicsSetup()
     GL_Call(glBindVertexArray(0));
     
     
+    //~ CREATE JUST A TEXTURE
+    
+    
+    // THE AFFECTS OF THIS MIGHT NOT BE APPARENT UNSLESS THERE ARE CERTAIN CONDITIONS
+    GL_Call(glGenTextures(1, &nick_texture));
+    GL_Call(glBindTexture(GL_TEXTURE_2D, nick_texture));
+    // CONFIGUE OPENGL WRAPPING OPTIONS
+    GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT));
+    GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT));
+    // CONFIGURE OPENGL FILTERING OPTIONS
+    GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    
+    //GL_Call(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, texture_border_color)); 
+    
+    // LOAD TEXTURE
+    s32 nick_tex_width, nick_tex_height, nick_nrChannels;
+    u8 *nick_tex_data = stbi_load("../res/images/nick.png", &nick_tex_width, &nick_tex_height, &nick_nrChannels, STBI_rgb_alpha); 
+    if(nick_tex_data)
+    {
+        //printf("Tex Data: \n %d | %d | %s  \n", sprite_tex_width, sprite_tex_height, sprite_tex_data);
+        //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        // NOTE(MIGUEL): NO AFFECT
+        GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, nick_tex_width, nick_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nick_tex_data));
+        GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
+    }
+    else
+    {
+        printf("Failed to load texture");
+    }
+    
+    stbi_image_free(nick_tex_data);
+    
+    
+    
     //~UNIFORMS
     
     
@@ -335,7 +372,7 @@ void GraphicsSetup()
     TriangleColorLocation  = glGetUniformLocation(TriangleShader, "triangleColorOffset");
     TrianglePosOffset      = glGetUniformLocation(TriangleShader, "trianglePosOffset");
     ufrm_sprite_model      = glGetUniformLocation(SpriteShader, "model");
-    ufrm_sprite_model      = glGetUniformLocation(SpriteShader, "SpriteColor");
+    ufrm_sprite_color      = glGetUniformLocation(SpriteShader, "spriteColor");
     ufrm_sprite_projection = glGetUniformLocation(SpriteShader, "projection");
     
     
@@ -427,40 +464,111 @@ void UpdateAndRender(GLFWwindow *window)
     GL_Call(DrawTriangle(window, VertexAttributes, TriangleShader, TriVertexBuffer, TriVerts));
     
     
-    //~SPRITE RENDERER
+    //~SPRITE RENDERER_01
     
     static vec3 position = { 0.0f, 0.0f, 0.0f };
     static vec3 size = { 1.0f, 1.0f, 0.0f };
-    static vec3 color = { 1.0f, 1.0f, 0.0f };
+    static vec3 color = { 1.0f, 1.0f, 1.0f };
     static vec2 size2 = { 1.0f, 1.0f };
-    static f32 rotate = 0;
+    static f32 rotate = 10;
+    static vec3 scalefactor = { 0 };
+    
+    
+    scalefactor[0] = size[0];
+    scalefactor[1] = size[1];
+    scalefactor[2] = 1.0f;
+    
+    rotate++;
     
     GL_Call(glUseProgram(SpriteShader));
+    
     mat4 model = GLM_MAT4_IDENTITY_INIT; // constructor
     glm_translate(model, position );
     
-    size[0] *= 0.5f;
-    size[1] *= 0.5f;
+    size[0] += 0.5f;
+    size[1] += 1.0f;
     glm_translate(model, size); 
     glm_rotate(model, glm_rad(rotate),(vec3){0.0f, 0.0f, 1.0f}); 
-    size[0] *= -0.5f;
-    size[1] *= -0.5f;
-    glm_translate(model, size);
+    //size[0] += -0.5f;
+    //size[1] += -0.5f;
     
-    vec3 scalefactor = { size[0], size[1], 1.0f };
+    //glm_translate(model, size);
+    
     glm_scale(model, scalefactor); 
     
-    GL_Call(glUniform3f(ufrm_sprite_model, color[0],color[1], color[2]));
+    GL_Call(glUniform3f(ufrm_sprite_color, color[0],color[1], color[2]));
     GL_Call(glUniformMatrix4fv(ufrm_sprite_model, 1, GL_FALSE, (f32 *)model));
     
     
     GL_Call(glActiveTexture(GL_TEXTURE1));
     GL_Call(glBindTexture(GL_TEXTURE_2D, sprite_texture));
     
+    // Enables the alpha channel
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    //glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    
     GL_Call(glBindVertexArray(spriteVAO));
     GL_Call(glDrawArrays(GL_TRIANGLES, 0, 6));
     GL_Call(glBindVertexArray(0));
     
+    
+    
+    //~SPRITE RENDERER_02
+    
+    static vec3 nposition = { 0.0f, 1.0f, 0.0f };
+    static vec3 nsize = { 1.0f, 1.0f, 0.0f };
+    static vec3 ncolor = { 1.0f, 1.0f, 1.0f };
+    static vec2 nsize2 = { 1.0f, 1.0f };
+    static f32 nrotate = 10;
+    static vec3 nscalefactor = { 0 };
+    
+    
+    nscalefactor[0] = cos(timeValue) * nsize[0];
+    nscalefactor[1] = sin(timeValue) * nsize[1];
+    nscalefactor[2] = 1.0f;
+    
+    nposition[0] *= cos(timeValue);
+    nposition[1] *= sin(timeValue);
+    
+    nrotate++;
+    
+    GL_Call(glUseProgram(SpriteShader));
+    
+    mat4 nmodel = GLM_MAT4_IDENTITY_INIT; // constructor
+    glm_translate(nmodel, nposition );
+    
+    nsize[0] += 0.5f;
+    nsize[1] += 1.0f;
+    //glm_translate(nmodel, nsize); 
+    //glm_rotate(nmodel, glm_rad(rotate),(vec3){0.0f, 0.0f, 1.0f}); 
+    //size[0] += -0.5f;
+    //size[1] += -0.5f;
+    
+    //glm_translate(nmodel, nsize);
+    
+    glm_scale(nmodel, nscalefactor); 
+    
+    GL_Call(glUniform3f(ufrm_sprite_color, ncolor[0],ncolor[1], ncolor[2]));
+    GL_Call(glUniformMatrix4fv(ufrm_sprite_model, 1, GL_FALSE, (f32 *)nmodel));
+    
+    
+    GL_Call(glActiveTexture(GL_TEXTURE1));
+    GL_Call(glBindTexture(GL_TEXTURE_2D, nick_texture));
+    
+    // Enables the alpha channel
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    //glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    
+    GL_Call(glBindVertexArray(spriteVAO));
+    GL_Call(glDrawArrays(GL_TRIANGLES, 0, 6));
+    GL_Call(glBindVertexArray(0));
+    
+    
+    //~UPDATE STATE
     glfwSwapBuffers(window);
     
     timeValue = glfwGetTime();

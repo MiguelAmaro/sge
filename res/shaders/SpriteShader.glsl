@@ -24,6 +24,6 @@ uniform vec3 spriteColor;
 
 void main()
 {    
-    color = vec4(1.0,1.0,1.0, 1.0) * texture(sprite_texture, TexCoords);
+    color = vec4(spriteColor, 1.0) * texture(sprite_texture, TexCoords);
 }
 
