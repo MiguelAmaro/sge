@@ -1,0 +1,2057 @@
+ SGE
+
+ Timestamp is 6062b97c (Tue Mar 30 01:39:08 2021)
+
+ Preferred load address is 0000000180000000
+
+ Start         Length     Name                   Class
+ 0001:00000000 000094c0H .text$mn                CODE
+ 0001:000094c0 0000103eH .text$mn$00             CODE
+ 0001:0000a4fe 000010b6H .text$x                 CODE
+ 0002:00000000 00000110H .CRT$XCA                DATA
+ 0002:00000110 00000110H .CRT$XCZ                DATA
+ 0002:00000220 00000110H .CRT$XIA                DATA
+ 0002:00000330 00000110H .CRT$XIZ                DATA
+ 0002:00000440 00000110H .CRT$XPA                DATA
+ 0002:00000550 00000110H .CRT$XPZ                DATA
+ 0002:00000660 00000110H .CRT$XTA                DATA
+ 0002:00000770 00000110H .CRT$XTZ                DATA
+ 0002:00000880 00000380H .rdata                  DATA
+ 0002:00000c00 00000110H .rdata$CastGuardVftablesA DATA
+ 0002:00000d10 0000010cH .rdata$CastGuardVftablesC DATA
+ 0002:00000e1c 00000164H .rdata$zzzdbg           DATA
+ 0002:00000f80 00000110H .rtc$IAA                DATA
+ 0002:00001090 00000110H .rtc$IZZ                DATA
+ 0002:000011a0 00000110H .rtc$TAA                DATA
+ 0002:000012b0 00000110H .rtc$TZZ                DATA
+ 0002:000013c0 000006d0H .xdata                  DATA
+ 0002:00001a90 00000167H .edata                  DATA
+ 0003:00000000 00005b10H .data                   DATA
+ 0003:00005b10 00002279H .bss                    DATA
+ 0004:00000000 0000063cH .pdata                  DATA
+ 0005:00000000 00000400H .idata$5                DATA
+ 0005:00000400 0000008cH .idata$2                DATA
+ 0005:0000048c 00000014H .idata$3                DATA
+ 0005:000004a0 00000400H .idata$4                DATA
+ 0005:000008a0 000005beH .idata$6                DATA
+ 0006:00000000 00000151H .00cfg                  DATA
+
+  Address         Publics by Value              Rva+Base               Lib:Object
+
+ 0000:00000000       __guard_iat_count          0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_count      0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata_count 0000000000000000     <absolute>
+ 0000:00000000       __enclave_config           0000000000000000     <absolute>
+ 0000:00000000       __dynamic_value_reloc_table 0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points 0000000000000000     <absolute>
+ 0000:00000000       __guard_longjmp_table      0000000000000000     <absolute>
+ 0000:00000000       __AbsoluteZero             0000000000000000     <absolute>
+ 0000:00000000       __arm64x_redirection_metadata 0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_table         0000000000000000     <absolute>
+ 0000:00000000       __guard_eh_cont_table      0000000000000000     <absolute>
+ 0000:00000000       __guard_fids_count         0000000000000000     <absolute>
+ 0000:00000000       __arm64x_extra_rfe_table   0000000000000000     <absolute>
+ 0000:00000000       __arm64x_native_entrypoint 0000000000000000     <absolute>
+ 0000:00000000       __hybrid_auxiliary_iat     0000000000000000     <absolute>
+ 0000:00000000       __guard_eh_cont_count      0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_table   0000000000000000     <absolute>
+ 0000:00000000       __hybrid_code_map          0000000000000000     <absolute>
+ 0000:00000000       __x64_code_ranges_to_entry_points_count 0000000000000000     <absolute>
+ 0000:00000000       __volatile_metadata        0000000000000000     <absolute>
+ 0000:00000000       __guard_iat_table          0000000000000000     <absolute>
+ 0000:00000000       __arm64x_extra_rfe_table_size 0000000000000000     <absolute>
+ 0000:00000000       ___safe_se_handler_count   0000000000000000     <absolute>
+ 0000:00000000       __hybrid_code_map_count    0000000000000000     <absolute>
+ 0000:00000100       __guard_flags              0000000000000100     <absolute>
+ 0000:00000000       __ImageBase                0000000180000000     <linker-defined>
+ 0001:00000440       SGEInitStub                0000000180001440 f   SGE.obj
+ 0001:00000450       SGEUpdateStub              0000000180001450 f   SGE.obj
+ 0001:00000660       SGEInit                    0000000180001660 f   SGE.obj
+ 0001:00000670       SGEUpdate                  0000000180001670 f   SGE.obj
+ 0001:00000d90       glm_vec3_copy              0000000180001d90 f i SGE.obj
+ 0001:00000e30       gladLoadGL                 0000000180001e30 f   glad.obj
+ 0001:00000e70       gladLoadGLLoader           0000000180001e70 f   glad.obj
+ 0001:00005c70       __local_stdio_scanf_options 0000000180006c70 f i glad.obj
+ 0001:00005c80       _vsscanf_s_l               0000000180006c80 f i glad.obj
+ 0001:00005cf0       sscanf_s                   0000000180006cf0 f i glad.obj
+ 0001:00005d50       vsscanf_s                  0000000180006d50 f i glad.obj
+ 0001:00005d90       GL_CheckError_             0000000180006d90 f   Win32_OpenGL.obj
+ 0001:00005f30       GL_Log                     0000000180006f30 f   Win32_OpenGL.obj
+ 0001:000060e0       GL_ClearError              00000001800070e0 f   Win32_OpenGL.obj
+ 0001:00006100       win32_OpenGL_draw_sprite   0000000180007100 f   Win32_OpenGL.obj
+ 0001:00006330       OpenGL_VertexBuffer_Create 0000000180007330 f   Win32_OpenGL.obj
+ 0001:000063f0       OpenGL_VertexBuffer_Destroy 00000001800073f0 f   Win32_OpenGL.obj
+ 0001:00006430       OpenGL_VertexBuffer_Bind   0000000180007430 f   Win32_OpenGL.obj
+ 0001:00006470       OpenGL_VertexBuffer_Unbind 0000000180007470 f   Win32_OpenGL.obj
+ 0001:000064b0       OpenGL_IndexBuffer_Create  00000001800074b0 f   Win32_OpenGL.obj
+ 0001:00006570       OpenGL_IndexBuffer_Destroy 0000000180007570 f   Win32_OpenGL.obj
+ 0001:000065b0       OpenGL_IndexBuffer_Bind    00000001800075b0 f   Win32_OpenGL.obj
+ 0001:000065f0       OpenGL_IndexBuffer_Unbind  00000001800075f0 f   Win32_OpenGL.obj
+ 0001:00006850       __local_stdio_printf_options 0000000180007850 f i Win32_OpenGL.obj
+ 0001:00006860       _vfprintf_l                0000000180007860 f i Win32_OpenGL.obj
+ 0001:000068c0       printf                     00000001800078c0 f i Win32_OpenGL.obj
+ 0001:00006930       __GSHandlerCheck           0000000180007930 f   MSVCRT:gshandler.obj
+ 0001:00006954       __GSHandlerCheckCommon     0000000180007954 f   MSVCRT:gshandler.obj
+ 0001:000069e0       __security_check_cookie    00000001800079e0 f   MSVCRT:amdsecgs.obj
+ 0001:00006e18       _CRT_INIT                  0000000180007e18 f   MSVCRT:dll_dllmain.obj
+ 0001:00006e20       _DllMainCRTStartup         0000000180007e20 f   MSVCRT:dll_dllmain.obj
+ 0001:00006e6c       __raise_securityfailure    0000000180007e6c f   MSVCRT:gs_report.obj
+ 0001:00006eb0       __report_gsfailure         0000000180007eb0 f   MSVCRT:gs_report.obj
+ 0001:00006fb8       __report_rangecheckfailure 0000000180007fb8 f   MSVCRT:gs_report.obj
+ 0001:00006fd0       __report_securityfailure   0000000180007fd0 f   MSVCRT:gs_report.obj
+ 0001:00007094       __report_securityfailureEx 0000000180008094 f   MSVCRT:gs_report.obj
+ 0001:00007388       __security_init_cookie     0000000180008388 f   MSVCRT:gs_support.obj
+ 0001:00007460       DllMain                    0000000180008460 f   MSVCRT:dll_dllmain_stub.obj
+ 0001:0000748c       ?__scrt_initialize_type_info@@YAXXZ 000000018000848c f   MSVCRT:tncleanup.obj
+ 0001:000074a0       ?__scrt_uninitialize_type_info@@YAXXZ 00000001800084a0 f   MSVCRT:tncleanup.obj
+ 0001:000074b0       __scrt_initialize_default_local_stdio_options 00000001800084b0 f   MSVCRT:default_local_stdio_options.obj
+ 0001:000074d4       ?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 00000001800084d4 f i MSVCRT:utility.obj
+ 0001:0000754c       ?initialize_environment@__scrt_narrow_environment_policy@@SAHXZ 000000018000854c f i MSVCRT:utility.obj
+ 0001:00007590       NtCurrentTeb               0000000180008590 f i MSVCRT:utility.obj
+ 0001:0000759c       __scrt_acquire_startup_lock 000000018000859c f   MSVCRT:utility.obj
+ 0001:000075e4       __scrt_dllmain_after_initialize_c 00000001800085e4 f   MSVCRT:utility.obj
+ 0001:00007628       __scrt_dllmain_before_initialize_c 0000000180008628 f   MSVCRT:utility.obj
+ 0001:00007644       __scrt_dllmain_crt_thread_attach 0000000180008644 f   MSVCRT:utility.obj
+ 0001:00007678       __scrt_dllmain_crt_thread_detach 0000000180008678 f   MSVCRT:utility.obj
+ 0001:00007694       __scrt_dllmain_exception_filter 0000000180008694 f   MSVCRT:utility.obj
+ 0001:0000770c       __scrt_dllmain_uninitialize_c 000000018000870c f   MSVCRT:utility.obj
+ 0001:00007748       __scrt_dllmain_uninitialize_critical 0000000180008748 f   MSVCRT:utility.obj
+ 0001:00007764       __scrt_initialize_crt      0000000180008764 f   MSVCRT:utility.obj
+ 0001:000077c0       __scrt_initialize_onexit_tables 00000001800087c0 f   MSVCRT:utility.obj
+ 0001:00007870       __scrt_is_nonwritable_in_current_image 0000000180008870 f   MSVCRT:utility.obj
+ 0001:00007930       __scrt_release_startup_lock 0000000180008930 f   MSVCRT:utility.obj
+ 0001:00007960       __scrt_uninitialize_crt    0000000180008960 f   MSVCRT:utility.obj
+ 0001:00007994       _onexit                    0000000180008994 f   MSVCRT:utility.obj
+ 0001:000079dc       at_quick_exit              00000001800089dc f   MSVCRT:utility.obj
+ 0001:00007a00       atexit                     0000000180008a00 f   MSVCRT:utility.obj
+ 0001:00007a1c       __scrt_get_dyn_tls_init_callback 0000000180008a1c f   MSVCRT:dyn_tls_init.obj
+ 0001:00007a28       __crt_debugger_hook        0000000180008a28 f   MSVCRT:utility_desktop.obj
+ 0001:00007a34       __scrt_fastfail            0000000180008a34 f   MSVCRT:utility_desktop.obj
+ 0001:00007bd0       __scrt_get_show_window_mode 0000000180008bd0 f   MSVCRT:utility_desktop.obj
+ 0001:00007c18       __scrt_initialize_mta      0000000180008c18 f   MSVCRT:utility_desktop.obj
+ 0001:00007c20       __scrt_initialize_winrt    0000000180008c20 f   MSVCRT:utility_desktop.obj
+ 0001:00007c24       __scrt_is_managed_app      0000000180008c24 f   MSVCRT:utility_desktop.obj
+ 0001:00007c8c       __scrt_set_unhandled_exception_filter 0000000180008c8c f   MSVCRT:utility_desktop.obj
+ 0001:00007ca0       __scrt_stub_for_initialize_mta 0000000180008ca0 f   MSVCRT:utility_desktop.obj
+ 0001:00007ca0       __scrt_exe_initialize_mta  0000000180008ca0 f   MSVCRT:utility_desktop.obj
+ 0001:00007ca4       __scrt_unhandled_exception_filter 0000000180008ca4 f   MSVCRT:utility_desktop.obj
+ 0001:00007d18       _RTC_Initialize            0000000180008d18 f   MSVCRT:initsect.obj
+ 0001:00007d64       _RTC_Terminate             0000000180008d64 f   MSVCRT:initsect.obj
+ 0001:00007db0       _guard_check_icall_nop     0000000180008db0 f i MSVCRT:guard_support.obj
+ 0001:00007db4       ReadNoFence64              0000000180008db4 f i MSVCRT:guard_support.obj
+ 0001:00007db8       ReadPointerNoFence         0000000180008db8 f i MSVCRT:guard_support.obj
+ 0001:00007dbc       __castguard_check_failure_debugbreak 0000000180008dbc f i MSVCRT:guard_support.obj
+ 0001:00007de0       __castguard_check_failure_fastfail 0000000180008de0 f i MSVCRT:guard_support.obj
+ 0001:00007e0c       __castguard_check_failure_nop 0000000180008e0c f i MSVCRT:guard_support.obj
+ 0001:00007e10       __castguard_check_failure_os_handled 0000000180008e10 f i MSVCRT:guard_support.obj
+ 0001:00007e84       __castguard_slow_path_check_debugbreak 0000000180008e84 f i MSVCRT:guard_support.obj
+ 0001:00007ec8       __castguard_slow_path_check_fastfail 0000000180008ec8 f i MSVCRT:guard_support.obj
+ 0001:00007f10       __castguard_slow_path_check_nop 0000000180008f10 f i MSVCRT:guard_support.obj
+ 0001:00007f14       __castguard_slow_path_check_os_handled 0000000180008f14 f i MSVCRT:guard_support.obj
+ 0001:00007fa0       _guard_icall_checks_enforced 0000000180008fa0 f i MSVCRT:guard_support.obj
+ 0001:00007fbc       _guard_rf_checks_enforced  0000000180008fbc f i MSVCRT:guard_support.obj
+ 0001:00007fc0       __isa_available_init       0000000180008fc0 f   MSVCRT:cpu_disp.obj
+ 0001:000081cc       _get_startup_argv_mode     00000001800091cc f   MSVCRT:argv_mode.obj
+ 0001:000081d4       __scrt_is_ucrt_dll_in_use  00000001800091d4 f   MSVCRT:ucrt_detection.obj
+ 0001:000081f0       FreeLibrary                00000001800091f0 f   kernel32:KERNEL32.dll
+ 0001:000081f6       GetProcAddress             00000001800091f6 f   kernel32:KERNEL32.dll
+ 0001:000081fc       LoadLibraryW               00000001800091fc f   kernel32:KERNEL32.dll
+ 0001:00008202       RtlCaptureContext          0000000180009202 f   kernel32:KERNEL32.dll
+ 0001:00008208       RtlLookupFunctionEntry     0000000180009208 f   kernel32:KERNEL32.dll
+ 0001:0000820e       RtlVirtualUnwind           000000018000920e f   kernel32:KERNEL32.dll
+ 0001:00008214       UnhandledExceptionFilter   0000000180009214 f   kernel32:KERNEL32.dll
+ 0001:0000821a       SetUnhandledExceptionFilter 000000018000921a f   kernel32:KERNEL32.dll
+ 0001:00008220       GetCurrentProcess          0000000180009220 f   kernel32:KERNEL32.dll
+ 0001:00008226       TerminateProcess           0000000180009226 f   kernel32:KERNEL32.dll
+ 0001:0000822c       IsProcessorFeaturePresent  000000018000922c f   kernel32:KERNEL32.dll
+ 0001:00008232       QueryPerformanceCounter    0000000180009232 f   kernel32:KERNEL32.dll
+ 0001:00008238       GetCurrentProcessId        0000000180009238 f   kernel32:KERNEL32.dll
+ 0001:0000823e       GetCurrentThreadId         000000018000923e f   kernel32:KERNEL32.dll
+ 0001:00008244       GetSystemTimeAsFileTime    0000000180009244 f   kernel32:KERNEL32.dll
+ 0001:0000824a       DisableThreadLibraryCalls  000000018000924a f   kernel32:KERNEL32.dll
+ 0001:00008250       InitializeSListHead        0000000180009250 f   kernel32:KERNEL32.dll
+ 0001:00008256       IsDebuggerPresent          0000000180009256 f   kernel32:KERNEL32.dll
+ 0001:0000825c       GetStartupInfoW            000000018000925c f   kernel32:KERNEL32.dll
+ 0001:00008262       GetModuleHandleW           0000000180009262 f   kernel32:KERNEL32.dll
+ 0001:00008268       __C_specific_handler       0000000180009268 f   vcruntime:VCRUNTIME140.dll
+ 0001:0000826e       __std_type_info_destroy_list 000000018000926e f   vcruntime:VCRUNTIME140.dll
+ 0001:00008274       __current_exception        0000000180009274 f   vcruntime:VCRUNTIME140.dll
+ 0001:0000827a       __current_exception_context 000000018000927a f   vcruntime:VCRUNTIME140.dll
+ 0001:00008280       memset                     0000000180009280 f   vcruntime:VCRUNTIME140.dll
+ 0001:00008286       sin                        0000000180009286 f   ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0001:0000828c       __stdio_common_vsscanf     000000018000928c f   ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0001:00008292       free                       0000000180009292 f   ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0001:00008298       malloc                     0000000180009298 f   ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0001:0000829e       strncmp                    000000018000929e f   ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0001:000082a4       __acrt_iob_func            00000001800092a4 f   ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0001:000082aa       __stdio_common_vfprintf    00000001800092aa f   ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0001:000082b0       _initterm                  00000001800092b0 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082b6       _initterm_e                00000001800092b6 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082bc       _seh_filter_dll            00000001800092bc f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082c2       _configure_narrow_argv     00000001800092c2 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082c8       _initialize_narrow_environment 00000001800092c8 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082ce       _initialize_onexit_table   00000001800092ce f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082d4       _register_onexit_function  00000001800092d4 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082da       _execute_onexit_table      00000001800092da f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082e0       _crt_atexit                00000001800092e0 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082e6       _crt_at_quick_exit         00000001800092e6 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082ec       _cexit                     00000001800092ec f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082f2       terminate                  00000001800092f2 f   ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0001:000082f8       __vcrt_initialize          00000001800092f8 f   MSVCRT:ucrt_stubs.obj
+ 0001:000082f8       __acrt_initialize          00000001800092f8 f   MSVCRT:ucrt_stubs.obj
+ 0001:000082f8       __scrt_stub_for_acrt_initialize 00000001800092f8 f   MSVCRT:ucrt_stubs.obj
+ 0001:000082fc       __acrt_thread_attach       00000001800092fc f   MSVCRT:ucrt_stubs.obj
+ 0001:000082fc       __vcrt_thread_attach       00000001800092fc f   MSVCRT:ucrt_stubs.obj
+ 0001:000082fc       __scrt_stub_for_acrt_thread_attach 00000001800092fc f   MSVCRT:ucrt_stubs.obj
+ 0001:00008300       __scrt_stub_for_acrt_thread_detach 0000000180009300 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008300       __vcrt_thread_detach       0000000180009300 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008300       __acrt_thread_detach       0000000180009300 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008304       __vcrt_uninitialize        0000000180009304 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008304       __scrt_stub_for_acrt_uninitialize 0000000180009304 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008304       __acrt_uninitialize        0000000180009304 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008308       __scrt_stub_for_acrt_uninitialize_critical 0000000180009308 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008308       __vcrt_uninitialize_critical 0000000180009308 f   MSVCRT:ucrt_stubs.obj
+ 0001:00008308       __acrt_uninitialize_critical 0000000180009308 f   MSVCRT:ucrt_stubs.obj
+ 0001:0000830c       _is_c_termination_complete 000000018000930c f   MSVCRT:ucrt_stubs.obj
+ 0001:0000830c       __scrt_stub_for_is_c_termination_complete 000000018000930c f   MSVCRT:ucrt_stubs.obj
+ 0001:000094d0       _guard_dispatch_icall_nop  000000018000a4d0 f   MSVCRT:guard_dispatch.obj
+ 0001:000094f0       _guard_xfg_dispatch_icall_nop 000000018000a4f0 f   MSVCRT:guard_xfg_dispatch.obj
+ 0002:00000000       __xc_a                     000000018000d000     MSVCRT:initializers.obj
+ 0002:00000110       __xc_z                     000000018000d110     MSVCRT:initializers.obj
+ 0002:00000220       __xi_a                     000000018000d220     MSVCRT:initializers.obj
+ 0002:00000330       __xi_z                     000000018000d330     MSVCRT:initializers.obj
+ 0002:00000440       __xp_a                     000000018000d440     MSVCRT:initializers.obj
+ 0002:00000550       __xp_z                     000000018000d550     MSVCRT:initializers.obj
+ 0002:00000660       __xt_a                     000000018000d660     MSVCRT:initializers.obj
+ 0002:00000770       __xt_z                     000000018000d770     MSVCRT:initializers.obj
+ 0002:00000880       __real@40000000            000000018000d880     SGE.obj
+ 0002:00000888       __real@401921fb54442eea    000000018000d888     SGE.obj
+ 0002:00000894       __real@41000000            000000018000d894     SGE.obj
+ 0002:00000898       __real@42c80000            000000018000d898     SGE.obj
+ 0002:0000089c       __real@43800000            000000018000d89c     SGE.obj
+ 0002:000008a0       __real@c3480000            000000018000d8a0     SGE.obj
+ 0002:000008b0       __xmm@80000000800000008000000080000000 000000018000d8b0     SGE.obj
+ 0002:000008c8       _pRawDllMain               000000018000d8c8     MSVCRT:dll_dllmain.obj
+ 0002:000008c8       _pDefaultRawDllMain        000000018000d8c8     MSVCRT:dll_dllmain.obj
+ 0002:000008f0       __xmm@ffffffffffffffffffffffffffffffff 000000018000d8f0     MSVCRT:utility.obj
+ 0002:00000940       _load_config_used          000000018000d940     MSVCRT:loadcfg.obj
+ 0002:00000c00       __CastGuardVftablesStart   000000018000dc00     MSVCRT:guard_support.obj
+ 0002:00000d10       __CastGuardVftablesEnd     000000018000dd10     MSVCRT:guard_support.obj
+ 0002:00000f80       __rtc_iaa                  000000018000df80     MSVCRT:initsect.obj
+ 0002:00001090       __rtc_izz                  000000018000e090     MSVCRT:initsect.obj
+ 0002:000011a0       __rtc_taa                  000000018000e1a0     MSVCRT:initsect.obj
+ 0002:000012b0       __rtc_tzz                  000000018000e2b0     MSVCRT:initsect.obj
+ 0003:000059c0       __security_cookie_complement 00000001800149c0     MSVCRT:gs_cookie.obj
+ 0003:000059c8       __security_cookie          00000001800149c8     MSVCRT:gs_cookie.obj
+ 0003:000059d4       _fltused                   00000001800149d4     MSVCRT:fltused.obj
+ 0003:000059d8       __scrt_native_dllmain_reason 00000001800149d8     MSVCRT:utility.obj
+ 0003:000059e0       __isa_available            00000001800149e0     MSVCRT:cpu_disp.obj
+ 0003:000059e4       __isa_enabled              00000001800149e4     MSVCRT:cpu_disp.obj
+ 0003:000059e8       __memcpy_nt_iters          00000001800149e8     MSVCRT:cpu_disp.obj
+ 0003:000059f0       __memset_nt_iters          00000001800149f0     MSVCRT:cpu_disp.obj
+ 0003:00005a00       __scrt_ucrt_dll_is_in_use  0000000180014a00     MSVCRT:ucrt_stubs.obj
+ 0003:00005b28       glad_glObjectLabel         0000000180014b28     glad.obj
+ 0003:00005b30       glad_glGetObjectLabel      0000000180014b30     glad.obj
+ 0003:00005b38       glad_glObjectPtrLabel      0000000180014b38     glad.obj
+ 0003:00005b40       glad_glGetObjectPtrLabel   0000000180014b40     glad.obj
+ 0003:00005b48       glad_glGetPointerv         0000000180014b48     glad.obj
+ 0003:00005b50       GLAD_GL_VERSION_4_4        0000000180014b50     glad.obj
+ 0003:00005b54       GLAD_GL_VERSION_4_5        0000000180014b54     glad.obj
+ 0003:00005b58       glad_glBufferStorage       0000000180014b58     glad.obj
+ 0003:00005b60       glad_glClearTexImage       0000000180014b60     glad.obj
+ 0003:00005b68       glad_glClearTexSubImage    0000000180014b68     glad.obj
+ 0003:00005b70       glad_glBindBuffersBase     0000000180014b70     glad.obj
+ 0003:00005b78       glad_glBindBuffersRange    0000000180014b78     glad.obj
+ 0003:00005b80       glad_glBindTextures        0000000180014b80     glad.obj
+ 0003:00005b88       glad_glBindSamplers        0000000180014b88     glad.obj
+ 0003:00005b90       glad_glBindImageTextures   0000000180014b90     glad.obj
+ 0003:00005b98       glad_glBindVertexBuffers   0000000180014b98     glad.obj
+ 0003:00005ba0       glad_glClipControl         0000000180014ba0     glad.obj
+ 0003:00005ba8       glad_glCreateTransformFeedbacks 0000000180014ba8     glad.obj
+ 0003:00005bb0       glad_glTransformFeedbackBufferBase 0000000180014bb0     glad.obj
+ 0003:00005bb8       glad_glTransformFeedbackBufferRange 0000000180014bb8     glad.obj
+ 0003:00005bc0       glad_glGetTransformFeedbackiv 0000000180014bc0     glad.obj
+ 0003:00005bc8       glad_glGetTransformFeedbacki_v 0000000180014bc8     glad.obj
+ 0003:00005bd0       glad_glGetTransformFeedbacki64_v 0000000180014bd0     glad.obj
+ 0003:00005bd8       glad_glCreateBuffers       0000000180014bd8     glad.obj
+ 0003:00005be0       glad_glNamedBufferStorage  0000000180014be0     glad.obj
+ 0003:00005be8       glad_glNamedBufferData     0000000180014be8     glad.obj
+ 0003:00005bf0       glad_glNamedBufferSubData  0000000180014bf0     glad.obj
+ 0003:00005bf8       glad_glCopyNamedBufferSubData 0000000180014bf8     glad.obj
+ 0003:00005c00       glad_glClearNamedBufferData 0000000180014c00     glad.obj
+ 0003:00005c08       glad_glClearNamedBufferSubData 0000000180014c08     glad.obj
+ 0003:00005c10       glad_glMapNamedBuffer      0000000180014c10     glad.obj
+ 0003:00005c18       glad_glMapNamedBufferRange 0000000180014c18     glad.obj
+ 0003:00005c20       glad_glUnmapNamedBuffer    0000000180014c20     glad.obj
+ 0003:00005c28       glad_glFlushMappedNamedBufferRange 0000000180014c28     glad.obj
+ 0003:00005c30       glad_glGetNamedBufferParameteriv 0000000180014c30     glad.obj
+ 0003:00005c38       glad_glGetNamedBufferParameteri64v 0000000180014c38     glad.obj
+ 0003:00005c40       glad_glGetNamedBufferPointerv 0000000180014c40     glad.obj
+ 0003:00005c48       glad_glGetNamedBufferSubData 0000000180014c48     glad.obj
+ 0003:00005c50       glad_glCreateFramebuffers  0000000180014c50     glad.obj
+ 0003:00005c58       glad_glNamedFramebufferRenderbuffer 0000000180014c58     glad.obj
+ 0003:00005c60       glad_glNamedFramebufferParameteri 0000000180014c60     glad.obj
+ 0003:00005c68       glad_glNamedFramebufferTexture 0000000180014c68     glad.obj
+ 0003:00005c70       glad_glNamedFramebufferTextureLayer 0000000180014c70     glad.obj
+ 0003:00005c78       glad_glNamedFramebufferDrawBuffer 0000000180014c78     glad.obj
+ 0003:00005c80       glad_glNamedFramebufferDrawBuffers 0000000180014c80     glad.obj
+ 0003:00005c88       glad_glNamedFramebufferReadBuffer 0000000180014c88     glad.obj
+ 0003:00005c90       glad_glInvalidateNamedFramebufferData 0000000180014c90     glad.obj
+ 0003:00005c98       glad_glInvalidateNamedFramebufferSubData 0000000180014c98     glad.obj
+ 0003:00005ca0       glad_glClearNamedFramebufferiv 0000000180014ca0     glad.obj
+ 0003:00005ca8       glad_glClearNamedFramebufferuiv 0000000180014ca8     glad.obj
+ 0003:00005cb0       glad_glClearNamedFramebufferfv 0000000180014cb0     glad.obj
+ 0003:00005cb8       glad_glClearNamedFramebufferfi 0000000180014cb8     glad.obj
+ 0003:00005cc0       glad_glBlitNamedFramebuffer 0000000180014cc0     glad.obj
+ 0003:00005cc8       glad_glCheckNamedFramebufferStatus 0000000180014cc8     glad.obj
+ 0003:00005cd0       glad_glGetNamedFramebufferParameteriv 0000000180014cd0     glad.obj
+ 0003:00005cd8       glad_glGetNamedFramebufferAttachmentParameteriv 0000000180014cd8     glad.obj
+ 0003:00005ce0       glad_glCreateRenderbuffers 0000000180014ce0     glad.obj
+ 0003:00005ce8       glad_glNamedRenderbufferStorage 0000000180014ce8     glad.obj
+ 0003:00005cf0       glad_glNamedRenderbufferStorageMultisample 0000000180014cf0     glad.obj
+ 0003:00005cf8       glad_glGetNamedRenderbufferParameteriv 0000000180014cf8     glad.obj
+ 0003:00005d00       glad_glCreateTextures      0000000180014d00     glad.obj
+ 0003:00005d08       glad_glTextureBuffer       0000000180014d08     glad.obj
+ 0003:00005d10       glad_glTextureBufferRange  0000000180014d10     glad.obj
+ 0003:00005d18       glad_glTextureStorage1D    0000000180014d18     glad.obj
+ 0003:00005d20       glad_glTextureStorage2D    0000000180014d20     glad.obj
+ 0003:00005d28       glad_glTextureStorage3D    0000000180014d28     glad.obj
+ 0003:00005d30       glad_glTextureStorage2DMultisample 0000000180014d30     glad.obj
+ 0003:00005d38       glad_glTextureStorage3DMultisample 0000000180014d38     glad.obj
+ 0003:00005d40       glad_glTextureSubImage1D   0000000180014d40     glad.obj
+ 0003:00005d48       glad_glTextureSubImage2D   0000000180014d48     glad.obj
+ 0003:00005d50       glad_glTextureSubImage3D   0000000180014d50     glad.obj
+ 0003:00005d58       glad_glCompressedTextureSubImage1D 0000000180014d58     glad.obj
+ 0003:00005d60       glad_glCompressedTextureSubImage2D 0000000180014d60     glad.obj
+ 0003:00005d68       glad_glCompressedTextureSubImage3D 0000000180014d68     glad.obj
+ 0003:00005d70       glad_glCopyTextureSubImage1D 0000000180014d70     glad.obj
+ 0003:00005d78       glad_glCopyTextureSubImage2D 0000000180014d78     glad.obj
+ 0003:00005d80       glad_glCopyTextureSubImage3D 0000000180014d80     glad.obj
+ 0003:00005d88       glad_glTextureParameterf   0000000180014d88     glad.obj
+ 0003:00005d90       glad_glTextureParameterfv  0000000180014d90     glad.obj
+ 0003:00005d98       glad_glTextureParameteri   0000000180014d98     glad.obj
+ 0003:00005da0       glad_glTextureParameterIiv 0000000180014da0     glad.obj
+ 0003:00005da8       glad_glTextureParameterIuiv 0000000180014da8     glad.obj
+ 0003:00005db0       glad_glTextureParameteriv  0000000180014db0     glad.obj
+ 0003:00005db8       glad_glGenerateTextureMipmap 0000000180014db8     glad.obj
+ 0003:00005dc0       glad_glBindTextureUnit     0000000180014dc0     glad.obj
+ 0003:00005dc8       glad_glGetTextureImage     0000000180014dc8     glad.obj
+ 0003:00005dd0       glad_glGetCompressedTextureImage 0000000180014dd0     glad.obj
+ 0003:00005dd8       glad_glGetTextureLevelParameterfv 0000000180014dd8     glad.obj
+ 0003:00005de0       glad_glGetTextureLevelParameteriv 0000000180014de0     glad.obj
+ 0003:00005de8       glad_glGetTextureParameterfv 0000000180014de8     glad.obj
+ 0003:00005df0       glad_glGetTextureParameterIiv 0000000180014df0     glad.obj
+ 0003:00005df8       glad_glGetTextureParameterIuiv 0000000180014df8     glad.obj
+ 0003:00005e00       glad_glGetTextureParameteriv 0000000180014e00     glad.obj
+ 0003:00005e08       glad_glCreateVertexArrays  0000000180014e08     glad.obj
+ 0003:00005e10       glad_glDisableVertexArrayAttrib 0000000180014e10     glad.obj
+ 0003:00005e18       glad_glEnableVertexArrayAttrib 0000000180014e18     glad.obj
+ 0003:00005e20       glad_glVertexArrayElementBuffer 0000000180014e20     glad.obj
+ 0003:00005e28       glad_glVertexArrayVertexBuffer 0000000180014e28     glad.obj
+ 0003:00005e30       glad_glVertexArrayVertexBuffers 0000000180014e30     glad.obj
+ 0003:00005e38       glad_glVertexArrayAttribBinding 0000000180014e38     glad.obj
+ 0003:00005e40       glad_glVertexArrayAttribFormat 0000000180014e40     glad.obj
+ 0003:00005e48       glad_glVertexArrayAttribIFormat 0000000180014e48     glad.obj
+ 0003:00005e50       glad_glVertexArrayAttribLFormat 0000000180014e50     glad.obj
+ 0003:00005e58       glad_glVertexArrayBindingDivisor 0000000180014e58     glad.obj
+ 0003:00005e60       glad_glGetVertexArrayiv    0000000180014e60     glad.obj
+ 0003:00005e68       glad_glGetVertexArrayIndexediv 0000000180014e68     glad.obj
+ 0003:00005e70       glad_glGetVertexArrayIndexed64iv 0000000180014e70     glad.obj
+ 0003:00005e78       glad_glCreateSamplers      0000000180014e78     glad.obj
+ 0003:00005e80       glad_glCreateProgramPipelines 0000000180014e80     glad.obj
+ 0003:00005e88       glad_glCreateQueries       0000000180014e88     glad.obj
+ 0003:00005e90       glad_glGetQueryBufferObjecti64v 0000000180014e90     glad.obj
+ 0003:00005e98       glad_glGetQueryBufferObjectiv 0000000180014e98     glad.obj
+ 0003:00005ea0       glad_glGetQueryBufferObjectui64v 0000000180014ea0     glad.obj
+ 0003:00005ea8       glad_glGetQueryBufferObjectuiv 0000000180014ea8     glad.obj
+ 0003:00005eb0       glad_glMemoryBarrierByRegion 0000000180014eb0     glad.obj
+ 0003:00005eb8       glad_glGetTextureSubImage  0000000180014eb8     glad.obj
+ 0003:00005ec0       glad_glGetCompressedTextureSubImage 0000000180014ec0     glad.obj
+ 0003:00005ec8       glad_glGetGraphicsResetStatus 0000000180014ec8     glad.obj
+ 0003:00005ed0       glad_glGetnCompressedTexImage 0000000180014ed0     glad.obj
+ 0003:00005ed8       glad_glGetnTexImage        0000000180014ed8     glad.obj
+ 0003:00005ee0       glad_glGetnUniformdv       0000000180014ee0     glad.obj
+ 0003:00005ee8       glad_glGetnUniformfv       0000000180014ee8     glad.obj
+ 0003:00005ef0       glad_glGetnUniformiv       0000000180014ef0     glad.obj
+ 0003:00005ef8       glad_glGetnUniformuiv      0000000180014ef8     glad.obj
+ 0003:00005f00       glad_glReadnPixels         0000000180014f00     glad.obj
+ 0003:00005f08       glad_glGetnMapdv           0000000180014f08     glad.obj
+ 0003:00005f10       glad_glGetnMapfv           0000000180014f10     glad.obj
+ 0003:00005f18       glad_glGetnMapiv           0000000180014f18     glad.obj
+ 0003:00005f20       glad_glGetnPixelMapfv      0000000180014f20     glad.obj
+ 0003:00005f28       glad_glGetnPixelMapuiv     0000000180014f28     glad.obj
+ 0003:00005f30       glad_glGetnPixelMapusv     0000000180014f30     glad.obj
+ 0003:00005f38       glad_glGetnPolygonStipple  0000000180014f38     glad.obj
+ 0003:00005f40       glad_glGetnColorTable      0000000180014f40     glad.obj
+ 0003:00005f48       glad_glGetnConvolutionFilter 0000000180014f48     glad.obj
+ 0003:00005f50       glad_glGetnSeparableFilter 0000000180014f50     glad.obj
+ 0003:00005f58       glad_glGetnHistogram       0000000180014f58     glad.obj
+ 0003:00005f60       glad_glGetnMinmax          0000000180014f60     glad.obj
+ 0003:00005f68       glad_glTextureBarrier      0000000180014f68     glad.obj
+ 0003:00005f70       GLAD_GL_VERSION_4_6        0000000180014f70     glad.obj
+ 0003:00005f74       GLAD_GL_VERSION_1_0        0000000180014f74     glad.obj
+ 0003:00005f78       glad_glSpecializeShader    0000000180014f78     glad.obj
+ 0003:00005f80       glad_glMultiDrawArraysIndirectCount 0000000180014f80     glad.obj
+ 0003:00005f88       glad_glMultiDrawElementsIndirectCount 0000000180014f88     glad.obj
+ 0003:00005f90       glad_glPolygonOffsetClamp  0000000180014f90     glad.obj
+ 0003:00005f98       GLVersion                  0000000180014f98     glad.obj
+ 0003:00005fa0       glad_glCullFace            0000000180014fa0     glad.obj
+ 0003:00005fa8       glad_glFrontFace           0000000180014fa8     glad.obj
+ 0003:00005fb0       glad_glHint                0000000180014fb0     glad.obj
+ 0003:00005fb8       glad_glLineWidth           0000000180014fb8     glad.obj
+ 0003:00005fc0       glad_glPointSize           0000000180014fc0     glad.obj
+ 0003:00005fc8       glad_glPolygonMode         0000000180014fc8     glad.obj
+ 0003:00005fd0       glad_glScissor             0000000180014fd0     glad.obj
+ 0003:00005fd8       glad_glTexParameterf       0000000180014fd8     glad.obj
+ 0003:00005fe0       glad_glTexParameterfv      0000000180014fe0     glad.obj
+ 0003:00005fe8       glad_glTexParameteri       0000000180014fe8     glad.obj
+ 0003:00005ff0       glad_glTexParameteriv      0000000180014ff0     glad.obj
+ 0003:00005ff8       glad_glTexImage1D          0000000180014ff8     glad.obj
+ 0003:00006000       glad_glTexImage2D          0000000180015000     glad.obj
+ 0003:00006008       glad_glDrawBuffer          0000000180015008     glad.obj
+ 0003:00006010       glad_glClear               0000000180015010     glad.obj
+ 0003:00006018       glad_glClearColor          0000000180015018     glad.obj
+ 0003:00006020       glad_glClearStencil        0000000180015020     glad.obj
+ 0003:00006028       glad_glClearDepth          0000000180015028     glad.obj
+ 0003:00006030       glad_glStencilMask         0000000180015030     glad.obj
+ 0003:00006038       glad_glColorMask           0000000180015038     glad.obj
+ 0003:00006040       glad_glDepthMask           0000000180015040     glad.obj
+ 0003:00006048       glad_glDisable             0000000180015048     glad.obj
+ 0003:00006050       glad_glEnable              0000000180015050     glad.obj
+ 0003:00006058       glad_glFinish              0000000180015058     glad.obj
+ 0003:00006060       glad_glFlush               0000000180015060     glad.obj
+ 0003:00006068       glad_glBlendFunc           0000000180015068     glad.obj
+ 0003:00006070       glad_glLogicOp             0000000180015070     glad.obj
+ 0003:00006078       glad_glStencilFunc         0000000180015078     glad.obj
+ 0003:00006080       glad_glStencilOp           0000000180015080     glad.obj
+ 0003:00006088       glad_glDepthFunc           0000000180015088     glad.obj
+ 0003:00006090       glad_glPixelStoref         0000000180015090     glad.obj
+ 0003:00006098       glad_glPixelStorei         0000000180015098     glad.obj
+ 0003:000060a0       glad_glReadBuffer          00000001800150a0     glad.obj
+ 0003:000060a8       glad_glReadPixels          00000001800150a8     glad.obj
+ 0003:000060b0       glad_glGetBooleanv         00000001800150b0     glad.obj
+ 0003:000060b8       glad_glGetDoublev          00000001800150b8     glad.obj
+ 0003:000060c0       glad_glGetError            00000001800150c0     glad.obj
+ 0003:000060c8       glad_glGetFloatv           00000001800150c8     glad.obj
+ 0003:000060d0       glad_glGetIntegerv         00000001800150d0     glad.obj
+ 0003:000060d8       glad_glGetString           00000001800150d8     glad.obj
+ 0003:000060e0       glad_glGetTexImage         00000001800150e0     glad.obj
+ 0003:000060e8       glad_glGetTexParameterfv   00000001800150e8     glad.obj
+ 0003:000060f0       glad_glGetTexParameteriv   00000001800150f0     glad.obj
+ 0003:000060f8       glad_glGetTexLevelParameterfv 00000001800150f8     glad.obj
+ 0003:00006100       glad_glGetTexLevelParameteriv 0000000180015100     glad.obj
+ 0003:00006108       glad_glIsEnabled           0000000180015108     glad.obj
+ 0003:00006110       glad_glDepthRange          0000000180015110     glad.obj
+ 0003:00006118       glad_glViewport            0000000180015118     glad.obj
+ 0003:00006120       GLAD_GL_VERSION_1_1        0000000180015120     glad.obj
+ 0003:00006124       GLAD_GL_VERSION_1_2        0000000180015124     glad.obj
+ 0003:00006128       glad_glDrawArrays          0000000180015128     glad.obj
+ 0003:00006130       glad_glDrawElements        0000000180015130     glad.obj
+ 0003:00006138       glad_glPolygonOffset       0000000180015138     glad.obj
+ 0003:00006140       glad_glCopyTexImage1D      0000000180015140     glad.obj
+ 0003:00006148       glad_glCopyTexImage2D      0000000180015148     glad.obj
+ 0003:00006150       glad_glCopyTexSubImage1D   0000000180015150     glad.obj
+ 0003:00006158       glad_glCopyTexSubImage2D   0000000180015158     glad.obj
+ 0003:00006160       glad_glTexSubImage1D       0000000180015160     glad.obj
+ 0003:00006168       glad_glTexSubImage2D       0000000180015168     glad.obj
+ 0003:00006170       glad_glBindTexture         0000000180015170     glad.obj
+ 0003:00006178       glad_glDeleteTextures      0000000180015178     glad.obj
+ 0003:00006180       glad_glGenTextures         0000000180015180     glad.obj
+ 0003:00006188       glad_glIsTexture           0000000180015188     glad.obj
+ 0003:00006190       glad_glDrawRangeElements   0000000180015190     glad.obj
+ 0003:00006198       glad_glTexImage3D          0000000180015198     glad.obj
+ 0003:000061a0       glad_glTexSubImage3D       00000001800151a0     glad.obj
+ 0003:000061a8       glad_glCopyTexSubImage3D   00000001800151a8     glad.obj
+ 0003:000061b0       GLAD_GL_VERSION_1_3        00000001800151b0     glad.obj
+ 0003:000061b4       GLAD_GL_VERSION_1_4        00000001800151b4     glad.obj
+ 0003:000061b8       glad_glActiveTexture       00000001800151b8     glad.obj
+ 0003:000061c0       glad_glSampleCoverage      00000001800151c0     glad.obj
+ 0003:000061c8       glad_glCompressedTexImage3D 00000001800151c8     glad.obj
+ 0003:000061d0       glad_glCompressedTexImage2D 00000001800151d0     glad.obj
+ 0003:000061d8       glad_glCompressedTexImage1D 00000001800151d8     glad.obj
+ 0003:000061e0       glad_glCompressedTexSubImage3D 00000001800151e0     glad.obj
+ 0003:000061e8       glad_glCompressedTexSubImage2D 00000001800151e8     glad.obj
+ 0003:000061f0       glad_glCompressedTexSubImage1D 00000001800151f0     glad.obj
+ 0003:000061f8       glad_glGetCompressedTexImage 00000001800151f8     glad.obj
+ 0003:00006200       glad_glBlendFuncSeparate   0000000180015200     glad.obj
+ 0003:00006208       glad_glMultiDrawArrays     0000000180015208     glad.obj
+ 0003:00006210       glad_glMultiDrawElements   0000000180015210     glad.obj
+ 0003:00006218       glad_glPointParameterf     0000000180015218     glad.obj
+ 0003:00006220       glad_glPointParameterfv    0000000180015220     glad.obj
+ 0003:00006228       glad_glPointParameteri     0000000180015228     glad.obj
+ 0003:00006230       glad_glPointParameteriv    0000000180015230     glad.obj
+ 0003:00006238       glad_glBlendColor          0000000180015238     glad.obj
+ 0003:00006240       glad_glBlendEquation       0000000180015240     glad.obj
+ 0003:00006248       GLAD_GL_VERSION_1_5        0000000180015248     glad.obj
+ 0003:0000624c       GLAD_GL_VERSION_2_0        000000018001524c     glad.obj
+ 0003:00006250       glad_glGenQueries          0000000180015250     glad.obj
+ 0003:00006258       glad_glDeleteQueries       0000000180015258     glad.obj
+ 0003:00006260       glad_glIsQuery             0000000180015260     glad.obj
+ 0003:00006268       glad_glBeginQuery          0000000180015268     glad.obj
+ 0003:00006270       glad_glEndQuery            0000000180015270     glad.obj
+ 0003:00006278       glad_glGetQueryiv          0000000180015278     glad.obj
+ 0003:00006280       glad_glGetQueryObjectiv    0000000180015280     glad.obj
+ 0003:00006288       glad_glGetQueryObjectuiv   0000000180015288     glad.obj
+ 0003:00006290       glad_glBindBuffer          0000000180015290     glad.obj
+ 0003:00006298       glad_glDeleteBuffers       0000000180015298     glad.obj
+ 0003:000062a0       glad_glGenBuffers          00000001800152a0     glad.obj
+ 0003:000062a8       glad_glIsBuffer            00000001800152a8     glad.obj
+ 0003:000062b0       glad_glBufferData          00000001800152b0     glad.obj
+ 0003:000062b8       glad_glBufferSubData       00000001800152b8     glad.obj
+ 0003:000062c0       glad_glGetBufferSubData    00000001800152c0     glad.obj
+ 0003:000062c8       glad_glMapBuffer           00000001800152c8     glad.obj
+ 0003:000062d0       glad_glUnmapBuffer         00000001800152d0     glad.obj
+ 0003:000062d8       glad_glGetBufferParameteriv 00000001800152d8     glad.obj
+ 0003:000062e0       glad_glGetBufferPointerv   00000001800152e0     glad.obj
+ 0003:000062e8       glad_glBlendEquationSeparate 00000001800152e8     glad.obj
+ 0003:000062f0       glad_glDrawBuffers         00000001800152f0     glad.obj
+ 0003:000062f8       glad_glStencilOpSeparate   00000001800152f8     glad.obj
+ 0003:00006300       glad_glStencilFuncSeparate 0000000180015300     glad.obj
+ 0003:00006308       glad_glStencilMaskSeparate 0000000180015308     glad.obj
+ 0003:00006310       glad_glAttachShader        0000000180015310     glad.obj
+ 0003:00006318       glad_glBindAttribLocation  0000000180015318     glad.obj
+ 0003:00006320       glad_glCompileShader       0000000180015320     glad.obj
+ 0003:00006328       glad_glCreateProgram       0000000180015328     glad.obj
+ 0003:00006330       glad_glCreateShader        0000000180015330     glad.obj
+ 0003:00006338       glad_glDeleteProgram       0000000180015338     glad.obj
+ 0003:00006340       glad_glDeleteShader        0000000180015340     glad.obj
+ 0003:00006348       glad_glDetachShader        0000000180015348     glad.obj
+ 0003:00006350       glad_glDisableVertexAttribArray 0000000180015350     glad.obj
+ 0003:00006358       glad_glEnableVertexAttribArray 0000000180015358     glad.obj
+ 0003:00006360       glad_glGetActiveAttrib     0000000180015360     glad.obj
+ 0003:00006368       glad_glGetActiveUniform    0000000180015368     glad.obj
+ 0003:00006370       glad_glGetAttachedShaders  0000000180015370     glad.obj
+ 0003:00006378       glad_glGetAttribLocation   0000000180015378     glad.obj
+ 0003:00006380       glad_glGetProgramiv        0000000180015380     glad.obj
+ 0003:00006388       glad_glGetProgramInfoLog   0000000180015388     glad.obj
+ 0003:00006390       glad_glGetShaderiv         0000000180015390     glad.obj
+ 0003:00006398       glad_glGetShaderInfoLog    0000000180015398     glad.obj
+ 0003:000063a0       glad_glGetShaderSource     00000001800153a0     glad.obj
+ 0003:000063a8       glad_glGetUniformLocation  00000001800153a8     glad.obj
+ 0003:000063b0       glad_glGetUniformfv        00000001800153b0     glad.obj
+ 0003:000063b8       glad_glGetUniformiv        00000001800153b8     glad.obj
+ 0003:000063c0       glad_glGetVertexAttribdv   00000001800153c0     glad.obj
+ 0003:000063c8       glad_glGetVertexAttribfv   00000001800153c8     glad.obj
+ 0003:000063d0       glad_glGetVertexAttribiv   00000001800153d0     glad.obj
+ 0003:000063d8       glad_glGetVertexAttribPointerv 00000001800153d8     glad.obj
+ 0003:000063e0       glad_glIsProgram           00000001800153e0     glad.obj
+ 0003:000063e8       glad_glIsShader            00000001800153e8     glad.obj
+ 0003:000063f0       glad_glLinkProgram         00000001800153f0     glad.obj
+ 0003:000063f8       glad_glShaderSource        00000001800153f8     glad.obj
+ 0003:00006400       glad_glUseProgram          0000000180015400     glad.obj
+ 0003:00006408       glad_glUniform1f           0000000180015408     glad.obj
+ 0003:00006410       glad_glUniform2f           0000000180015410     glad.obj
+ 0003:00006418       glad_glUniform3f           0000000180015418     glad.obj
+ 0003:00006420       glad_glUniform4f           0000000180015420     glad.obj
+ 0003:00006428       glad_glUniform1i           0000000180015428     glad.obj
+ 0003:00006430       glad_glUniform2i           0000000180015430     glad.obj
+ 0003:00006438       glad_glUniform3i           0000000180015438     glad.obj
+ 0003:00006440       glad_glUniform4i           0000000180015440     glad.obj
+ 0003:00006448       glad_glUniform1fv          0000000180015448     glad.obj
+ 0003:00006450       glad_glUniform2fv          0000000180015450     glad.obj
+ 0003:00006458       glad_glUniform3fv          0000000180015458     glad.obj
+ 0003:00006460       glad_glUniform4fv          0000000180015460     glad.obj
+ 0003:00006468       glad_glUniform1iv          0000000180015468     glad.obj
+ 0003:00006470       glad_glUniform2iv          0000000180015470     glad.obj
+ 0003:00006478       glad_glUniform3iv          0000000180015478     glad.obj
+ 0003:00006480       glad_glUniform4iv          0000000180015480     glad.obj
+ 0003:00006488       glad_glUniformMatrix2fv    0000000180015488     glad.obj
+ 0003:00006490       glad_glUniformMatrix3fv    0000000180015490     glad.obj
+ 0003:00006498       glad_glUniformMatrix4fv    0000000180015498     glad.obj
+ 0003:000064a0       glad_glValidateProgram     00000001800154a0     glad.obj
+ 0003:000064a8       glad_glVertexAttrib1d      00000001800154a8     glad.obj
+ 0003:000064b0       glad_glVertexAttrib1dv     00000001800154b0     glad.obj
+ 0003:000064b8       glad_glVertexAttrib1f      00000001800154b8     glad.obj
+ 0003:000064c0       glad_glVertexAttrib1fv     00000001800154c0     glad.obj
+ 0003:000064c8       glad_glVertexAttrib1s      00000001800154c8     glad.obj
+ 0003:000064d0       glad_glVertexAttrib1sv     00000001800154d0     glad.obj
+ 0003:000064d8       glad_glVertexAttrib2d      00000001800154d8     glad.obj
+ 0003:000064e0       glad_glVertexAttrib2dv     00000001800154e0     glad.obj
+ 0003:000064e8       glad_glVertexAttrib2f      00000001800154e8     glad.obj
+ 0003:000064f0       glad_glVertexAttrib2fv     00000001800154f0     glad.obj
+ 0003:000064f8       glad_glVertexAttrib2s      00000001800154f8     glad.obj
+ 0003:00006500       glad_glVertexAttrib2sv     0000000180015500     glad.obj
+ 0003:00006508       glad_glVertexAttrib3d      0000000180015508     glad.obj
+ 0003:00006510       glad_glVertexAttrib3dv     0000000180015510     glad.obj
+ 0003:00006518       glad_glVertexAttrib3f      0000000180015518     glad.obj
+ 0003:00006520       glad_glVertexAttrib3fv     0000000180015520     glad.obj
+ 0003:00006528       glad_glVertexAttrib3s      0000000180015528     glad.obj
+ 0003:00006530       glad_glVertexAttrib3sv     0000000180015530     glad.obj
+ 0003:00006538       glad_glVertexAttrib4Nbv    0000000180015538     glad.obj
+ 0003:00006540       glad_glVertexAttrib4Niv    0000000180015540     glad.obj
+ 0003:00006548       glad_glVertexAttrib4Nsv    0000000180015548     glad.obj
+ 0003:00006550       glad_glVertexAttrib4Nub    0000000180015550     glad.obj
+ 0003:00006558       glad_glVertexAttrib4Nubv   0000000180015558     glad.obj
+ 0003:00006560       glad_glVertexAttrib4Nuiv   0000000180015560     glad.obj
+ 0003:00006568       glad_glVertexAttrib4Nusv   0000000180015568     glad.obj
+ 0003:00006570       glad_glVertexAttrib4bv     0000000180015570     glad.obj
+ 0003:00006578       glad_glVertexAttrib4d      0000000180015578     glad.obj
+ 0003:00006580       glad_glVertexAttrib4dv     0000000180015580     glad.obj
+ 0003:00006588       glad_glVertexAttrib4f      0000000180015588     glad.obj
+ 0003:00006590       glad_glVertexAttrib4fv     0000000180015590     glad.obj
+ 0003:00006598       glad_glVertexAttrib4iv     0000000180015598     glad.obj
+ 0003:000065a0       glad_glVertexAttrib4s      00000001800155a0     glad.obj
+ 0003:000065a8       glad_glVertexAttrib4sv     00000001800155a8     glad.obj
+ 0003:000065b0       glad_glVertexAttrib4ubv    00000001800155b0     glad.obj
+ 0003:000065b8       glad_glVertexAttrib4uiv    00000001800155b8     glad.obj
+ 0003:000065c0       glad_glVertexAttrib4usv    00000001800155c0     glad.obj
+ 0003:000065c8       glad_glVertexAttribPointer 00000001800155c8     glad.obj
+ 0003:000065d0       GLAD_GL_VERSION_2_1        00000001800155d0     glad.obj
+ 0003:000065d4       GLAD_GL_VERSION_3_0        00000001800155d4     glad.obj
+ 0003:000065d8       glad_glUniformMatrix2x3fv  00000001800155d8     glad.obj
+ 0003:000065e0       glad_glUniformMatrix3x2fv  00000001800155e0     glad.obj
+ 0003:000065e8       glad_glUniformMatrix2x4fv  00000001800155e8     glad.obj
+ 0003:000065f0       glad_glUniformMatrix4x2fv  00000001800155f0     glad.obj
+ 0003:000065f8       glad_glUniformMatrix3x4fv  00000001800155f8     glad.obj
+ 0003:00006600       glad_glUniformMatrix4x3fv  0000000180015600     glad.obj
+ 0003:00006608       glad_glColorMaski          0000000180015608     glad.obj
+ 0003:00006610       glad_glGetBooleani_v       0000000180015610     glad.obj
+ 0003:00006618       glad_glGetIntegeri_v       0000000180015618     glad.obj
+ 0003:00006620       glad_glEnablei             0000000180015620     glad.obj
+ 0003:00006628       glad_glDisablei            0000000180015628     glad.obj
+ 0003:00006630       glad_glIsEnabledi          0000000180015630     glad.obj
+ 0003:00006638       glad_glBeginTransformFeedback 0000000180015638     glad.obj
+ 0003:00006640       glad_glEndTransformFeedback 0000000180015640     glad.obj
+ 0003:00006648       glad_glBindBufferRange     0000000180015648     glad.obj
+ 0003:00006650       glad_glBindBufferBase      0000000180015650     glad.obj
+ 0003:00006658       glad_glTransformFeedbackVaryings 0000000180015658     glad.obj
+ 0003:00006660       glad_glGetTransformFeedbackVarying 0000000180015660     glad.obj
+ 0003:00006668       glad_glClampColor          0000000180015668     glad.obj
+ 0003:00006670       glad_glBeginConditionalRender 0000000180015670     glad.obj
+ 0003:00006678       glad_glEndConditionalRender 0000000180015678     glad.obj
+ 0003:00006680       glad_glVertexAttribIPointer 0000000180015680     glad.obj
+ 0003:00006688       glad_glGetVertexAttribIiv  0000000180015688     glad.obj
+ 0003:00006690       glad_glGetVertexAttribIuiv 0000000180015690     glad.obj
+ 0003:00006698       glad_glVertexAttribI1i     0000000180015698     glad.obj
+ 0003:000066a0       glad_glVertexAttribI2i     00000001800156a0     glad.obj
+ 0003:000066a8       glad_glVertexAttribI3i     00000001800156a8     glad.obj
+ 0003:000066b0       glad_glVertexAttribI4i     00000001800156b0     glad.obj
+ 0003:000066b8       glad_glVertexAttribI1ui    00000001800156b8     glad.obj
+ 0003:000066c0       glad_glVertexAttribI2ui    00000001800156c0     glad.obj
+ 0003:000066c8       glad_glVertexAttribI3ui    00000001800156c8     glad.obj
+ 0003:000066d0       glad_glVertexAttribI4ui    00000001800156d0     glad.obj
+ 0003:000066d8       glad_glVertexAttribI1iv    00000001800156d8     glad.obj
+ 0003:000066e0       glad_glVertexAttribI2iv    00000001800156e0     glad.obj
+ 0003:000066e8       glad_glVertexAttribI3iv    00000001800156e8     glad.obj
+ 0003:000066f0       glad_glVertexAttribI4iv    00000001800156f0     glad.obj
+ 0003:000066f8       glad_glVertexAttribI1uiv   00000001800156f8     glad.obj
+ 0003:00006700       glad_glVertexAttribI2uiv   0000000180015700     glad.obj
+ 0003:00006708       glad_glVertexAttribI3uiv   0000000180015708     glad.obj
+ 0003:00006710       glad_glVertexAttribI4uiv   0000000180015710     glad.obj
+ 0003:00006718       glad_glVertexAttribI4bv    0000000180015718     glad.obj
+ 0003:00006720       glad_glVertexAttribI4sv    0000000180015720     glad.obj
+ 0003:00006728       glad_glVertexAttribI4ubv   0000000180015728     glad.obj
+ 0003:00006730       glad_glVertexAttribI4usv   0000000180015730     glad.obj
+ 0003:00006738       glad_glGetUniformuiv       0000000180015738     glad.obj
+ 0003:00006740       glad_glBindFragDataLocation 0000000180015740     glad.obj
+ 0003:00006748       glad_glGetFragDataLocation 0000000180015748     glad.obj
+ 0003:00006750       glad_glUniform1ui          0000000180015750     glad.obj
+ 0003:00006758       glad_glUniform2ui          0000000180015758     glad.obj
+ 0003:00006760       glad_glUniform3ui          0000000180015760     glad.obj
+ 0003:00006768       glad_glUniform4ui          0000000180015768     glad.obj
+ 0003:00006770       glad_glUniform1uiv         0000000180015770     glad.obj
+ 0003:00006778       glad_glUniform2uiv         0000000180015778     glad.obj
+ 0003:00006780       glad_glUniform3uiv         0000000180015780     glad.obj
+ 0003:00006788       glad_glUniform4uiv         0000000180015788     glad.obj
+ 0003:00006790       glad_glTexParameterIiv     0000000180015790     glad.obj
+ 0003:00006798       glad_glTexParameterIuiv    0000000180015798     glad.obj
+ 0003:000067a0       glad_glGetTexParameterIiv  00000001800157a0     glad.obj
+ 0003:000067a8       glad_glGetTexParameterIuiv 00000001800157a8     glad.obj
+ 0003:000067b0       glad_glClearBufferiv       00000001800157b0     glad.obj
+ 0003:000067b8       glad_glClearBufferuiv      00000001800157b8     glad.obj
+ 0003:000067c0       glad_glClearBufferfv       00000001800157c0     glad.obj
+ 0003:000067c8       glad_glClearBufferfi       00000001800157c8     glad.obj
+ 0003:000067d0       glad_glGetStringi          00000001800157d0     glad.obj
+ 0003:000067d8       glad_glIsRenderbuffer      00000001800157d8     glad.obj
+ 0003:000067e0       glad_glBindRenderbuffer    00000001800157e0     glad.obj
+ 0003:000067e8       glad_glDeleteRenderbuffers 00000001800157e8     glad.obj
+ 0003:000067f0       glad_glGenRenderbuffers    00000001800157f0     glad.obj
+ 0003:000067f8       glad_glRenderbufferStorage 00000001800157f8     glad.obj
+ 0003:00006800       glad_glGetRenderbufferParameteriv 0000000180015800     glad.obj
+ 0003:00006808       glad_glIsFramebuffer       0000000180015808     glad.obj
+ 0003:00006810       glad_glBindFramebuffer     0000000180015810     glad.obj
+ 0003:00006818       glad_glDeleteFramebuffers  0000000180015818     glad.obj
+ 0003:00006820       glad_glGenFramebuffers     0000000180015820     glad.obj
+ 0003:00006828       glad_glCheckFramebufferStatus 0000000180015828     glad.obj
+ 0003:00006830       glad_glFramebufferTexture1D 0000000180015830     glad.obj
+ 0003:00006838       glad_glFramebufferTexture2D 0000000180015838     glad.obj
+ 0003:00006840       glad_glFramebufferTexture3D 0000000180015840     glad.obj
+ 0003:00006848       glad_glFramebufferRenderbuffer 0000000180015848     glad.obj
+ 0003:00006850       glad_glGetFramebufferAttachmentParameteriv 0000000180015850     glad.obj
+ 0003:00006858       glad_glGenerateMipmap      0000000180015858     glad.obj
+ 0003:00006860       glad_glBlitFramebuffer     0000000180015860     glad.obj
+ 0003:00006868       glad_glRenderbufferStorageMultisample 0000000180015868     glad.obj
+ 0003:00006870       glad_glFramebufferTextureLayer 0000000180015870     glad.obj
+ 0003:00006878       glad_glMapBufferRange      0000000180015878     glad.obj
+ 0003:00006880       glad_glFlushMappedBufferRange 0000000180015880     glad.obj
+ 0003:00006888       glad_glBindVertexArray     0000000180015888     glad.obj
+ 0003:00006890       glad_glDeleteVertexArrays  0000000180015890     glad.obj
+ 0003:00006898       glad_glGenVertexArrays     0000000180015898     glad.obj
+ 0003:000068a0       glad_glIsVertexArray       00000001800158a0     glad.obj
+ 0003:000068a8       GLAD_GL_VERSION_3_1        00000001800158a8     glad.obj
+ 0003:000068ac       GLAD_GL_VERSION_3_2        00000001800158ac     glad.obj
+ 0003:000068b0       glad_glDrawArraysInstanced 00000001800158b0     glad.obj
+ 0003:000068b8       glad_glDrawElementsInstanced 00000001800158b8     glad.obj
+ 0003:000068c0       glad_glTexBuffer           00000001800158c0     glad.obj
+ 0003:000068c8       glad_glPrimitiveRestartIndex 00000001800158c8     glad.obj
+ 0003:000068d0       glad_glCopyBufferSubData   00000001800158d0     glad.obj
+ 0003:000068d8       glad_glGetUniformIndices   00000001800158d8     glad.obj
+ 0003:000068e0       glad_glGetActiveUniformsiv 00000001800158e0     glad.obj
+ 0003:000068e8       glad_glGetActiveUniformName 00000001800158e8     glad.obj
+ 0003:000068f0       glad_glGetUniformBlockIndex 00000001800158f0     glad.obj
+ 0003:000068f8       glad_glGetActiveUniformBlockiv 00000001800158f8     glad.obj
+ 0003:00006900       glad_glGetActiveUniformBlockName 0000000180015900     glad.obj
+ 0003:00006908       glad_glUniformBlockBinding 0000000180015908     glad.obj
+ 0003:00006910       glad_glDrawElementsBaseVertex 0000000180015910     glad.obj
+ 0003:00006918       glad_glDrawRangeElementsBaseVertex 0000000180015918     glad.obj
+ 0003:00006920       glad_glDrawElementsInstancedBaseVertex 0000000180015920     glad.obj
+ 0003:00006928       glad_glMultiDrawElementsBaseVertex 0000000180015928     glad.obj
+ 0003:00006930       glad_glProvokingVertex     0000000180015930     glad.obj
+ 0003:00006938       glad_glFenceSync           0000000180015938     glad.obj
+ 0003:00006940       glad_glIsSync              0000000180015940     glad.obj
+ 0003:00006948       glad_glDeleteSync          0000000180015948     glad.obj
+ 0003:00006950       glad_glClientWaitSync      0000000180015950     glad.obj
+ 0003:00006958       glad_glWaitSync            0000000180015958     glad.obj
+ 0003:00006960       glad_glGetInteger64v       0000000180015960     glad.obj
+ 0003:00006968       glad_glGetSynciv           0000000180015968     glad.obj
+ 0003:00006970       glad_glGetInteger64i_v     0000000180015970     glad.obj
+ 0003:00006978       glad_glGetBufferParameteri64v 0000000180015978     glad.obj
+ 0003:00006980       glad_glFramebufferTexture  0000000180015980     glad.obj
+ 0003:00006988       glad_glTexImage2DMultisample 0000000180015988     glad.obj
+ 0003:00006990       glad_glTexImage3DMultisample 0000000180015990     glad.obj
+ 0003:00006998       glad_glGetMultisamplefv    0000000180015998     glad.obj
+ 0003:000069a0       glad_glSampleMaski         00000001800159a0     glad.obj
+ 0003:000069a8       GLAD_GL_VERSION_3_3        00000001800159a8     glad.obj
+ 0003:000069ac       GLAD_GL_VERSION_4_0        00000001800159ac     glad.obj
+ 0003:000069b0       glad_glBindFragDataLocationIndexed 00000001800159b0     glad.obj
+ 0003:000069b8       glad_glGetFragDataIndex    00000001800159b8     glad.obj
+ 0003:000069c0       glad_glGenSamplers         00000001800159c0     glad.obj
+ 0003:000069c8       glad_glDeleteSamplers      00000001800159c8     glad.obj
+ 0003:000069d0       glad_glIsSampler           00000001800159d0     glad.obj
+ 0003:000069d8       glad_glBindSampler         00000001800159d8     glad.obj
+ 0003:000069e0       glad_glSamplerParameteri   00000001800159e0     glad.obj
+ 0003:000069e8       glad_glSamplerParameteriv  00000001800159e8     glad.obj
+ 0003:000069f0       glad_glSamplerParameterf   00000001800159f0     glad.obj
+ 0003:000069f8       glad_glSamplerParameterfv  00000001800159f8     glad.obj
+ 0003:00006a00       glad_glSamplerParameterIiv 0000000180015a00     glad.obj
+ 0003:00006a08       glad_glSamplerParameterIuiv 0000000180015a08     glad.obj
+ 0003:00006a10       glad_glGetSamplerParameteriv 0000000180015a10     glad.obj
+ 0003:00006a18       glad_glGetSamplerParameterIiv 0000000180015a18     glad.obj
+ 0003:00006a20       glad_glGetSamplerParameterfv 0000000180015a20     glad.obj
+ 0003:00006a28       glad_glGetSamplerParameterIuiv 0000000180015a28     glad.obj
+ 0003:00006a30       glad_glQueryCounter        0000000180015a30     glad.obj
+ 0003:00006a38       glad_glGetQueryObjecti64v  0000000180015a38     glad.obj
+ 0003:00006a40       glad_glGetQueryObjectui64v 0000000180015a40     glad.obj
+ 0003:00006a48       glad_glVertexAttribDivisor 0000000180015a48     glad.obj
+ 0003:00006a50       glad_glVertexAttribP1ui    0000000180015a50     glad.obj
+ 0003:00006a58       glad_glVertexAttribP1uiv   0000000180015a58     glad.obj
+ 0003:00006a60       glad_glVertexAttribP2ui    0000000180015a60     glad.obj
+ 0003:00006a68       glad_glVertexAttribP2uiv   0000000180015a68     glad.obj
+ 0003:00006a70       glad_glVertexAttribP3ui    0000000180015a70     glad.obj
+ 0003:00006a78       glad_glVertexAttribP3uiv   0000000180015a78     glad.obj
+ 0003:00006a80       glad_glVertexAttribP4ui    0000000180015a80     glad.obj
+ 0003:00006a88       glad_glVertexAttribP4uiv   0000000180015a88     glad.obj
+ 0003:00006a90       glad_glVertexP2ui          0000000180015a90     glad.obj
+ 0003:00006a98       glad_glVertexP2uiv         0000000180015a98     glad.obj
+ 0003:00006aa0       glad_glVertexP3ui          0000000180015aa0     glad.obj
+ 0003:00006aa8       glad_glVertexP3uiv         0000000180015aa8     glad.obj
+ 0003:00006ab0       glad_glVertexP4ui          0000000180015ab0     glad.obj
+ 0003:00006ab8       glad_glVertexP4uiv         0000000180015ab8     glad.obj
+ 0003:00006ac0       glad_glTexCoordP1ui        0000000180015ac0     glad.obj
+ 0003:00006ac8       glad_glTexCoordP1uiv       0000000180015ac8     glad.obj
+ 0003:00006ad0       glad_glTexCoordP2ui        0000000180015ad0     glad.obj
+ 0003:00006ad8       glad_glTexCoordP2uiv       0000000180015ad8     glad.obj
+ 0003:00006ae0       glad_glTexCoordP3ui        0000000180015ae0     glad.obj
+ 0003:00006ae8       glad_glTexCoordP3uiv       0000000180015ae8     glad.obj
+ 0003:00006af0       glad_glTexCoordP4ui        0000000180015af0     glad.obj
+ 0003:00006af8       glad_glTexCoordP4uiv       0000000180015af8     glad.obj
+ 0003:00006b00       glad_glMultiTexCoordP1ui   0000000180015b00     glad.obj
+ 0003:00006b08       glad_glMultiTexCoordP1uiv  0000000180015b08     glad.obj
+ 0003:00006b10       glad_glMultiTexCoordP2ui   0000000180015b10     glad.obj
+ 0003:00006b18       glad_glMultiTexCoordP2uiv  0000000180015b18     glad.obj
+ 0003:00006b20       glad_glMultiTexCoordP3ui   0000000180015b20     glad.obj
+ 0003:00006b28       glad_glMultiTexCoordP3uiv  0000000180015b28     glad.obj
+ 0003:00006b30       glad_glMultiTexCoordP4ui   0000000180015b30     glad.obj
+ 0003:00006b38       glad_glMultiTexCoordP4uiv  0000000180015b38     glad.obj
+ 0003:00006b40       glad_glNormalP3ui          0000000180015b40     glad.obj
+ 0003:00006b48       glad_glNormalP3uiv         0000000180015b48     glad.obj
+ 0003:00006b50       glad_glColorP3ui           0000000180015b50     glad.obj
+ 0003:00006b58       glad_glColorP3uiv          0000000180015b58     glad.obj
+ 0003:00006b60       glad_glColorP4ui           0000000180015b60     glad.obj
+ 0003:00006b68       glad_glColorP4uiv          0000000180015b68     glad.obj
+ 0003:00006b70       glad_glSecondaryColorP3ui  0000000180015b70     glad.obj
+ 0003:00006b78       glad_glSecondaryColorP3uiv 0000000180015b78     glad.obj
+ 0003:00006b80       glad_glMinSampleShading    0000000180015b80     glad.obj
+ 0003:00006b88       glad_glBlendEquationi      0000000180015b88     glad.obj
+ 0003:00006b90       glad_glBlendEquationSeparatei 0000000180015b90     glad.obj
+ 0003:00006b98       glad_glBlendFunci          0000000180015b98     glad.obj
+ 0003:00006ba0       glad_glBlendFuncSeparatei  0000000180015ba0     glad.obj
+ 0003:00006ba8       glad_glDrawArraysIndirect  0000000180015ba8     glad.obj
+ 0003:00006bb0       glad_glDrawElementsIndirect 0000000180015bb0     glad.obj
+ 0003:00006bb8       glad_glUniform1d           0000000180015bb8     glad.obj
+ 0003:00006bc0       glad_glUniform2d           0000000180015bc0     glad.obj
+ 0003:00006bc8       glad_glUniform3d           0000000180015bc8     glad.obj
+ 0003:00006bd0       glad_glUniform4d           0000000180015bd0     glad.obj
+ 0003:00006bd8       glad_glUniform1dv          0000000180015bd8     glad.obj
+ 0003:00006be0       glad_glUniform2dv          0000000180015be0     glad.obj
+ 0003:00006be8       glad_glUniform3dv          0000000180015be8     glad.obj
+ 0003:00006bf0       glad_glUniform4dv          0000000180015bf0     glad.obj
+ 0003:00006bf8       glad_glUniformMatrix2dv    0000000180015bf8     glad.obj
+ 0003:00006c00       glad_glUniformMatrix3dv    0000000180015c00     glad.obj
+ 0003:00006c08       glad_glUniformMatrix4dv    0000000180015c08     glad.obj
+ 0003:00006c10       glad_glUniformMatrix2x3dv  0000000180015c10     glad.obj
+ 0003:00006c18       glad_glUniformMatrix2x4dv  0000000180015c18     glad.obj
+ 0003:00006c20       glad_glUniformMatrix3x2dv  0000000180015c20     glad.obj
+ 0003:00006c28       glad_glUniformMatrix3x4dv  0000000180015c28     glad.obj
+ 0003:00006c30       glad_glUniformMatrix4x2dv  0000000180015c30     glad.obj
+ 0003:00006c38       glad_glUniformMatrix4x3dv  0000000180015c38     glad.obj
+ 0003:00006c40       glad_glGetUniformdv        0000000180015c40     glad.obj
+ 0003:00006c48       glad_glGetSubroutineUniformLocation 0000000180015c48     glad.obj
+ 0003:00006c50       glad_glGetSubroutineIndex  0000000180015c50     glad.obj
+ 0003:00006c58       glad_glGetActiveSubroutineUniformiv 0000000180015c58     glad.obj
+ 0003:00006c60       glad_glGetActiveSubroutineUniformName 0000000180015c60     glad.obj
+ 0003:00006c68       glad_glGetActiveSubroutineName 0000000180015c68     glad.obj
+ 0003:00006c70       glad_glUniformSubroutinesuiv 0000000180015c70     glad.obj
+ 0003:00006c78       glad_glGetUniformSubroutineuiv 0000000180015c78     glad.obj
+ 0003:00006c80       glad_glGetProgramStageiv   0000000180015c80     glad.obj
+ 0003:00006c88       glad_glPatchParameteri     0000000180015c88     glad.obj
+ 0003:00006c90       glad_glPatchParameterfv    0000000180015c90     glad.obj
+ 0003:00006c98       glad_glBindTransformFeedback 0000000180015c98     glad.obj
+ 0003:00006ca0       glad_glDeleteTransformFeedbacks 0000000180015ca0     glad.obj
+ 0003:00006ca8       glad_glGenTransformFeedbacks 0000000180015ca8     glad.obj
+ 0003:00006cb0       glad_glIsTransformFeedback 0000000180015cb0     glad.obj
+ 0003:00006cb8       glad_glPauseTransformFeedback 0000000180015cb8     glad.obj
+ 0003:00006cc0       glad_glResumeTransformFeedback 0000000180015cc0     glad.obj
+ 0003:00006cc8       glad_glDrawTransformFeedback 0000000180015cc8     glad.obj
+ 0003:00006cd0       glad_glDrawTransformFeedbackStream 0000000180015cd0     glad.obj
+ 0003:00006cd8       glad_glBeginQueryIndexed   0000000180015cd8     glad.obj
+ 0003:00006ce0       glad_glEndQueryIndexed     0000000180015ce0     glad.obj
+ 0003:00006ce8       glad_glGetQueryIndexediv   0000000180015ce8     glad.obj
+ 0003:00006cf0       GLAD_GL_VERSION_4_1        0000000180015cf0     glad.obj
+ 0003:00006cf4       GLAD_GL_VERSION_4_2        0000000180015cf4     glad.obj
+ 0003:00006cf8       glad_glReleaseShaderCompiler 0000000180015cf8     glad.obj
+ 0003:00006d00       glad_glShaderBinary        0000000180015d00     glad.obj
+ 0003:00006d08       glad_glGetShaderPrecisionFormat 0000000180015d08     glad.obj
+ 0003:00006d10       glad_glDepthRangef         0000000180015d10     glad.obj
+ 0003:00006d18       glad_glClearDepthf         0000000180015d18     glad.obj
+ 0003:00006d20       glad_glGetProgramBinary    0000000180015d20     glad.obj
+ 0003:00006d28       glad_glProgramBinary       0000000180015d28     glad.obj
+ 0003:00006d30       glad_glProgramParameteri   0000000180015d30     glad.obj
+ 0003:00006d38       glad_glUseProgramStages    0000000180015d38     glad.obj
+ 0003:00006d40       glad_glActiveShaderProgram 0000000180015d40     glad.obj
+ 0003:00006d48       glad_glCreateShaderProgramv 0000000180015d48     glad.obj
+ 0003:00006d50       glad_glBindProgramPipeline 0000000180015d50     glad.obj
+ 0003:00006d58       glad_glDeleteProgramPipelines 0000000180015d58     glad.obj
+ 0003:00006d60       glad_glGenProgramPipelines 0000000180015d60     glad.obj
+ 0003:00006d68       glad_glIsProgramPipeline   0000000180015d68     glad.obj
+ 0003:00006d70       glad_glGetProgramPipelineiv 0000000180015d70     glad.obj
+ 0003:00006d78       glad_glProgramUniform1i    0000000180015d78     glad.obj
+ 0003:00006d80       glad_glProgramUniform1iv   0000000180015d80     glad.obj
+ 0003:00006d88       glad_glProgramUniform1f    0000000180015d88     glad.obj
+ 0003:00006d90       glad_glProgramUniform1fv   0000000180015d90     glad.obj
+ 0003:00006d98       glad_glProgramUniform1d    0000000180015d98     glad.obj
+ 0003:00006da0       glad_glProgramUniform1dv   0000000180015da0     glad.obj
+ 0003:00006da8       glad_glProgramUniform1ui   0000000180015da8     glad.obj
+ 0003:00006db0       glad_glProgramUniform1uiv  0000000180015db0     glad.obj
+ 0003:00006db8       glad_glProgramUniform2i    0000000180015db8     glad.obj
+ 0003:00006dc0       glad_glProgramUniform2iv   0000000180015dc0     glad.obj
+ 0003:00006dc8       glad_glProgramUniform2f    0000000180015dc8     glad.obj
+ 0003:00006dd0       glad_glProgramUniform2fv   0000000180015dd0     glad.obj
+ 0003:00006dd8       glad_glProgramUniform2d    0000000180015dd8     glad.obj
+ 0003:00006de0       glad_glProgramUniform2dv   0000000180015de0     glad.obj
+ 0003:00006de8       glad_glProgramUniform2ui   0000000180015de8     glad.obj
+ 0003:00006df0       glad_glProgramUniform2uiv  0000000180015df0     glad.obj
+ 0003:00006df8       glad_glProgramUniform3i    0000000180015df8     glad.obj
+ 0003:00006e00       glad_glProgramUniform3iv   0000000180015e00     glad.obj
+ 0003:00006e08       glad_glProgramUniform3f    0000000180015e08     glad.obj
+ 0003:00006e10       glad_glProgramUniform3fv   0000000180015e10     glad.obj
+ 0003:00006e18       glad_glProgramUniform3d    0000000180015e18     glad.obj
+ 0003:00006e20       glad_glProgramUniform3dv   0000000180015e20     glad.obj
+ 0003:00006e28       glad_glProgramUniform3ui   0000000180015e28     glad.obj
+ 0003:00006e30       glad_glProgramUniform3uiv  0000000180015e30     glad.obj
+ 0003:00006e38       glad_glProgramUniform4i    0000000180015e38     glad.obj
+ 0003:00006e40       glad_glProgramUniform4iv   0000000180015e40     glad.obj
+ 0003:00006e48       glad_glProgramUniform4f    0000000180015e48     glad.obj
+ 0003:00006e50       glad_glProgramUniform4fv   0000000180015e50     glad.obj
+ 0003:00006e58       glad_glProgramUniform4d    0000000180015e58     glad.obj
+ 0003:00006e60       glad_glProgramUniform4dv   0000000180015e60     glad.obj
+ 0003:00006e68       glad_glProgramUniform4ui   0000000180015e68     glad.obj
+ 0003:00006e70       glad_glProgramUniform4uiv  0000000180015e70     glad.obj
+ 0003:00006e78       glad_glProgramUniformMatrix2fv 0000000180015e78     glad.obj
+ 0003:00006e80       glad_glProgramUniformMatrix3fv 0000000180015e80     glad.obj
+ 0003:00006e88       glad_glProgramUniformMatrix4fv 0000000180015e88     glad.obj
+ 0003:00006e90       glad_glProgramUniformMatrix2dv 0000000180015e90     glad.obj
+ 0003:00006e98       glad_glProgramUniformMatrix3dv 0000000180015e98     glad.obj
+ 0003:00006ea0       glad_glProgramUniformMatrix4dv 0000000180015ea0     glad.obj
+ 0003:00006ea8       glad_glProgramUniformMatrix2x3fv 0000000180015ea8     glad.obj
+ 0003:00006eb0       glad_glProgramUniformMatrix3x2fv 0000000180015eb0     glad.obj
+ 0003:00006eb8       glad_glProgramUniformMatrix2x4fv 0000000180015eb8     glad.obj
+ 0003:00006ec0       glad_glProgramUniformMatrix4x2fv 0000000180015ec0     glad.obj
+ 0003:00006ec8       glad_glProgramUniformMatrix3x4fv 0000000180015ec8     glad.obj
+ 0003:00006ed0       glad_glProgramUniformMatrix4x3fv 0000000180015ed0     glad.obj
+ 0003:00006ed8       glad_glProgramUniformMatrix2x3dv 0000000180015ed8     glad.obj
+ 0003:00006ee0       glad_glProgramUniformMatrix3x2dv 0000000180015ee0     glad.obj
+ 0003:00006ee8       glad_glProgramUniformMatrix2x4dv 0000000180015ee8     glad.obj
+ 0003:00006ef0       glad_glProgramUniformMatrix4x2dv 0000000180015ef0     glad.obj
+ 0003:00006ef8       glad_glProgramUniformMatrix3x4dv 0000000180015ef8     glad.obj
+ 0003:00006f00       glad_glProgramUniformMatrix4x3dv 0000000180015f00     glad.obj
+ 0003:00006f08       glad_glValidateProgramPipeline 0000000180015f08     glad.obj
+ 0003:00006f10       glad_glGetProgramPipelineInfoLog 0000000180015f10     glad.obj
+ 0003:00006f18       glad_glVertexAttribL1d     0000000180015f18     glad.obj
+ 0003:00006f20       glad_glVertexAttribL2d     0000000180015f20     glad.obj
+ 0003:00006f28       glad_glVertexAttribL3d     0000000180015f28     glad.obj
+ 0003:00006f30       glad_glVertexAttribL4d     0000000180015f30     glad.obj
+ 0003:00006f38       glad_glVertexAttribL1dv    0000000180015f38     glad.obj
+ 0003:00006f40       glad_glVertexAttribL2dv    0000000180015f40     glad.obj
+ 0003:00006f48       glad_glVertexAttribL3dv    0000000180015f48     glad.obj
+ 0003:00006f50       glad_glVertexAttribL4dv    0000000180015f50     glad.obj
+ 0003:00006f58       glad_glVertexAttribLPointer 0000000180015f58     glad.obj
+ 0003:00006f60       glad_glGetVertexAttribLdv  0000000180015f60     glad.obj
+ 0003:00006f68       glad_glViewportArrayv      0000000180015f68     glad.obj
+ 0003:00006f70       glad_glViewportIndexedf    0000000180015f70     glad.obj
+ 0003:00006f78       glad_glViewportIndexedfv   0000000180015f78     glad.obj
+ 0003:00006f80       glad_glScissorArrayv       0000000180015f80     glad.obj
+ 0003:00006f88       glad_glScissorIndexed      0000000180015f88     glad.obj
+ 0003:00006f90       glad_glScissorIndexedv     0000000180015f90     glad.obj
+ 0003:00006f98       glad_glDepthRangeArrayv    0000000180015f98     glad.obj
+ 0003:00006fa0       glad_glDepthRangeIndexed   0000000180015fa0     glad.obj
+ 0003:00006fa8       glad_glGetFloati_v         0000000180015fa8     glad.obj
+ 0003:00006fb0       glad_glGetDoublei_v        0000000180015fb0     glad.obj
+ 0003:00006fb8       glad_glDrawArraysInstancedBaseInstance 0000000180015fb8     glad.obj
+ 0003:00006fc0       glad_glDrawElementsInstancedBaseInstance 0000000180015fc0     glad.obj
+ 0003:00006fc8       glad_glDrawElementsInstancedBaseVertexBaseInstance 0000000180015fc8     glad.obj
+ 0003:00006fd0       glad_glGetInternalformativ 0000000180015fd0     glad.obj
+ 0003:00006fd8       glad_glGetActiveAtomicCounterBufferiv 0000000180015fd8     glad.obj
+ 0003:00006fe0       glad_glBindImageTexture    0000000180015fe0     glad.obj
+ 0003:00006fe8       glad_glMemoryBarrier       0000000180015fe8     glad.obj
+ 0003:00006ff0       glad_glTexStorage1D        0000000180015ff0     glad.obj
+ 0003:00006ff8       glad_glTexStorage2D        0000000180015ff8     glad.obj
+ 0003:00007000       glad_glTexStorage3D        0000000180016000     glad.obj
+ 0003:00007008       glad_glDrawTransformFeedbackInstanced 0000000180016008     glad.obj
+ 0003:00007010       glad_glDrawTransformFeedbackStreamInstanced 0000000180016010     glad.obj
+ 0003:00007018       GLAD_GL_VERSION_4_3        0000000180016018     glad.obj
+ 0003:00007020       glad_glClearBufferData     0000000180016020     glad.obj
+ 0003:00007028       glad_glClearBufferSubData  0000000180016028     glad.obj
+ 0003:00007030       glad_glDispatchCompute     0000000180016030     glad.obj
+ 0003:00007038       glad_glDispatchComputeIndirect 0000000180016038     glad.obj
+ 0003:00007040       glad_glCopyImageSubData    0000000180016040     glad.obj
+ 0003:00007048       glad_glFramebufferParameteri 0000000180016048     glad.obj
+ 0003:00007050       glad_glGetFramebufferParameteriv 0000000180016050     glad.obj
+ 0003:00007058       glad_glGetInternalformati64v 0000000180016058     glad.obj
+ 0003:00007060       glad_glInvalidateTexSubImage 0000000180016060     glad.obj
+ 0003:00007068       glad_glInvalidateTexImage  0000000180016068     glad.obj
+ 0003:00007070       glad_glInvalidateBufferSubData 0000000180016070     glad.obj
+ 0003:00007078       glad_glInvalidateBufferData 0000000180016078     glad.obj
+ 0003:00007080       glad_glInvalidateFramebuffer 0000000180016080     glad.obj
+ 0003:00007088       glad_glInvalidateSubFramebuffer 0000000180016088     glad.obj
+ 0003:00007090       glad_glMultiDrawArraysIndirect 0000000180016090     glad.obj
+ 0003:00007098       glad_glMultiDrawElementsIndirect 0000000180016098     glad.obj
+ 0003:000070a0       glad_glGetProgramInterfaceiv 00000001800160a0     glad.obj
+ 0003:000070a8       glad_glGetProgramResourceIndex 00000001800160a8     glad.obj
+ 0003:000070b0       glad_glGetProgramResourceName 00000001800160b0     glad.obj
+ 0003:000070b8       glad_glGetProgramResourceiv 00000001800160b8     glad.obj
+ 0003:000070c0       glad_glGetProgramResourceLocation 00000001800160c0     glad.obj
+ 0003:000070c8       glad_glGetProgramResourceLocationIndex 00000001800160c8     glad.obj
+ 0003:000070d0       glad_glShaderStorageBlockBinding 00000001800160d0     glad.obj
+ 0003:000070d8       glad_glTexBufferRange      00000001800160d8     glad.obj
+ 0003:000070e0       glad_glTexStorage2DMultisample 00000001800160e0     glad.obj
+ 0003:000070e8       glad_glTexStorage3DMultisample 00000001800160e8     glad.obj
+ 0003:000070f0       glad_glTextureView         00000001800160f0     glad.obj
+ 0003:000070f8       glad_glBindVertexBuffer    00000001800160f8     glad.obj
+ 0003:00007100       glad_glVertexAttribFormat  0000000180016100     glad.obj
+ 0003:00007108       glad_glVertexAttribIFormat 0000000180016108     glad.obj
+ 0003:00007110       glad_glVertexAttribLFormat 0000000180016110     glad.obj
+ 0003:00007118       glad_glVertexAttribBinding 0000000180016118     glad.obj
+ 0003:00007120       glad_glVertexBindingDivisor 0000000180016120     glad.obj
+ 0003:00007128       glad_glDebugMessageControl 0000000180016128     glad.obj
+ 0003:00007130       glad_glDebugMessageInsert  0000000180016130     glad.obj
+ 0003:00007138       glad_glDebugMessageCallback 0000000180016138     glad.obj
+ 0003:00007140       glad_glGetDebugMessageLog  0000000180016140     glad.obj
+ 0003:00007148       glad_glPushDebugGroup      0000000180016148     glad.obj
+ 0003:00007150       glad_glPopDebugGroup       0000000180016150     glad.obj
+ 0003:00007ca0       ?__type_info_root_node@@3U__type_info_node@@A 0000000180016ca0     MSVCRT:tncleanup.obj
+ 0003:00007cb8       ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA 0000000180016cb8     MSVCRT:default_local_stdio_options.obj
+ 0003:00007cc8       ?_OptionsStorage@?1??__local_stdio_scanf_options@@9@4_KA 0000000180016cc8     MSVCRT:default_local_stdio_options.obj
+ 0003:00007cd8       __scrt_current_native_startup_state 0000000180016cd8     MSVCRT:utility.obj
+ 0003:00007ce0       __scrt_native_startup_lock 0000000180016ce0     MSVCRT:utility.obj
+ 0003:00007d30       __scrt_debugger_hook_flag  0000000180016d30     MSVCRT:utility_desktop.obj
+ 0003:00007d38       __castguard_check_failure_os_handled_fptr 0000000180016d38     MSVCRT:guard_support.obj
+ 0003:00007d44       __favor                    0000000180016d44     MSVCRT:cpu_disp.obj
+ 0003:00007d48       ?_OptionsStorage@?1??__local_stdio_printf_options@@9@9 0000000180016d48     <common>
+ 0003:00007d60       ?_OptionsStorage@?1??__local_stdio_scanf_options@@9@9 0000000180016d60     <common>
+ 0003:00007d78       __dyn_tls_init_callback    0000000180016d78     <common>
+ 0005:00000000       __imp_FreeLibrary          0000000180018000     kernel32:KERNEL32.dll
+ 0005:00000008       __imp_GetProcAddress       0000000180018008     kernel32:KERNEL32.dll
+ 0005:00000010       __imp_LoadLibraryW         0000000180018010     kernel32:KERNEL32.dll
+ 0005:00000018       __imp_RtlCaptureContext    0000000180018018     kernel32:KERNEL32.dll
+ 0005:00000020       __imp_RtlLookupFunctionEntry 0000000180018020     kernel32:KERNEL32.dll
+ 0005:00000028       __imp_RtlVirtualUnwind     0000000180018028     kernel32:KERNEL32.dll
+ 0005:00000030       __imp_UnhandledExceptionFilter 0000000180018030     kernel32:KERNEL32.dll
+ 0005:00000038       __imp_SetUnhandledExceptionFilter 0000000180018038     kernel32:KERNEL32.dll
+ 0005:00000040       __imp_GetCurrentProcess    0000000180018040     kernel32:KERNEL32.dll
+ 0005:00000048       __imp_TerminateProcess     0000000180018048     kernel32:KERNEL32.dll
+ 0005:00000050       __imp_IsProcessorFeaturePresent 0000000180018050     kernel32:KERNEL32.dll
+ 0005:00000058       __imp_QueryPerformanceCounter 0000000180018058     kernel32:KERNEL32.dll
+ 0005:00000060       __imp_GetCurrentProcessId  0000000180018060     kernel32:KERNEL32.dll
+ 0005:00000068       __imp_GetCurrentThreadId   0000000180018068     kernel32:KERNEL32.dll
+ 0005:00000070       __imp_GetSystemTimeAsFileTime 0000000180018070     kernel32:KERNEL32.dll
+ 0005:00000078       __imp_DisableThreadLibraryCalls 0000000180018078     kernel32:KERNEL32.dll
+ 0005:00000080       __imp_InitializeSListHead  0000000180018080     kernel32:KERNEL32.dll
+ 0005:00000088       __imp_IsDebuggerPresent    0000000180018088     kernel32:KERNEL32.dll
+ 0005:00000090       __imp_GetStartupInfoW      0000000180018090     kernel32:KERNEL32.dll
+ 0005:00000098       __imp_GetModuleHandleW     0000000180018098     kernel32:KERNEL32.dll
+ 0005:000000a0       \177KERNEL32_NULL_THUNK_DATA 00000001800180a0     kernel32:KERNEL32.dll
+ 0005:00000118       __imp___C_specific_handler 0000000180018118     vcruntime:VCRUNTIME140.dll
+ 0005:00000120       __imp___std_type_info_destroy_list 0000000180018120     vcruntime:VCRUNTIME140.dll
+ 0005:00000128       __imp___current_exception  0000000180018128     vcruntime:VCRUNTIME140.dll
+ 0005:00000130       __imp___current_exception_context 0000000180018130     vcruntime:VCRUNTIME140.dll
+ 0005:00000138       __imp_memset               0000000180018138     vcruntime:VCRUNTIME140.dll
+ 0005:00000140       \177VCRUNTIME140_NULL_THUNK_DATA 0000000180018140     vcruntime:VCRUNTIME140.dll
+ 0005:000001a0       __imp_free                 00000001800181a0     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0005:000001a8       __imp_malloc               00000001800181a8     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0005:000001b0       \177api-ms-win-crt-heap-l1-1-0_NULL_THUNK_DATA 00000001800181b0     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0005:00000208       __imp_sin                  0000000180018208     ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0005:00000210       \177api-ms-win-crt-math-l1-1-0_NULL_THUNK_DATA 0000000180018210     ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0005:00000268       __imp_terminate            0000000180018268     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000270       __imp__cexit               0000000180018270     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000278       __imp__initterm            0000000180018278     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000280       __imp__initterm_e          0000000180018280     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000288       __imp__seh_filter_dll      0000000180018288     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000290       __imp__configure_narrow_argv 0000000180018290     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000298       __imp__initialize_narrow_environment 0000000180018298     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002a0       __imp__initialize_onexit_table 00000001800182a0     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002a8       __imp__register_onexit_function 00000001800182a8     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002b0       __imp__execute_onexit_table 00000001800182b0     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002b8       __imp__crt_atexit          00000001800182b8     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002c0       __imp__crt_at_quick_exit   00000001800182c0     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:000002c8       \177api-ms-win-crt-runtime-l1-1-0_NULL_THUNK_DATA 00000001800182c8     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:00000330       __imp___acrt_iob_func      0000000180018330     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:00000338       __imp___stdio_common_vsscanf 0000000180018338     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:00000340       __imp___stdio_common_vfprintf 0000000180018340     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:00000348       \177api-ms-win-crt-stdio-l1-1-0_NULL_THUNK_DATA 0000000180018348     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:000003a0       __imp_strncmp              00000001800183a0     ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0005:000003a8       \177api-ms-win-crt-string-l1-1-0_NULL_THUNK_DATA 00000001800183a8     ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0005:00000400       __IMPORT_DESCRIPTOR_KERNEL32 0000000180018400     kernel32:KERNEL32.dll
+ 0005:00000414       __IMPORT_DESCRIPTOR_VCRUNTIME140 0000000180018414     vcruntime:VCRUNTIME140.dll
+ 0005:00000428       __IMPORT_DESCRIPTOR_api-ms-win-crt-math-l1-1-0 0000000180018428     ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0005:0000043c       __IMPORT_DESCRIPTOR_api-ms-win-crt-stdio-l1-1-0 000000018001843c     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:00000450       __IMPORT_DESCRIPTOR_api-ms-win-crt-heap-l1-1-0 0000000180018450     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0005:00000464       __IMPORT_DESCRIPTOR_api-ms-win-crt-string-l1-1-0 0000000180018464     ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0005:00000478       __IMPORT_DESCRIPTOR_api-ms-win-crt-runtime-l1-1-0 0000000180018478     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0005:0000048c       __NULL_IMPORT_DESCRIPTOR   000000018001848c     kernel32:KERNEL32.dll
+ 0006:00000000       __guard_check_icall_fptr   0000000180019000     MSVCRT:guard_support.obj
+ 0006:00000010       __guard_xfg_check_icall_fptr 0000000180019010     MSVCRT:guard_support.obj
+ 0006:00000020       __guard_dispatch_icall_fptr 0000000180019020     MSVCRT:guard_support.obj
+ 0006:00000030       __guard_xfg_dispatch_icall_fptr 0000000180019030     MSVCRT:guard_support.obj
+ 0006:00000040       __guard_xfg_table_dispatch_icall_fptr 0000000180019040     MSVCRT:guard_support.obj
+
+ entry point at        0001:00000005
+
+ Static symbols
+
+ 0000:fffe5000       .debug$S                   0000000180000000     SGE.exp
+ 0000:fffe7000       __guard_ehcont_?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180000000     MSVCRT:dll_dllmain.obj
+ 0000:fffe7000       __guard_fids_?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180000000     MSVCRT:dll_dllmain.obj
+ 0000:fffe7000       __guard_fids__             0000000180000000     MSVCRT:guard_support.obj
+ 0000:fffe7000       __guard_fids__             0000000180000000     MSVCRT:guard_support.obj
+ 0000:fffe7000       __guard_fids__guard_icall_checks_enforced 0000000180000000     MSVCRT:guard_support.obj
+ 0000:fffe7000       __guard_ehcont___scrt_is_nonwritable_in_current_image 0000000180000000     MSVCRT:utility.obj
+ 0000:fffe7000       __guard_fids___scrt_set_unhandled_exception_filter 0000000180000000     MSVCRT:utility_desktop.obj
+ 0000:fffe5000       .debug$S                   0000000180000000     vcruntime:VCRUNTIME140.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     vcruntime:VCRUNTIME140.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     vcruntime:VCRUNTIME140.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     vcruntime:VCRUNTIME140.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     vcruntime:VCRUNTIME140.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-runtime-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0000:fffe5000       .debug$S                   0000000180000000     kernel32:KERNEL32.dll
+ 0001:00000470       game_render_weird_gradient 0000000180001470 f   SGE.obj
+ 0001:00000550       game_update_sound_buffer   0000000180001550 f   SGE.obj
+ 0001:00000fd0       get_proc                   0000000180001fd0 f   glad.obj
+ 0001:00001040       open_gl                    0000000180002040 f   glad.obj
+ 0001:000010c0       close_gl                   00000001800020c0 f   glad.obj
+ 0001:00001100       get_exts                   0000000180002100 f   glad.obj
+ 0001:00001250       free_exts                  0000000180002250 f   glad.obj
+ 0001:000012c0       load_GL_VERSION_1_0        00000001800022c0 f   glad.obj
+ 0001:00001650       load_GL_VERSION_1_1        0000000180002650 f   glad.obj
+ 0001:00001760       load_GL_VERSION_1_2        0000000180002760 f   glad.obj
+ 0001:000017d0       load_GL_VERSION_1_3        00000001800027d0 f   glad.obj
+ 0001:000018a0       load_GL_VERSION_1_4        00000001800028a0 f   glad.obj
+ 0001:00001970       load_GL_VERSION_1_5        0000000180002970 f   glad.obj
+ 0001:00001af0       load_GL_VERSION_2_0        0000000180002af0 f   glad.obj
+ 0001:000021a0       load_GL_VERSION_2_1        00000001800031a0 f   glad.obj
+ 0001:00002230       load_GL_VERSION_3_0        0000000180003230 f   glad.obj
+ 0001:00002840       load_GL_VERSION_3_1        0000000180003840 f   glad.obj
+ 0001:00002970       load_GL_VERSION_3_2        0000000180003970 f   glad.obj
+ 0001:00002af0       load_GL_VERSION_3_3        0000000180003af0 f   glad.obj
+ 0001:00002f30       load_GL_VERSION_4_0        0000000180003f30 f   glad.obj
+ 0001:00003290       load_GL_VERSION_4_1        0000000180004290 f   glad.obj
+ 0001:00003900       load_GL_VERSION_4_2        0000000180004900 f   glad.obj
+ 0001:00003a00       load_GL_VERSION_4_3        0000000180004a00 f   glad.obj
+ 0001:00003d40       load_GL_VERSION_4_4        0000000180004d40 f   glad.obj
+ 0001:00003e10       load_GL_VERSION_4_5        0000000180004e10 f   glad.obj
+ 0001:000046d0       load_GL_VERSION_4_6        00000001800056d0 f   glad.obj
+ 0001:00004740       find_extensionsGL          0000000180005740 f   glad.obj
+ 0001:00004770       find_coreGL                0000000180005770 f   glad.obj
+ 0001:00005f08       $LN14                      0000000180006f08     Win32_OpenGL.obj
+ 0001:000060bc       $LN14                      00000001800070bc     Win32_OpenGL.obj
+ 0001:000069d0       $$000000                   00000001800079d0     MSVCRT:amdsecgs.obj
+ 0001:00006a10       ?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180007a10 f   MSVCRT:dll_dllmain.obj
+ 0001:00006a74       ?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 0000000180007a74 f   MSVCRT:dll_dllmain.obj
+ 0001:00006bd0       ?dllmain_crt_process_detach@@YAH_N@Z 0000000180007bd0 f   MSVCRT:dll_dllmain.obj
+ 0001:00006c78       ?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180007c78 f   MSVCRT:dll_dllmain.obj
+ 0001:00006df8       ?dllmain_raw@@YAHQEAUHINSTANCE__@@KQEAX@Z 0000000180007df8 f   MSVCRT:dll_dllmain.obj
+ 0001:000071e8       capture_current_context    00000001800081e8 f   MSVCRT:gs_report.obj
+ 0001:00007270       capture_previous_context   0000000180008270 f   MSVCRT:gs_report.obj
+ 0001:00007300       __get_entropy              0000000180008300 f   MSVCRT:gs_support.obj
+ 0001:000074f0       ?find_pe_section@@YAPEAU_IMAGE_SECTION_HEADER@@QEAE_K@Z 00000001800084f0 f   MSVCRT:utility.obj
+ 0001:00007554       ?is_potentially_valid_image_base@@YA_NQEAX@Z 0000000180008554 f   MSVCRT:utility.obj
+ 0001:00007e60       __castguard_compat_check   0000000180008e60 f   MSVCRT:guard_support.obj
+ 0001:00007f80       __castguard_slow_path_compat_check 0000000180008f80 f   MSVCRT:guard_support.obj
+ 0001:000094c0       $$000000                   000000018000a4c0     MSVCRT:guard_dispatch.obj
+ 0001:000094e0       $$000000                   000000018000a4e0     MSVCRT:guard_xfg_dispatch.obj
+ 0001:0000a4fe       ?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 000000018000b4fe f   MSVCRT:dll_dllmain.obj
+ 0001:0000a51a       ?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018000b51a f   MSVCRT:dll_dllmain.obj
+ 0001:0000a533       ?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018000b533 f   MSVCRT:dll_dllmain.obj
+ 0001:0000a552       ?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 000000018000b552 f   MSVCRT:dll_dllmain.obj
+ 0001:0000a595       __scrt_is_nonwritable_in_current_image$filt$0 000000018000b595 f   MSVCRT:utility.obj
+ 0002:000008d8       GS_ExceptionPointers       000000018000d8d8     MSVCRT:gs_report.obj
+ 0002:000013c0       $unwind$game_render_weird_gradient 000000018000e3c0     SGE.obj
+ 0002:000013c8       $unwind$game_update_sound_buffer 000000018000e3c8     SGE.obj
+ 0002:000013d0       $unwind$SGEUpdate          000000018000e3d0     SGE.obj
+ 0002:000013e4       $unwind$_vsscanf_s_l       000000018000e3e4     glad.obj
+ 0002:000013ec       $unwind$vsscanf_s          000000018000e3ec     glad.obj
+ 0002:000013f4       $unwind$sscanf_s           000000018000e3f4     glad.obj
+ 0002:000013fc       $unwind$gladLoadGL         000000018000e3fc     glad.obj
+ 0002:00001404       $unwind$gladLoadGLLoader   000000018000e404     glad.obj
+ 0002:0000140c       $unwind$get_proc           000000018000e40c     glad.obj
+ 0002:00001414       $unwind$open_gl            000000018000e414     glad.obj
+ 0002:0000141c       $unwind$close_gl           000000018000e41c     glad.obj
+ 0002:00001424       $unwind$get_exts           000000018000e424     glad.obj
+ 0002:00001430       $unwind$free_exts          000000018000e430     glad.obj
+ 0002:00001438       $unwind$load_GL_VERSION_1_0 000000018000e438     glad.obj
+ 0002:00001440       $unwind$load_GL_VERSION_1_1 000000018000e440     glad.obj
+ 0002:00001448       $unwind$load_GL_VERSION_1_2 000000018000e448     glad.obj
+ 0002:00001450       $unwind$load_GL_VERSION_1_3 000000018000e450     glad.obj
+ 0002:00001458       $unwind$load_GL_VERSION_1_4 000000018000e458     glad.obj
+ 0002:00001460       $unwind$load_GL_VERSION_1_5 000000018000e460     glad.obj
+ 0002:00001468       $unwind$load_GL_VERSION_2_0 000000018000e468     glad.obj
+ 0002:00001470       $unwind$load_GL_VERSION_2_1 000000018000e470     glad.obj
+ 0002:00001478       $unwind$load_GL_VERSION_3_0 000000018000e478     glad.obj
+ 0002:00001480       $unwind$load_GL_VERSION_3_1 000000018000e480     glad.obj
+ 0002:00001488       $unwind$load_GL_VERSION_3_2 000000018000e488     glad.obj
+ 0002:00001490       $unwind$load_GL_VERSION_3_3 000000018000e490     glad.obj
+ 0002:00001498       $unwind$load_GL_VERSION_4_0 000000018000e498     glad.obj
+ 0002:000014a0       $unwind$load_GL_VERSION_4_1 000000018000e4a0     glad.obj
+ 0002:000014a8       $unwind$load_GL_VERSION_4_2 000000018000e4a8     glad.obj
+ 0002:000014b0       $unwind$load_GL_VERSION_4_3 000000018000e4b0     glad.obj
+ 0002:000014b8       $unwind$load_GL_VERSION_4_4 000000018000e4b8     glad.obj
+ 0002:000014c0       $unwind$load_GL_VERSION_4_5 000000018000e4c0     glad.obj
+ 0002:000014c8       $unwind$load_GL_VERSION_4_6 000000018000e4c8     glad.obj
+ 0002:000014d0       $unwind$find_extensionsGL  000000018000e4d0     glad.obj
+ 0002:000014d8       $unwind$find_coreGL        000000018000e4d8     glad.obj
+ 0002:00001500       $unwind$_vfprintf_l        000000018000e500     Win32_OpenGL.obj
+ 0002:00001508       $unwind$printf             000000018000e508     Win32_OpenGL.obj
+ 0002:00001510       $unwind$GL_CheckError_     000000018000e510     Win32_OpenGL.obj
+ 0002:00001524       $unwind$GL_Log             000000018000e524     Win32_OpenGL.obj
+ 0002:00001538       $unwind$GL_ClearError      000000018000e538     Win32_OpenGL.obj
+ 0002:00001540       $unwind$win32_OpenGL_draw_sprite 000000018000e540     Win32_OpenGL.obj
+ 0002:00001548       $unwind$OpenGL_VertexBuffer_Create 000000018000e548     Win32_OpenGL.obj
+ 0002:00001550       $unwind$OpenGL_VertexBuffer_Destroy 000000018000e550     Win32_OpenGL.obj
+ 0002:00001558       $unwind$OpenGL_VertexBuffer_Bind 000000018000e558     Win32_OpenGL.obj
+ 0002:00001560       $unwind$OpenGL_VertexBuffer_Unbind 000000018000e560     Win32_OpenGL.obj
+ 0002:00001568       $unwind$OpenGL_IndexBuffer_Create 000000018000e568     Win32_OpenGL.obj
+ 0002:00001570       $unwind$OpenGL_IndexBuffer_Destroy 000000018000e570     Win32_OpenGL.obj
+ 0002:00001578       $unwind$OpenGL_IndexBuffer_Bind 000000018000e578     Win32_OpenGL.obj
+ 0002:00001580       $unwind$OpenGL_IndexBuffer_Unbind 000000018000e580     Win32_OpenGL.obj
+ 0002:00001594       $unwind$__GSHandlerCheckCommon 000000018000e594     MSVCRT:gshandler.obj
+ 0002:0000159c       $unwind$__GSHandlerCheck   000000018000e59c     MSVCRT:gshandler.obj
+ 0002:000015a8       $xdatasym                  000000018000e5a8     MSVCRT:amdsecgs.obj
+ 0002:000015ac       $unwind$?dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z 000000018000e5ac     MSVCRT:dll_dllmain.obj
+ 0002:000015f0       $unwind$?fin$0@?0??dllmain_crt_process_attach@@YAHQEAUHINSTANCE__@@QEAX@Z@4HA 000000018000e5f0     MSVCRT:dll_dllmain.obj
+ 0002:000015f8       $unwind$?dllmain_crt_process_detach@@YAH_N@Z 000000018000e5f8     MSVCRT:dll_dllmain.obj
+ 0002:00001654       $unwind$?fin$0@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018000e654     MSVCRT:dll_dllmain.obj
+ 0002:0000165c       $unwind$?fin$1@?0??dllmain_crt_process_detach@@YAH_N@Z@4HA 000000018000e65c     MSVCRT:dll_dllmain.obj
+ 0002:00001664       $unwind$?dllmain_crt_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 000000018000e664     MSVCRT:dll_dllmain.obj
+ 0002:0000166c       $unwind$?dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z 000000018000e66c     MSVCRT:dll_dllmain.obj
+ 0002:00001698       $unwind$?filt$0@?0??dllmain_dispatch@@YAHQEAUHINSTANCE__@@KQEAX@Z@4HA 000000018000e698     MSVCRT:dll_dllmain.obj
+ 0002:000016a0       $unwind$_DllMainCRTStartup 000000018000e6a0     MSVCRT:dll_dllmain.obj
+ 0002:000016b4       $unwind$__report_securityfailure 000000018000e6b4     MSVCRT:gs_report.obj
+ 0002:000016bc       $unwind$__report_securityfailureEx 000000018000e6bc     MSVCRT:gs_report.obj
+ 0002:000016c4       $unwind$__report_rangecheckfailure 000000018000e6c4     MSVCRT:gs_report.obj
+ 0002:000016cc       $unwind$__report_gsfailure 000000018000e6cc     MSVCRT:gs_report.obj
+ 0002:000016d4       $unwind$capture_current_context 000000018000e6d4     MSVCRT:gs_report.obj
+ 0002:000016e4       $unwind$capture_previous_context 000000018000e6e4     MSVCRT:gs_report.obj
+ 0002:000016f4       $unwind$__raise_securityfailure 000000018000e6f4     MSVCRT:gs_report.obj
+ 0002:000016fc       $unwind$__security_init_cookie 000000018000e6fc     MSVCRT:gs_support.obj
+ 0002:0000170c       $unwind$__get_entropy      000000018000e70c     MSVCRT:gs_support.obj
+ 0002:00001714       $unwind$DllMain            000000018000e714     MSVCRT:dll_dllmain_stub.obj
+ 0002:0000171c       $unwind$__scrt_initialize_default_local_stdio_options 000000018000e71c     MSVCRT:default_local_stdio_options.obj
+ 0002:00001724       $unwind$atexit             000000018000e724     MSVCRT:utility.obj
+ 0002:0000172c       $unwind$_onexit            000000018000e72c     MSVCRT:utility.obj
+ 0002:00001734       $unwind$__scrt_is_nonwritable_in_current_image 000000018000e734     MSVCRT:utility.obj
+ 0002:00001758       $unwind$__scrt_is_nonwritable_in_current_image$filt$0 000000018000e758     MSVCRT:utility.obj
+ 0002:00001760       $unwind$__scrt_acquire_startup_lock 000000018000e760     MSVCRT:utility.obj
+ 0002:00001768       $unwind$__scrt_release_startup_lock 000000018000e768     MSVCRT:utility.obj
+ 0002:00001770       $unwind$__scrt_initialize_crt 000000018000e770     MSVCRT:utility.obj
+ 0002:00001778       $unwind$__scrt_uninitialize_crt 000000018000e778     MSVCRT:utility.obj
+ 0002:00001780       $unwind$__scrt_initialize_onexit_tables 000000018000e780     MSVCRT:utility.obj
+ 0002:00001788       $unwind$__scrt_dllmain_exception_filter 000000018000e788     MSVCRT:utility.obj
+ 0002:000017a0       $unwind$__scrt_dllmain_before_initialize_c 000000018000e7a0     MSVCRT:utility.obj
+ 0002:000017a8       $unwind$__scrt_dllmain_after_initialize_c 000000018000e7a8     MSVCRT:utility.obj
+ 0002:000017b0       $unwind$__scrt_dllmain_uninitialize_c 000000018000e7b0     MSVCRT:utility.obj
+ 0002:000017b8       $unwind$__scrt_dllmain_uninitialize_critical 000000018000e7b8     MSVCRT:utility.obj
+ 0002:000017c0       $unwind$__scrt_dllmain_crt_thread_attach 000000018000e7c0     MSVCRT:utility.obj
+ 0002:000017c8       $unwind$__scrt_dllmain_crt_thread_detach 000000018000e7c8     MSVCRT:utility.obj
+ 0002:000017d0       $unwind$?configure_argv@__scrt_narrow_argv_policy@@SAHXZ 000000018000e7d0     MSVCRT:utility.obj
+ 0002:000017d8       $unwind$__scrt_get_show_window_mode 000000018000e7d8     MSVCRT:utility_desktop.obj
+ 0002:000017e0       $unwind$__scrt_is_managed_app 000000018000e7e0     MSVCRT:utility_desktop.obj
+ 0002:000017e8       $unwind$__scrt_fastfail    000000018000e7e8     MSVCRT:utility_desktop.obj
+ 0002:000017fc       $unwind$__scrt_unhandled_exception_filter 000000018000e7fc     MSVCRT:utility_desktop.obj
+ 0002:0000180c       $unwind$_RTC_Initialize    000000018000e80c     MSVCRT:initsect.obj
+ 0002:0000181c       $unwind$_RTC_Terminate     000000018000e81c     MSVCRT:initsect.obj
+ 0002:0000182c       $unwind$__castguard_check_failure_os_handled 000000018000e82c     MSVCRT:guard_support.obj
+ 0002:00001834       $unwind$__castguard_slow_path_check_os_handled 000000018000e834     MSVCRT:guard_support.obj
+ 0002:0000183c       $unwind$__isa_available_init 000000018000e83c     MSVCRT:cpu_disp.obj
+ 0002:00001850       $xdatasym                  000000018000e850     MSVCRT:guard_dispatch.obj
+ 0002:00001858       $xdatasym                  000000018000e858     MSVCRT:guard_xfg_dispatch.obj
+ 0002:00001a90       .edata                     000000018000ea90     SGE.exp
+ 0002:00001ab8       rgpv                       000000018000eab8     SGE.exp
+ 0002:00001ac0       rgszName                   000000018000eac0     SGE.exp
+ 0002:00001ac8       rgwOrd                     000000018000eac8     SGE.exp
+ 0002:00001acc       szName                     000000018000eacc     SGE.exp
+ 0002:00001ad4       $N00001                    000000018000ead4     SGE.exp
+ 0002:00001adc       $N00002                    000000018000eadc     SGE.exp
+ 0003:00000000       $SG100819                  000000018000f000     SGE.obj
+ 0003:00000008       $SG100824                  000000018000f008     SGE.obj
+ 0003:00000010       $SG100826                  000000018000f010     SGE.obj
+ 0003:00000014       $SG100828                  000000018000f014     SGE.obj
+ 0003:00000018       $SG100830                  000000018000f018     SGE.obj
+ 0003:0000001c       $SG100832                  000000018000f01c     SGE.obj
+ 0003:00000020       $SG100834                  000000018000f020     SGE.obj
+ 0003:00000030       $SG105889                  000000018000f030     glad.obj
+ 0003:00000050       $SG105891                  000000018000f050     glad.obj
+ 0003:00000068       $SG106742                  000000018000f068     glad.obj
+ 0003:00000078       $SG106743                  000000018000f078     glad.obj
+ 0003:00000084       $SG106744                  000000018000f084     glad.obj
+ 0003:00000090       $SG106745                  000000018000f090     glad.obj
+ 0003:000000a0       $SG106746                  000000018000f0a0     glad.obj
+ 0003:000000b0       $SG106747                  000000018000f0b0     glad.obj
+ 0003:000000c0       $SG106748                  000000018000f0c0     glad.obj
+ 0003:000000d0       $SG106749                  000000018000f0d0     glad.obj
+ 0003:000000e0       $SG106750                  000000018000f0e0     glad.obj
+ 0003:000000f4       $SG108217                  000000018000f0f4     glad.obj
+ 0003:00000100       $SG106751                  000000018000f100     glad.obj
+ 0003:00000110       $SG106752                  000000018000f110     glad.obj
+ 0003:00000128       $SG106753                  000000018000f128     glad.obj
+ 0003:00000138       $SG106754                  000000018000f138     glad.obj
+ 0003:00000148       $SG106755                  000000018000f148     glad.obj
+ 0003:00000158       $SG106756                  000000018000f158     glad.obj
+ 0003:00000160       $SG106757                  000000018000f160     glad.obj
+ 0003:00000170       $SG106758                  000000018000f170     glad.obj
+ 0003:00000180       $SG106759                  000000018000f180     glad.obj
+ 0003:00000190       $SG106760                  000000018000f190     glad.obj
+ 0003:000001a0       $SG106761                  000000018000f1a0     glad.obj
+ 0003:000001b0       $SG106762                  000000018000f1b0     glad.obj
+ 0003:000001c0       $SG106763                  000000018000f1c0     glad.obj
+ 0003:000001d0       $SG106764                  000000018000f1d0     glad.obj
+ 0003:000001e0       $SG106765                  000000018000f1e0     glad.obj
+ 0003:000001f0       $SG106766                  000000018000f1f0     glad.obj
+ 0003:000001f8       $SG106767                  000000018000f1f8     glad.obj
+ 0003:00000208       $SG106768                  000000018000f208     glad.obj
+ 0003:00000218       $SG106769                  000000018000f218     glad.obj
+ 0003:00000228       $SG106770                  000000018000f228     glad.obj
+ 0003:00000238       $SG106771                  000000018000f238     glad.obj
+ 0003:00000248       $SG106772                  000000018000f248     glad.obj
+ 0003:00000258       $SG106773                  000000018000f258     glad.obj
+ 0003:00000268       $SG106774                  000000018000f268     glad.obj
+ 0003:00000278       $SG106775                  000000018000f278     glad.obj
+ 0003:00000288       $SG106776                  000000018000f288     glad.obj
+ 0003:00000298       $SG106777                  000000018000f298     glad.obj
+ 0003:000002a8       $SG106778                  000000018000f2a8     glad.obj
+ 0003:000002b8       $SG106779                  000000018000f2b8     glad.obj
+ 0003:000002c8       $SG106780                  000000018000f2c8     glad.obj
+ 0003:000002d8       $SG106781                  000000018000f2d8     glad.obj
+ 0003:000002e8       $SG106782                  000000018000f2e8     glad.obj
+ 0003:000002f8       $SG106783                  000000018000f2f8     glad.obj
+ 0003:00000310       $SG106784                  000000018000f310     glad.obj
+ 0003:00000328       $SG106785                  000000018000f328     glad.obj
+ 0003:00000348       $SG106786                  000000018000f348     glad.obj
+ 0003:00000368       $SG106787                  000000018000f368     glad.obj
+ 0003:00000378       $SG106788                  000000018000f378     glad.obj
+ 0003:00000388       $SG106789                  000000018000f388     glad.obj
+ 0003:00000398       $SG106808                  000000018000f398     glad.obj
+ 0003:000003a8       $SG106809                  000000018000f3a8     glad.obj
+ 0003:000003b8       $SG106810                  000000018000f3b8     glad.obj
+ 0003:000003c8       $SG106811                  000000018000f3c8     glad.obj
+ 0003:000003e0       $SG106812                  000000018000f3e0     glad.obj
+ 0003:000003f8       $SG106813                  000000018000f3f8     glad.obj
+ 0003:00000410       $SG106814                  000000018000f410     glad.obj
+ 0003:00000428       $SG106815                  000000018000f428     glad.obj
+ 0003:00000438       $SG106816                  000000018000f438     glad.obj
+ 0003:00000448       $SG106817                  000000018000f448     glad.obj
+ 0003:00000458       $SG106818                  000000018000f458     glad.obj
+ 0003:00000470       $SG106819                  000000018000f470     glad.obj
+ 0003:00000480       $SG106820                  000000018000f480     glad.obj
+ 0003:00000490       $SG106830                  000000018000f490     glad.obj
+ 0003:000004a8       $SG106831                  000000018000f4a8     glad.obj
+ 0003:000004b8       $SG106832                  000000018000f4b8     glad.obj
+ 0003:000004c8       $SG106833                  000000018000f4c8     glad.obj
+ 0003:000004e0       $SG106848                  000000018000f4e0     glad.obj
+ 0003:000004f0       $SG106849                  000000018000f4f0     glad.obj
+ 0003:00000508       $SG106850                  000000018000f508     glad.obj
+ 0003:00000520       $SG106851                  000000018000f520     glad.obj
+ 0003:00000538       $SG106852                  000000018000f538     glad.obj
+ 0003:00000550       $SG106853                  000000018000f550     glad.obj
+ 0003:00000570       $SG106854                  000000018000f570     glad.obj
+ 0003:00000590       $SG106855                  000000018000f590     glad.obj
+ 0003:000005b0       $SG106856                  000000018000f5b0     glad.obj
+ 0003:000005c8       $SG106871                  000000018000f5c8     glad.obj
+ 0003:000005e0       $SG106872                  000000018000f5e0     glad.obj
+ 0003:000005f8       $SG106873                  000000018000f5f8     glad.obj
+ 0003:00000610       $SG106874                  000000018000f610     glad.obj
+ 0003:00000628       $SG106875                  000000018000f628     glad.obj
+ 0003:00000640       $SG106876                  000000018000f640     glad.obj
+ 0003:00000658       $SG106877                  000000018000f658     glad.obj
+ 0003:00000670       $SG106878                  000000018000f670     glad.obj
+ 0003:00000680       $SG106879                  000000018000f680     glad.obj
+ 0003:00000690       $SG106904                  000000018000f690     glad.obj
+ 0003:000006a0       $SG106905                  000000018000f6a0     glad.obj
+ 0003:000006b0       $SG106906                  000000018000f6b0     glad.obj
+ 0003:000006c0       $SG106907                  000000018000f6c0     glad.obj
+ 0003:000006d0       $SG106908                  000000018000f6d0     glad.obj
+ 0003:000006e0       $SG106909                  000000018000f6e0     glad.obj
+ 0003:000006f0       $SG106910                  000000018000f6f0     glad.obj
+ 0003:00000708       $SG106911                  000000018000f708     glad.obj
+ 0003:00000720       $SG106912                  000000018000f720     glad.obj
+ 0003:00000730       $SG106913                  000000018000f730     glad.obj
+ 0003:00000740       $SG106914                  000000018000f740     glad.obj
+ 0003:00000750       $SG106915                  000000018000f750     glad.obj
+ 0003:00000760       $SG106916                  000000018000f760     glad.obj
+ 0003:00000770       $SG106917                  000000018000f770     glad.obj
+ 0003:00000780       $SG106918                  000000018000f780     glad.obj
+ 0003:00000798       $SG106919                  000000018000f798     glad.obj
+ 0003:000007a8       $SG106920                  000000018000f7a8     glad.obj
+ 0003:000007b8       $SG106921                  000000018000f7b8     glad.obj
+ 0003:000007d0       $SG106922                  000000018000f7d0     glad.obj
+ 0003:000007e8       $SG107021                  000000018000f7e8     glad.obj
+ 0003:00000800       $SG107022                  000000018000f800     glad.obj
+ 0003:00000810       $SG107023                  000000018000f810     glad.obj
+ 0003:00000828       $SG107024                  000000018000f828     glad.obj
+ 0003:00000840       $SG107025                  000000018000f840     glad.obj
+ 0003:00000858       $SG107026                  000000018000f858     glad.obj
+ 0003:00000868       $SG107027                  000000018000f868     glad.obj
+ 0003:00000880       $SG107028                  000000018000f880     glad.obj
+ 0003:00000890       $SG107029                  000000018000f890     glad.obj
+ 0003:000008a0       $SG107030                  000000018000f8a0     glad.obj
+ 0003:000008b0       $SG107031                  000000018000f8b0     glad.obj
+ 0003:000008c0       $SG107032                  000000018000f8c0     glad.obj
+ 0003:000008d0       $SG107033                  000000018000f8d0     glad.obj
+ 0003:000008e0       $SG107034                  000000018000f8e0     glad.obj
+ 0003:00000900       $SG107035                  000000018000f900     glad.obj
+ 0003:00000920       $SG107036                  000000018000f920     glad.obj
+ 0003:00000938       $SG107037                  000000018000f938     glad.obj
+ 0003:00000950       $SG107038                  000000018000f950     glad.obj
+ 0003:00000968       $SG107039                  000000018000f968     glad.obj
+ 0003:00000980       $SG107040                  000000018000f980     glad.obj
+ 0003:00000990       $SG107041                  000000018000f990     glad.obj
+ 0003:000009a8       $SG107042                  000000018000f9a8     glad.obj
+ 0003:000009b8       $SG107043                  000000018000f9b8     glad.obj
+ 0003:000009d0       $SG107044                  000000018000f9d0     glad.obj
+ 0003:000009e8       $SG107045                  000000018000f9e8     glad.obj
+ 0003:00000a00       $SG107046                  000000018000fa00     glad.obj
+ 0003:00000a10       $SG107047                  000000018000fa10     glad.obj
+ 0003:00000a20       $SG107048                  000000018000fa20     glad.obj
+ 0003:00000a38       $SG107049                  000000018000fa38     glad.obj
+ 0003:00000a50       $SG107050                  000000018000fa50     glad.obj
+ 0003:00000a68       $SG107051                  000000018000fa68     glad.obj
+ 0003:00000a88       $SG107052                  000000018000fa88     glad.obj
+ 0003:00000a98       $SG107053                  000000018000fa98     glad.obj
+ 0003:00000aa8       $SG107054                  000000018000faa8     glad.obj
+ 0003:00000ab8       $SG107055                  000000018000fab8     glad.obj
+ 0003:00000ac8       $SG107056                  000000018000fac8     glad.obj
+ 0003:00000ad8       $SG107057                  000000018000fad8     glad.obj
+ 0003:00000ae8       $SG107058                  000000018000fae8     glad.obj
+ 0003:00000af8       $SG107059                  000000018000faf8     glad.obj
+ 0003:00000b08       $SG107060                  000000018000fb08     glad.obj
+ 0003:00000b18       $SG107061                  000000018000fb18     glad.obj
+ 0003:00000b28       $SG107062                  000000018000fb28     glad.obj
+ 0003:00000b38       $SG107063                  000000018000fb38     glad.obj
+ 0003:00000b48       $SG107064                  000000018000fb48     glad.obj
+ 0003:00000b58       $SG107065                  000000018000fb58     glad.obj
+ 0003:00000b68       $SG107066                  000000018000fb68     glad.obj
+ 0003:00000b78       $SG107067                  000000018000fb78     glad.obj
+ 0003:00000b88       $SG107068                  000000018000fb88     glad.obj
+ 0003:00000b98       $SG107069                  000000018000fb98     glad.obj
+ 0003:00000ba8       $SG107070                  000000018000fba8     glad.obj
+ 0003:00000bb8       $SG107071                  000000018000fbb8     glad.obj
+ 0003:00000bc8       $SG107072                  000000018000fbc8     glad.obj
+ 0003:00000bd8       $SG107073                  000000018000fbd8     glad.obj
+ 0003:00000bf0       $SG107074                  000000018000fbf0     glad.obj
+ 0003:00000c08       $SG107075                  000000018000fc08     glad.obj
+ 0003:00000c20       $SG107076                  000000018000fc20     glad.obj
+ 0003:00000c38       $SG107077                  000000018000fc38     glad.obj
+ 0003:00000c50       $SG107078                  000000018000fc50     glad.obj
+ 0003:00000c68       $SG107079                  000000018000fc68     glad.obj
+ 0003:00000c80       $SG107080                  000000018000fc80     glad.obj
+ 0003:00000c98       $SG107081                  000000018000fc98     glad.obj
+ 0003:00000cb0       $SG107082                  000000018000fcb0     glad.obj
+ 0003:00000cc8       $SG107083                  000000018000fcc8     glad.obj
+ 0003:00000ce0       $SG107084                  000000018000fce0     glad.obj
+ 0003:00000cf8       $SG107085                  000000018000fcf8     glad.obj
+ 0003:00000d10       $SG107086                  000000018000fd10     glad.obj
+ 0003:00000d28       $SG107087                  000000018000fd28     glad.obj
+ 0003:00000d40       $SG107088                  000000018000fd40     glad.obj
+ 0003:00000d58       $SG107089                  000000018000fd58     glad.obj
+ 0003:00000d70       $SG107090                  000000018000fd70     glad.obj
+ 0003:00000d88       $SG107091                  000000018000fd88     glad.obj
+ 0003:00000da0       $SG107092                  000000018000fda0     glad.obj
+ 0003:00000db8       $SG107093                  000000018000fdb8     glad.obj
+ 0003:00000dd0       $SG107094                  000000018000fdd0     glad.obj
+ 0003:00000de8       $SG107095                  000000018000fde8     glad.obj
+ 0003:00000e00       $SG107096                  000000018000fe00     glad.obj
+ 0003:00000e18       $SG107097                  000000018000fe18     glad.obj
+ 0003:00000e30       $SG107098                  000000018000fe30     glad.obj
+ 0003:00000e48       $SG107099                  000000018000fe48     glad.obj
+ 0003:00000e60       $SG107100                  000000018000fe60     glad.obj
+ 0003:00000e78       $SG107101                  000000018000fe78     glad.obj
+ 0003:00000e90       $SG107102                  000000018000fe90     glad.obj
+ 0003:00000ea8       $SG107103                  000000018000fea8     glad.obj
+ 0003:00000ec0       $SG107104                  000000018000fec0     glad.obj
+ 0003:00000ed8       $SG107105                  000000018000fed8     glad.obj
+ 0003:00000ef0       $SG107106                  000000018000fef0     glad.obj
+ 0003:00000f08       $SG107107                  000000018000ff08     glad.obj
+ 0003:00000f20       $SG107108                  000000018000ff20     glad.obj
+ 0003:00000f38       $SG107109                  000000018000ff38     glad.obj
+ 0003:00000f50       $SG107110                  000000018000ff50     glad.obj
+ 0003:00000f68       $SG107111                  000000018000ff68     glad.obj
+ 0003:00000f80       $SG107112                  000000018000ff80     glad.obj
+ 0003:00000f98       $SG107113                  000000018000ff98     glad.obj
+ 0003:00000fb0       $SG107125                  000000018000ffb0     glad.obj
+ 0003:00000fc8       $SG107126                  000000018000ffc8     glad.obj
+ 0003:00000fe0       $SG107127                  000000018000ffe0     glad.obj
+ 0003:00000ff8       $SG107128                  000000018000fff8     glad.obj
+ 0003:00001010       $SG107129                  0000000180010010     glad.obj
+ 0003:00001028       $SG107130                  0000000180010028     glad.obj
+ 0003:00001040       $SG107220                  0000000180010040     glad.obj
+ 0003:00001050       $SG107221                  0000000180010050     glad.obj
+ 0003:00001060       $SG107222                  0000000180010060     glad.obj
+ 0003:00001070       $SG107223                  0000000180010070     glad.obj
+ 0003:00001080       $SG107224                  0000000180010080     glad.obj
+ 0003:00001090       $SG107225                  0000000180010090     glad.obj
+ 0003:000010a0       $SG107226                  00000001800100a0     glad.obj
+ 0003:000010c0       $SG107227                  00000001800100c0     glad.obj
+ 0003:000010d8       $SG107228                  00000001800100d8     glad.obj
+ 0003:000010f0       $SG107229                  00000001800100f0     glad.obj
+ 0003:00001108       $SG107230                  0000000180010108     glad.obj
+ 0003:00001128       $SG107231                  0000000180010128     glad.obj
+ 0003:00001148       $SG107232                  0000000180010148     glad.obj
+ 0003:00001158       $SG107233                  0000000180010158     glad.obj
+ 0003:00001178       $SG107234                  0000000180010178     glad.obj
+ 0003:00001190       $SG107235                  0000000180010190     glad.obj
+ 0003:000011a8       $SG107236                  00000001800101a8     glad.obj
+ 0003:000011c0       $SG107237                  00000001800101c0     glad.obj
+ 0003:000011d8       $SG107238                  00000001800101d8     glad.obj
+ 0003:000011f0       $SG107239                  00000001800101f0     glad.obj
+ 0003:00001208       $SG107240                  0000000180010208     glad.obj
+ 0003:00001220       $SG107241                  0000000180010220     glad.obj
+ 0003:00001238       $SG107242                  0000000180010238     glad.obj
+ 0003:00001250       $SG107243                  0000000180010250     glad.obj
+ 0003:00001268       $SG107244                  0000000180010268     glad.obj
+ 0003:00001280       $SG107245                  0000000180010280     glad.obj
+ 0003:00001298       $SG107246                  0000000180010298     glad.obj
+ 0003:000012b0       $SG107247                  00000001800102b0     glad.obj
+ 0003:000012c8       $SG107248                  00000001800102c8     glad.obj
+ 0003:000012e0       $SG107249                  00000001800102e0     glad.obj
+ 0003:000012f8       $SG107250                  00000001800102f8     glad.obj
+ 0003:00001310       $SG107251                  0000000180010310     glad.obj
+ 0003:00001328       $SG107252                  0000000180010328     glad.obj
+ 0003:00001340       $SG107253                  0000000180010340     glad.obj
+ 0003:00001358       $SG107254                  0000000180010358     glad.obj
+ 0003:00001370       $SG107255                  0000000180010370     glad.obj
+ 0003:00001388       $SG107256                  0000000180010388     glad.obj
+ 0003:000013a0       $SG107257                  00000001800103a0     glad.obj
+ 0003:000013b8       $SG107258                  00000001800103b8     glad.obj
+ 0003:000013c8       $SG107259                  00000001800103c8     glad.obj
+ 0003:000013e0       $SG107260                  00000001800103e0     glad.obj
+ 0003:000013f8       $SG107261                  00000001800103f8     glad.obj
+ 0003:00001408       $SG107262                  0000000180010408     glad.obj
+ 0003:00001418       $SG107263                  0000000180010418     glad.obj
+ 0003:00001428       $SG107264                  0000000180010428     glad.obj
+ 0003:00001438       $SG107265                  0000000180010438     glad.obj
+ 0003:00001448       $SG107266                  0000000180010448     glad.obj
+ 0003:00001458       $SG107267                  0000000180010458     glad.obj
+ 0003:00001468       $SG107268                  0000000180010468     glad.obj
+ 0003:00001478       $SG107269                  0000000180010478     glad.obj
+ 0003:00001490       $SG107270                  0000000180010490     glad.obj
+ 0003:000014a8       $SG107271                  00000001800104a8     glad.obj
+ 0003:000014c0       $SG107272                  00000001800104c0     glad.obj
+ 0003:000014d8       $SG107273                  00000001800104d8     glad.obj
+ 0003:000014e8       $SG107274                  00000001800104e8     glad.obj
+ 0003:00001500       $SG107275                  0000000180010500     glad.obj
+ 0003:00001510       $SG107276                  0000000180010510     glad.obj
+ 0003:00001520       $SG107277                  0000000180010520     glad.obj
+ 0003:00001530       $SG107278                  0000000180010530     glad.obj
+ 0003:00001548       $SG107279                  0000000180010548     glad.obj
+ 0003:00001560       $SG107280                  0000000180010560     glad.obj
+ 0003:00001578       $SG107281                  0000000180010578     glad.obj
+ 0003:00001590       $SG107282                  0000000180010590     glad.obj
+ 0003:000015a8       $SG107283                  00000001800105a8     glad.obj
+ 0003:000015c8       $SG107284                  00000001800105c8     glad.obj
+ 0003:000015d8       $SG107285                  00000001800105d8     glad.obj
+ 0003:000015f0       $SG107286                  00000001800105f0     glad.obj
+ 0003:00001608       $SG107287                  0000000180010608     glad.obj
+ 0003:00001620       $SG107288                  0000000180010620     glad.obj
+ 0003:00001640       $SG107289                  0000000180010640     glad.obj
+ 0003:00001658       $SG107290                  0000000180010658     glad.obj
+ 0003:00001670       $SG107291                  0000000180010670     glad.obj
+ 0003:00001688       $SG107292                  0000000180010688     glad.obj
+ 0003:000016a8       $SG107293                  00000001800106a8     glad.obj
+ 0003:000016d0       $SG107294                  00000001800106d0     glad.obj
+ 0003:000016e8       $SG107295                  00000001800106e8     glad.obj
+ 0003:00001700       $SG107296                  0000000180010700     glad.obj
+ 0003:00001728       $SG107297                  0000000180010728     glad.obj
+ 0003:00001748       $SG107298                  0000000180010748     glad.obj
+ 0003:00001760       $SG107299                  0000000180010760     glad.obj
+ 0003:00001780       $SG107300                  0000000180010780     glad.obj
+ 0003:00001798       $SG107301                  0000000180010798     glad.obj
+ 0003:000017b0       $SG107302                  00000001800107b0     glad.obj
+ 0003:000017c8       $SG107303                  00000001800107c8     glad.obj
+ 0003:000017d8       $SG107324                  00000001800107d8     glad.obj
+ 0003:000017f0       $SG107325                  00000001800107f0     glad.obj
+ 0003:00001808       $SG107326                  0000000180010808     glad.obj
+ 0003:00001818       $SG107327                  0000000180010818     glad.obj
+ 0003:00001830       $SG107328                  0000000180010830     glad.obj
+ 0003:00001848       $SG107329                  0000000180010848     glad.obj
+ 0003:00001860       $SG107330                  0000000180010860     glad.obj
+ 0003:00001878       $SG107331                  0000000180010878     glad.obj
+ 0003:00001890       $SG107332                  0000000180010890     glad.obj
+ 0003:000018a8       $SG107333                  00000001800108a8     glad.obj
+ 0003:000018c8       $SG107334                  00000001800108c8     glad.obj
+ 0003:000018e8       $SG107335                  00000001800108e8     glad.obj
+ 0003:00001900       $SG107336                  0000000180010900     glad.obj
+ 0003:00001918       $SG107337                  0000000180010918     glad.obj
+ 0003:00001930       $SG107338                  0000000180010930     glad.obj
+ 0003:00001940       $SG107363                  0000000180010940     glad.obj
+ 0003:00001960       $SG107364                  0000000180010960     glad.obj
+ 0003:00001980       $SG107365                  0000000180010980     glad.obj
+ 0003:000019a8       $SG107366                  00000001800109a8     glad.obj
+ 0003:000019c8       $SG107367                  00000001800109c8     glad.obj
+ 0003:000019e0       $SG107368                  00000001800109e0     glad.obj
+ 0003:000019f0       $SG107369                  00000001800109f0     glad.obj
+ 0003:00001a00       $SG107370                  0000000180010a00     glad.obj
+ 0003:00001a10       $SG107371                  0000000180010a10     glad.obj
+ 0003:00001a28       $SG107372                  0000000180010a28     glad.obj
+ 0003:00001a38       $SG107373                  0000000180010a38     glad.obj
+ 0003:00001a48       $SG107374                  0000000180010a48     glad.obj
+ 0003:00001a58       $SG107375                  0000000180010a58     glad.obj
+ 0003:00001a70       $SG107376                  0000000180010a70     glad.obj
+ 0003:00001a90       $SG107377                  0000000180010a90     glad.obj
+ 0003:00001aa8       $SG107378                  0000000180010aa8     glad.obj
+ 0003:00001ac0       $SG107379                  0000000180010ac0     glad.obj
+ 0003:00001ad8       $SG107380                  0000000180010ad8     glad.obj
+ 0003:00001af0       $SG107381                  0000000180010af0     glad.obj
+ 0003:00001b00       $SG107445                  0000000180010b00     glad.obj
+ 0003:00001b20       $SG107446                  0000000180010b20     glad.obj
+ 0003:00001b38       $SG107447                  0000000180010b38     glad.obj
+ 0003:00001b48       $SG107448                  0000000180010b48     glad.obj
+ 0003:00001b60       $SG107449                  0000000180010b60     glad.obj
+ 0003:00001b70       $SG107450                  0000000180010b70     glad.obj
+ 0003:00001b80       $SG107451                  0000000180010b80     glad.obj
+ 0003:00001b98       $SG107452                  0000000180010b98     glad.obj
+ 0003:00001bb0       $SG107453                  0000000180010bb0     glad.obj
+ 0003:00001bc8       $SG107454                  0000000180010bc8     glad.obj
+ 0003:00001be0       $SG107455                  0000000180010be0     glad.obj
+ 0003:00001bf8       $SG107456                  0000000180010bf8     glad.obj
+ 0003:00001c10       $SG107457                  0000000180010c10     glad.obj
+ 0003:00001c28       $SG107458                  0000000180010c28     glad.obj
+ 0003:00001c48       $SG107459                  0000000180010c48     glad.obj
+ 0003:00001c60       $SG107460                  0000000180010c60     glad.obj
+ 0003:00001c80       $SG107461                  0000000180010c80     glad.obj
+ 0003:00001c90       $SG107462                  0000000180010c90     glad.obj
+ 0003:00001ca8       $SG107463                  0000000180010ca8     glad.obj
+ 0003:00001cc0       $SG107464                  0000000180010cc0     glad.obj
+ 0003:00001cd8       $SG107465                  0000000180010cd8     glad.obj
+ 0003:00001cf0       $SG107466                  0000000180010cf0     glad.obj
+ 0003:00001d08       $SG107467                  0000000180010d08     glad.obj
+ 0003:00001d20       $SG107468                  0000000180010d20     glad.obj
+ 0003:00001d38       $SG107469                  0000000180010d38     glad.obj
+ 0003:00001d50       $SG107470                  0000000180010d50     glad.obj
+ 0003:00001d68       $SG107471                  0000000180010d68     glad.obj
+ 0003:00001d80       $SG107472                  0000000180010d80     glad.obj
+ 0003:00001d98       $SG107473                  0000000180010d98     glad.obj
+ 0003:00001da8       $SG107474                  0000000180010da8     glad.obj
+ 0003:00001db8       $SG107475                  0000000180010db8     glad.obj
+ 0003:00001dc8       $SG107476                  0000000180010dc8     glad.obj
+ 0003:00001dd8       $SG107477                  0000000180010dd8     glad.obj
+ 0003:00001de8       $SG107478                  0000000180010de8     glad.obj
+ 0003:00001df8       $SG107479                  0000000180010df8     glad.obj
+ 0003:00001e08       $SG107480                  0000000180010e08     glad.obj
+ 0003:00001e18       $SG107481                  0000000180010e18     glad.obj
+ 0003:00001e28       $SG107482                  0000000180010e28     glad.obj
+ 0003:00001e38       $SG107483                  0000000180010e38     glad.obj
+ 0003:00001e48       $SG107484                  0000000180010e48     glad.obj
+ 0003:00001e58       $SG107485                  0000000180010e58     glad.obj
+ 0003:00001e68       $SG107486                  0000000180010e68     glad.obj
+ 0003:00001e78       $SG107487                  0000000180010e78     glad.obj
+ 0003:00001e90       $SG107488                  0000000180010e90     glad.obj
+ 0003:00001ea8       $SG107489                  0000000180010ea8     glad.obj
+ 0003:00001ec0       $SG107490                  0000000180010ec0     glad.obj
+ 0003:00001ed8       $SG107491                  0000000180010ed8     glad.obj
+ 0003:00001ef0       $SG107492                  0000000180010ef0     glad.obj
+ 0003:00001f08       $SG107493                  0000000180010f08     glad.obj
+ 0003:00001f20       $SG107494                  0000000180010f20     glad.obj
+ 0003:00001f38       $SG107495                  0000000180010f38     glad.obj
+ 0003:00001f48       $SG107496                  0000000180010f48     glad.obj
+ 0003:00001f58       $SG107497                  0000000180010f58     glad.obj
+ 0003:00001f68       $SG107498                  0000000180010f68     glad.obj
+ 0003:00001f78       $SG107499                  0000000180010f78     glad.obj
+ 0003:00001f88       $SG107500                  0000000180010f88     glad.obj
+ 0003:00001f98       $SG107501                  0000000180010f98     glad.obj
+ 0003:00001fb0       $SG107502                  0000000180010fb0     glad.obj
+ 0003:00001fc8       $SG107554                  0000000180010fc8     glad.obj
+ 0003:00001fe0       $SG107555                  0000000180010fe0     glad.obj
+ 0003:00001ff8       $SG107556                  0000000180010ff8     glad.obj
+ 0003:00002018       $SG107557                  0000000180011018     glad.obj
+ 0003:00002028       $SG107558                  0000000180011028     glad.obj
+ 0003:00002040       $SG107559                  0000000180011040     glad.obj
+ 0003:00002058       $SG107560                  0000000180011058     glad.obj
+ 0003:00002070       $SG107561                  0000000180011070     glad.obj
+ 0003:00002080       $SG107562                  0000000180011080     glad.obj
+ 0003:00002090       $SG107563                  0000000180011090     glad.obj
+ 0003:000020a0       $SG107564                  00000001800110a0     glad.obj
+ 0003:000020b0       $SG107565                  00000001800110b0     glad.obj
+ 0003:000020c0       $SG107566                  00000001800110c0     glad.obj
+ 0003:000020d0       $SG107567                  00000001800110d0     glad.obj
+ 0003:000020e0       $SG107568                  00000001800110e0     glad.obj
+ 0003:000020f0       $SG107569                  00000001800110f0     glad.obj
+ 0003:00002108       $SG107570                  0000000180011108     glad.obj
+ 0003:00002120       $SG107571                  0000000180011120     glad.obj
+ 0003:00002138       $SG107572                  0000000180011138     glad.obj
+ 0003:00002150       $SG107573                  0000000180011150     glad.obj
+ 0003:00002168       $SG107574                  0000000180011168     glad.obj
+ 0003:00002180       $SG107575                  0000000180011180     glad.obj
+ 0003:00002198       $SG107576                  0000000180011198     glad.obj
+ 0003:000021b0       $SG107577                  00000001800111b0     glad.obj
+ 0003:000021c8       $SG107578                  00000001800111c8     glad.obj
+ 0003:000021d8       $SG107579                  00000001800111d8     glad.obj
+ 0003:000021f8       $SG107580                  00000001800111f8     glad.obj
+ 0003:00002210       $SG107581                  0000000180011210     glad.obj
+ 0003:00002230       $SG107582                  0000000180011230     glad.obj
+ 0003:00002258       $SG107583                  0000000180011258     glad.obj
+ 0003:00002278       $SG107584                  0000000180011278     glad.obj
+ 0003:00002290       $SG107585                  0000000180011290     glad.obj
+ 0003:000022b0       $SG107586                  00000001800112b0     glad.obj
+ 0003:000022c8       $SG107587                  00000001800112c8     glad.obj
+ 0003:000022e0       $SG107588                  00000001800112e0     glad.obj
+ 0003:000022f8       $SG107589                  00000001800112f8     glad.obj
+ 0003:00002310       $SG107590                  0000000180011310     glad.obj
+ 0003:00002330       $SG107591                  0000000180011330     glad.obj
+ 0003:00002348       $SG107592                  0000000180011348     glad.obj
+ 0003:00002360       $SG107593                  0000000180011360     glad.obj
+ 0003:00002380       $SG107594                  0000000180011380     glad.obj
+ 0003:000023a0       $SG107595                  00000001800113a0     glad.obj
+ 0003:000023b8       $SG107596                  00000001800113b8     glad.obj
+ 0003:000023d8       $SG107597                  00000001800113d8     glad.obj
+ 0003:000023f0       $SG107598                  00000001800113f0     glad.obj
+ 0003:00002408       $SG107599                  0000000180011408     glad.obj
+ 0003:00002420       $SG107694                  0000000180011420     glad.obj
+ 0003:00002438       $SG107695                  0000000180011438     glad.obj
+ 0003:00002448       $SG107696                  0000000180011448     glad.obj
+ 0003:00002468       $SG107697                  0000000180011468     glad.obj
+ 0003:00002478       $SG107698                  0000000180011478     glad.obj
+ 0003:00002488       $SG107699                  0000000180011488     glad.obj
+ 0003:000024a0       $SG107700                  00000001800114a0     glad.obj
+ 0003:000024b0       $SG107701                  00000001800114b0     glad.obj
+ 0003:000024c8       $SG107702                  00000001800114c8     glad.obj
+ 0003:000024e0       $SG107703                  00000001800114e0     glad.obj
+ 0003:000024f8       $SG107704                  00000001800114f8     glad.obj
+ 0003:00002510       $SG107705                  0000000180011510     glad.obj
+ 0003:00002528       $SG107706                  0000000180011528     glad.obj
+ 0003:00002548       $SG107707                  0000000180011548     glad.obj
+ 0003:00002560       $SG107708                  0000000180011560     glad.obj
+ 0003:00002578       $SG107709                  0000000180011578     glad.obj
+ 0003:00002590       $SG107710                  0000000180011590     glad.obj
+ 0003:000025a8       $SG107711                  00000001800115a8     glad.obj
+ 0003:000025c0       $SG107712                  00000001800115c0     glad.obj
+ 0003:000025d8       $SG107713                  00000001800115d8     glad.obj
+ 0003:000025f0       $SG107714                  00000001800115f0     glad.obj
+ 0003:00002608       $SG107715                  0000000180011608     glad.obj
+ 0003:00002620       $SG107716                  0000000180011620     glad.obj
+ 0003:00002638       $SG107717                  0000000180011638     glad.obj
+ 0003:00002650       $SG107718                  0000000180011650     glad.obj
+ 0003:00002668       $SG107719                  0000000180011668     glad.obj
+ 0003:00002680       $SG107720                  0000000180011680     glad.obj
+ 0003:00002698       $SG107721                  0000000180011698     glad.obj
+ 0003:000026b0       $SG107722                  00000001800116b0     glad.obj
+ 0003:000026c8       $SG107723                  00000001800116c8     glad.obj
+ 0003:000026e0       $SG107724                  00000001800116e0     glad.obj
+ 0003:000026f8       $SG107725                  00000001800116f8     glad.obj
+ 0003:00002710       $SG107726                  0000000180011710     glad.obj
+ 0003:00002728       $SG107727                  0000000180011728     glad.obj
+ 0003:00002740       $SG107728                  0000000180011740     glad.obj
+ 0003:00002758       $SG107729                  0000000180011758     glad.obj
+ 0003:00002770       $SG107730                  0000000180011770     glad.obj
+ 0003:00002788       $SG107731                  0000000180011788     glad.obj
+ 0003:000027a0       $SG107732                  00000001800117a0     glad.obj
+ 0003:000027b8       $SG107733                  00000001800117b8     glad.obj
+ 0003:000027d0       $SG107734                  00000001800117d0     glad.obj
+ 0003:000027e8       $SG107735                  00000001800117e8     glad.obj
+ 0003:00002800       $SG107736                  0000000180011800     glad.obj
+ 0003:00002818       $SG107737                  0000000180011818     glad.obj
+ 0003:00002830       $SG107738                  0000000180011830     glad.obj
+ 0003:00002848       $SG107739                  0000000180011848     glad.obj
+ 0003:00002860       $SG107740                  0000000180011860     glad.obj
+ 0003:00002878       $SG107741                  0000000180011878     glad.obj
+ 0003:00002890       $SG107742                  0000000180011890     glad.obj
+ 0003:000028a8       $SG107743                  00000001800118a8     glad.obj
+ 0003:000028c8       $SG107744                  00000001800118c8     glad.obj
+ 0003:000028e8       $SG107745                  00000001800118e8     glad.obj
+ 0003:00002908       $SG107746                  0000000180011908     glad.obj
+ 0003:00002928       $SG107747                  0000000180011928     glad.obj
+ 0003:00002948       $SG107748                  0000000180011948     glad.obj
+ 0003:00002968       $SG107749                  0000000180011968     glad.obj
+ 0003:00002988       $SG107750                  0000000180011988     glad.obj
+ 0003:000029a8       $SG107751                  00000001800119a8     glad.obj
+ 0003:000029c8       $SG107752                  00000001800119c8     glad.obj
+ 0003:000029e8       $SG107753                  00000001800119e8     glad.obj
+ 0003:00002a08       $SG107754                  0000000180011a08     glad.obj
+ 0003:00002a28       $SG107755                  0000000180011a28     glad.obj
+ 0003:00002a48       $SG107756                  0000000180011a48     glad.obj
+ 0003:00002a68       $SG107757                  0000000180011a68     glad.obj
+ 0003:00002a88       $SG107758                  0000000180011a88     glad.obj
+ 0003:00002aa8       $SG107759                  0000000180011aa8     glad.obj
+ 0003:00002ac8       $SG107760                  0000000180011ac8     glad.obj
+ 0003:00002ae8       $SG107761                  0000000180011ae8     glad.obj
+ 0003:00002b08       $SG107762                  0000000180011b08     glad.obj
+ 0003:00002b28       $SG107763                  0000000180011b28     glad.obj
+ 0003:00002b40       $SG107764                  0000000180011b40     glad.obj
+ 0003:00002b58       $SG107765                  0000000180011b58     glad.obj
+ 0003:00002b70       $SG107766                  0000000180011b70     glad.obj
+ 0003:00002b88       $SG107767                  0000000180011b88     glad.obj
+ 0003:00002ba0       $SG107768                  0000000180011ba0     glad.obj
+ 0003:00002bb8       $SG107769                  0000000180011bb8     glad.obj
+ 0003:00002bd0       $SG107770                  0000000180011bd0     glad.obj
+ 0003:00002be8       $SG107771                  0000000180011be8     glad.obj
+ 0003:00002c00       $SG107772                  0000000180011c00     glad.obj
+ 0003:00002c18       $SG107773                  0000000180011c18     glad.obj
+ 0003:00002c30       $SG107774                  0000000180011c30     glad.obj
+ 0003:00002c48       $SG107775                  0000000180011c48     glad.obj
+ 0003:00002c60       $SG107776                  0000000180011c60     glad.obj
+ 0003:00002c70       $SG107777                  0000000180011c70     glad.obj
+ 0003:00002c88       $SG107778                  0000000180011c88     glad.obj
+ 0003:00002ca0       $SG107779                  0000000180011ca0     glad.obj
+ 0003:00002cb8       $SG107780                  0000000180011cb8     glad.obj
+ 0003:00002cd0       $SG107781                  0000000180011cd0     glad.obj
+ 0003:00002ce0       $SG107782                  0000000180011ce0     glad.obj
+ 0003:00002cf0       $SG107800                  0000000180011cf0     glad.obj
+ 0003:00002d18       $SG107801                  0000000180011d18     glad.obj
+ 0003:00002d40       $SG107802                  0000000180011d40     glad.obj
+ 0003:00002d70       $SG107803                  0000000180011d70     glad.obj
+ 0003:00002d88       $SG107804                  0000000180011d88     glad.obj
+ 0003:00002db0       $SG107805                  0000000180011db0     glad.obj
+ 0003:00002dc8       $SG107806                  0000000180011dc8     glad.obj
+ 0003:00002dd8       $SG107807                  0000000180011dd8     glad.obj
+ 0003:00002de8       $SG107808                  0000000180011de8     glad.obj
+ 0003:00002df8       $SG107809                  0000000180011df8     glad.obj
+ 0003:00002e08       $SG107810                  0000000180011e08     glad.obj
+ 0003:00002e30       $SG107811                  0000000180011e30     glad.obj
+ 0003:00002e58       $SG107861                  0000000180011e58     glad.obj
+ 0003:00002e70       $SG107862                  0000000180011e70     glad.obj
+ 0003:00002e88       $SG107863                  0000000180011e88     glad.obj
+ 0003:00002ea0       $SG107864                  0000000180011ea0     glad.obj
+ 0003:00002ec0       $SG107865                  0000000180011ec0     glad.obj
+ 0003:00002ed8       $SG107866                  0000000180011ed8     glad.obj
+ 0003:00002ef0       $SG107867                  0000000180011ef0     glad.obj
+ 0003:00002f10       $SG107868                  0000000180011f10     glad.obj
+ 0003:00002f28       $SG107869                  0000000180011f28     glad.obj
+ 0003:00002f40       $SG107870                  0000000180011f40     glad.obj
+ 0003:00002f58       $SG107871                  0000000180011f58     glad.obj
+ 0003:00002f78       $SG107872                  0000000180011f78     glad.obj
+ 0003:00002f90       $SG107873                  0000000180011f90     glad.obj
+ 0003:00002fa8       $SG107874                  0000000180011fa8     glad.obj
+ 0003:00002fc8       $SG107875                  0000000180011fc8     glad.obj
+ 0003:00002fe8       $SG107876                  0000000180011fe8     glad.obj
+ 0003:00003008       $SG107877                  0000000180012008     glad.obj
+ 0003:00003020       $SG107878                  0000000180012020     glad.obj
+ 0003:00003040       $SG107879                  0000000180012040     glad.obj
+ 0003:00003060       $SG107880                  0000000180012060     glad.obj
+ 0003:00003078       $SG107881                  0000000180012078     glad.obj
+ 0003:00003098       $SG107882                  0000000180012098     glad.obj
+ 0003:000030c0       $SG107883                  00000001800120c0     glad.obj
+ 0003:000030e0       $SG107884                  00000001800120e0     glad.obj
+ 0003:000030f8       $SG107885                  00000001800120f8     glad.obj
+ 0003:00003118       $SG107886                  0000000180012118     glad.obj
+ 0003:00003138       $SG107887                  0000000180012138     glad.obj
+ 0003:00003148       $SG107888                  0000000180012148     glad.obj
+ 0003:00003160       $SG107889                  0000000180012160     glad.obj
+ 0003:00003178       $SG107890                  0000000180012178     glad.obj
+ 0003:00003190       $SG107891                  0000000180012190     glad.obj
+ 0003:000031a8       $SG107892                  00000001800121a8     glad.obj
+ 0003:000031c0       $SG107893                  00000001800121c0     glad.obj
+ 0003:000031d8       $SG107894                  00000001800121d8     glad.obj
+ 0003:000031f0       $SG107895                  00000001800121f0     glad.obj
+ 0003:00003208       $SG107896                  0000000180012208     glad.obj
+ 0003:00003220       $SG107897                  0000000180012220     glad.obj
+ 0003:00003238       $SG107898                  0000000180012238     glad.obj
+ 0003:00003250       $SG107899                  0000000180012250     glad.obj
+ 0003:00003260       $SG107900                  0000000180012260     glad.obj
+ 0003:00003270       $SG107901                  0000000180012270     glad.obj
+ 0003:00003288       $SG107902                  0000000180012288     glad.obj
+ 0003:000032a0       $SG107903                  00000001800122a0     glad.obj
+ 0003:000032b8       $SG107904                  00000001800122b8     glad.obj
+ 0003:000032c8       $SG107919                  00000001800122c8     glad.obj
+ 0003:000032d8       $SG107920                  00000001800122d8     glad.obj
+ 0003:000032e8       $SG107921                  00000001800122e8     glad.obj
+ 0003:00003300       $SG107922                  0000000180012300     glad.obj
+ 0003:00003318       $SG107923                  0000000180012318     glad.obj
+ 0003:00003330       $SG107924                  0000000180012330     glad.obj
+ 0003:00003340       $SG107925                  0000000180012340     glad.obj
+ 0003:00003350       $SG107926                  0000000180012350     glad.obj
+ 0003:00003368       $SG107927                  0000000180012368     glad.obj
+ 0003:00003380       $SG108055                  0000000180012380     glad.obj
+ 0003:00003390       $SG108056                  0000000180012390     glad.obj
+ 0003:000033b0       $SG108057                  00000001800123b0     glad.obj
+ 0003:000033d0       $SG108058                  00000001800123d0     glad.obj
+ 0003:000033f0       $SG108059                  00000001800123f0     glad.obj
+ 0003:00003410       $SG108060                  0000000180012410     glad.obj
+ 0003:00003430       $SG108061                  0000000180012430     glad.obj
+ 0003:00003450       $SG108062                  0000000180012450     glad.obj
+ 0003:00003460       $SG108063                  0000000180012460     glad.obj
+ 0003:00003478       $SG108064                  0000000180012478     glad.obj
+ 0003:00003490       $SG108065                  0000000180012490     glad.obj
+ 0003:000034a8       $SG108066                  00000001800124a8     glad.obj
+ 0003:000034c8       $SG108067                  00000001800124c8     glad.obj
+ 0003:000034e0       $SG108068                  00000001800124e0     glad.obj
+ 0003:00003500       $SG108069                  0000000180012500     glad.obj
+ 0003:00003518       $SG108070                  0000000180012518     glad.obj
+ 0003:00003530       $SG108071                  0000000180012530     glad.obj
+ 0003:00003548       $SG108072                  0000000180012548     glad.obj
+ 0003:00003568       $SG108073                  0000000180012568     glad.obj
+ 0003:00003588       $SG108074                  0000000180012588     glad.obj
+ 0003:000035a8       $SG108075                  00000001800125a8     glad.obj
+ 0003:000035c8       $SG108076                  00000001800125c8     glad.obj
+ 0003:000035e0       $SG108077                  00000001800125e0     glad.obj
+ 0003:000035f8       $SG108078                  00000001800125f8     glad.obj
+ 0003:00003618       $SG108079                  0000000180012618     glad.obj
+ 0003:00003638       $SG108080                  0000000180012638     glad.obj
+ 0003:00003658       $SG108081                  0000000180012658     glad.obj
+ 0003:00003678       $SG108082                  0000000180012678     glad.obj
+ 0003:00003698       $SG108083                  0000000180012698     glad.obj
+ 0003:000036b8       $SG108084                  00000001800126b8     glad.obj
+ 0003:000036d8       $SG108085                  00000001800126d8     glad.obj
+ 0003:00003700       $SG108086                  0000000180012700     glad.obj
+ 0003:00003728       $SG108087                  0000000180012728     glad.obj
+ 0003:00003748       $SG108088                  0000000180012748     glad.obj
+ 0003:00003768       $SG108089                  0000000180012768     glad.obj
+ 0003:00003788       $SG108090                  0000000180012788     glad.obj
+ 0003:000037a8       $SG108091                  00000001800127a8     glad.obj
+ 0003:000037c0       $SG108092                  00000001800127c0     glad.obj
+ 0003:000037e0       $SG108093                  00000001800127e0     glad.obj
+ 0003:00003808       $SG108094                  0000000180012808     glad.obj
+ 0003:00003838       $SG108095                  0000000180012838     glad.obj
+ 0003:00003850       $SG108096                  0000000180012850     glad.obj
+ 0003:00003870       $SG108097                  0000000180012870     glad.obj
+ 0003:00003898       $SG108098                  0000000180012898     glad.obj
+ 0003:000038c0       $SG108099                  00000001800128c0     glad.obj
+ 0003:000038d8       $SG108100                  00000001800128d8     glad.obj
+ 0003:000038e8       $SG108101                  00000001800128e8     glad.obj
+ 0003:00003900       $SG108102                  0000000180012900     glad.obj
+ 0003:00003918       $SG108103                  0000000180012918     glad.obj
+ 0003:00003930       $SG108104                  0000000180012930     glad.obj
+ 0003:00003948       $SG108105                  0000000180012948     glad.obj
+ 0003:00003968       $SG108106                  0000000180012968     glad.obj
+ 0003:00003988       $SG108107                  0000000180012988     glad.obj
+ 0003:000039a0       $SG108108                  00000001800129a0     glad.obj
+ 0003:000039b8       $SG108109                  00000001800129b8     glad.obj
+ 0003:000039d0       $SG108110                  00000001800129d0     glad.obj
+ 0003:000039f0       $SG108111                  00000001800129f0     glad.obj
+ 0003:00003a10       $SG108112                  0000000180012a10     glad.obj
+ 0003:00003a30       $SG108113                  0000000180012a30     glad.obj
+ 0003:00003a48       $SG108114                  0000000180012a48     glad.obj
+ 0003:00003a60       $SG108115                  0000000180012a60     glad.obj
+ 0003:00003a78       $SG108116                  0000000180012a78     glad.obj
+ 0003:00003a90       $SG108117                  0000000180012a90     glad.obj
+ 0003:00003aa8       $SG108118                  0000000180012aa8     glad.obj
+ 0003:00003ac0       $SG108119                  0000000180012ac0     glad.obj
+ 0003:00003ad8       $SG108120                  0000000180012ad8     glad.obj
+ 0003:00003af0       $SG108121                  0000000180012af0     glad.obj
+ 0003:00003b08       $SG108122                  0000000180012b08     glad.obj
+ 0003:00003b20       $SG108123                  0000000180012b20     glad.obj
+ 0003:00003b38       $SG108124                  0000000180012b38     glad.obj
+ 0003:00003b50       $SG108125                  0000000180012b50     glad.obj
+ 0003:00003b70       $SG108126                  0000000180012b70     glad.obj
+ 0003:00003b90       $SG108127                  0000000180012b90     glad.obj
+ 0003:00003bb0       $SG108128                  0000000180012bb0     glad.obj
+ 0003:00003bc8       $SG108129                  0000000180012bc8     glad.obj
+ 0003:00003be8       $SG108130                  0000000180012be8     glad.obj
+ 0003:00003c08       $SG108131                  0000000180012c08     glad.obj
+ 0003:00003c20       $SG108132                  0000000180012c20     glad.obj
+ 0003:00003c38       $SG108133                  0000000180012c38     glad.obj
+ 0003:00003c58       $SG108134                  0000000180012c58     glad.obj
+ 0003:00003c78       $SG108135                  0000000180012c78     glad.obj
+ 0003:00003c98       $SG108136                  0000000180012c98     glad.obj
+ 0003:00003cb8       $SG108137                  0000000180012cb8     glad.obj
+ 0003:00003cd8       $SG108138                  0000000180012cd8     glad.obj
+ 0003:00003cf8       $SG108139                  0000000180012cf8     glad.obj
+ 0003:00003d18       $SG108140                  0000000180012d18     glad.obj
+ 0003:00003d38       $SG108141                  0000000180012d38     glad.obj
+ 0003:00003d58       $SG108142                  0000000180012d58     glad.obj
+ 0003:00003d78       $SG108143                  0000000180012d78     glad.obj
+ 0003:00003d90       $SG108144                  0000000180012d90     glad.obj
+ 0003:00003db0       $SG108145                  0000000180012db0     glad.obj
+ 0003:00003dd0       $SG108146                  0000000180012dd0     glad.obj
+ 0003:00003de8       $SG108147                  0000000180012de8     glad.obj
+ 0003:00003e08       $SG108148                  0000000180012e08     glad.obj
+ 0003:00003e18       $SG108149                  0000000180012e18     glad.obj
+ 0003:00003e38       $SG108150                  0000000180012e38     glad.obj
+ 0003:00003e58       $SG108151                  0000000180012e58     glad.obj
+ 0003:00003e78       $SG108152                  0000000180012e78     glad.obj
+ 0003:00003e98       $SG108153                  0000000180012e98     glad.obj
+ 0003:00003eb0       $SG108154                  0000000180012eb0     glad.obj
+ 0003:00003ec8       $SG108155                  0000000180012ec8     glad.obj
+ 0003:00003ee8       $SG108156                  0000000180012ee8     glad.obj
+ 0003:00003f08       $SG108157                  0000000180012f08     glad.obj
+ 0003:00003f28       $SG108158                  0000000180012f28     glad.obj
+ 0003:00003f38       $SG108159                  0000000180012f38     glad.obj
+ 0003:00003f48       $SG108160                  0000000180012f48     glad.obj
+ 0003:00003f58       $SG108161                  0000000180012f58     glad.obj
+ 0003:00003f68       $SG108162                  0000000180012f68     glad.obj
+ 0003:00003f80       $SG108163                  0000000180012f80     glad.obj
+ 0003:00003f90       $SG108164                  0000000180012f90     glad.obj
+ 0003:00003fa0       $SG108165                  0000000180012fa0     glad.obj
+ 0003:00003fb0       $SG108166                  0000000180012fb0     glad.obj
+ 0003:00003fc0       $SG108167                  0000000180012fc0     glad.obj
+ 0003:00003fd8       $SG108168                  0000000180012fd8     glad.obj
+ 0003:00003ff0       $SG108169                  0000000180012ff0     glad.obj
+ 0003:00004008       $SG108170                  0000000180013008     glad.obj
+ 0003:00004020       $SG108171                  0000000180013020     glad.obj
+ 0003:00004038       $SG108172                  0000000180013038     glad.obj
+ 0003:00004050       $SG108173                  0000000180013050     glad.obj
+ 0003:00004068       $SG108174                  0000000180013068     glad.obj
+ 0003:00004078       $SG108175                  0000000180013078     glad.obj
+ 0003:00004088       $SG108176                  0000000180013088     glad.obj
+ 0003:000040a0       $SG108186                  00000001800130a0     glad.obj
+ 0003:000040b8       $SG108187                  00000001800130b8     glad.obj
+ 0003:000040d8       $SG108188                  00000001800130d8     glad.obj
+ 0003:00004100       $SG108189                  0000000180013100     glad.obj
+ 0003:00004118       $SG108210                  0000000180013118     glad.obj
+ 0003:00004128       $SG108212                  0000000180013128     glad.obj
+ 0003:00004138       $SG108214                  0000000180013138     glad.obj
+ 0003:00004148       $SG108226                  0000000180013148     glad.obj
+ 0003:00004e60       $SG112236                  0000000180013e60     Win32_OpenGL.obj
+ 0003:00004ec0       $SG112237                  0000000180013ec0     Win32_OpenGL.obj
+ 0003:00004ef0       $SG112238                  0000000180013ef0     Win32_OpenGL.obj
+ 0003:00004f38       $SG112239                  0000000180013f38     Win32_OpenGL.obj
+ 0003:00004f68       $SG112242                  0000000180013f68     Win32_OpenGL.obj
+ 0003:00004f90       $SG112240                  0000000180013f90     Win32_OpenGL.obj
+ 0003:00005018       $SG112241                  0000000180014018     Win32_OpenGL.obj
+ 0003:00005048       $SG112243                  0000000180014048     Win32_OpenGL.obj
+ 0003:00005078       $SG112244                  0000000180014078     Win32_OpenGL.obj
+ 0003:000050b0       $SG112245                  00000001800140b0     Win32_OpenGL.obj
+ 0003:000050e0       $SG112246                  00000001800140e0     Win32_OpenGL.obj
+ 0003:00005118       $SG112247                  0000000180014118     Win32_OpenGL.obj
+ 0003:00005148       $SG112248                  0000000180014148     Win32_OpenGL.obj
+ 0003:00005170       $SG112249                  0000000180014170     Win32_OpenGL.obj
+ 0003:000051a0       $SG112250                  00000001800141a0     Win32_OpenGL.obj
+ 0003:000051b8       $SG112251                  00000001800141b8     Win32_OpenGL.obj
+ 0003:000051e8       $SG112264                  00000001800141e8     Win32_OpenGL.obj
+ 0003:000051f8       $SG112266                  00000001800141f8     Win32_OpenGL.obj
+ 0003:00005208       $SG112268                  0000000180014208     Win32_OpenGL.obj
+ 0003:00005220       $SG112270                  0000000180014220     Win32_OpenGL.obj
+ 0003:00005230       $SG112272                  0000000180014230     Win32_OpenGL.obj
+ 0003:00005240       $SG112274                  0000000180014240     Win32_OpenGL.obj
+ 0003:00005250       $SG112276                  0000000180014250     Win32_OpenGL.obj
+ 0003:00005270       $SG112277                  0000000180014270     Win32_OpenGL.obj
+ 0003:00005288       $SG112292                  0000000180014288     Win32_OpenGL.obj
+ 0003:00005298       $SG112294                  0000000180014298     Win32_OpenGL.obj
+ 0003:000052a8       $SG112296                  00000001800142a8     Win32_OpenGL.obj
+ 0003:000052c0       $SG112298                  00000001800142c0     Win32_OpenGL.obj
+ 0003:000052d0       $SG112300                  00000001800142d0     Win32_OpenGL.obj
+ 0003:000052e0       $SG112302                  00000001800142e0     Win32_OpenGL.obj
+ 0003:000052f0       $SG112304                  00000001800142f0     Win32_OpenGL.obj
+ 0003:00005310       $SG112305                  0000000180014310     Win32_OpenGL.obj
+ 0003:00005328       $SG112318                  0000000180014328     Win32_OpenGL.obj
+ 0003:00005350       $SG112319                  0000000180014350     Win32_OpenGL.obj
+ 0003:00005380       $SG112320                  0000000180014380     Win32_OpenGL.obj
+ 0003:000053b8       $SG112321                  00000001800143b8     Win32_OpenGL.obj
+ 0003:000053e8       $SG112322                  00000001800143e8     Win32_OpenGL.obj
+ 0003:00005428       $SG112323                  0000000180014428     Win32_OpenGL.obj
+ 0003:00005458       $SG112328                  0000000180014458     Win32_OpenGL.obj
+ 0003:00005480       $SG112329                  0000000180014480     Win32_OpenGL.obj
+ 0003:000054b0       $SG112334                  00000001800144b0     Win32_OpenGL.obj
+ 0003:000054e0       $SG112335                  00000001800144e0     Win32_OpenGL.obj
+ 0003:00005510       $SG112339                  0000000180014510     Win32_OpenGL.obj
+ 0003:00005538       $SG112340                  0000000180014538     Win32_OpenGL.obj
+ 0003:00005568       $SG112350                  0000000180014568     Win32_OpenGL.obj
+ 0003:00005590       $SG112351                  0000000180014590     Win32_OpenGL.obj
+ 0003:000055c0       $SG112352                  00000001800145c0     Win32_OpenGL.obj
+ 0003:000055f8       $SG112353                  00000001800145f8     Win32_OpenGL.obj
+ 0003:00005628       $SG112360                  0000000180014628     Win32_OpenGL.obj
+ 0003:00005650       $SG112354                  0000000180014650     Win32_OpenGL.obj
+ 0003:000056b0       $SG112355                  00000001800146b0     Win32_OpenGL.obj
+ 0003:000056e0       $SG112361                  00000001800146e0     Win32_OpenGL.obj
+ 0003:00005710       $SG112366                  0000000180014710     Win32_OpenGL.obj
+ 0003:00005748       $SG112367                  0000000180014748     Win32_OpenGL.obj
+ 0003:00005778       $SG112371                  0000000180014778     Win32_OpenGL.obj
+ 0003:000057a8       $SG112372                  00000001800147a8     Win32_OpenGL.obj
+ 0003:00005b10       app                        0000000180014b10     SGE.obj
+ 0003:00005b18       platform                   0000000180014b18     SGE.obj
+ 0003:00005b20       ?t_sin@?1??game_update_sound_buffer@@9@9 0000000180014b20     SGE.obj
+ 0003:00007158       libGL                      0000000180016158     glad.obj
+ 0003:00007160       gladGetProcAddressPtr      0000000180016160     glad.obj
+ 0003:00007168       max_loaded_major           0000000180016168     glad.obj
+ 0003:0000716c       max_loaded_minor           000000018001616c     glad.obj
+ 0003:00007170       exts                       0000000180016170     glad.obj
+ 0003:00007178       num_exts_i                 0000000180016178     glad.obj
+ 0003:00007180       exts_i                     0000000180016180     glad.obj
+ 0003:00007604       ?__proc_attached@@3HA      0000000180016604     MSVCRT:dll_dllmain.obj
+ 0003:00007610       GS_ExceptionRecord         0000000180016610     MSVCRT:gs_report.obj
+ 0003:000076b0       GS_ContextRecord           00000001800166b0     MSVCRT:gs_report.obj
+ 0003:00007ce8       ?is_initialized_as_dll@@3_NA 0000000180016ce8     MSVCRT:utility.obj
+ 0003:00007ce9       ?module_local_atexit_table_initialized@@3_NA 0000000180016ce9     MSVCRT:utility.obj
+ 0003:00007cf0       ?module_local_atexit_table@@3U_onexit_table_t@@A 0000000180016cf0     MSVCRT:utility.obj
+ 0003:00007d08       ?module_local_at_quick_exit_table@@3U_onexit_table_t@@A 0000000180016d08     MSVCRT:utility.obj
+ 0005:00000a5c       .idata$6                   0000000180018a5c     kernel32:KERNEL32.dll
+ 0005:00000ae0       .idata$6                   0000000180018ae0     vcruntime:VCRUNTIME140.dll
+ 0005:00000c4c       .idata$6                   0000000180018c4c     ucrt:api-ms-win-crt-math-l1-1-0.dll
+ 0005:00000c6c       .idata$6                   0000000180018c6c     ucrt:api-ms-win-crt-stdio-l1-1-0.dll
+ 0005:00000c8c       .idata$6                   0000000180018c8c     ucrt:api-ms-win-crt-heap-l1-1-0.dll
+ 0005:00000cac       .idata$6                   0000000180018cac     ucrt:api-ms-win-crt-string-l1-1-0.dll
+ 0005:00000cce       .idata$6                   0000000180018cce     ucrt:api-ms-win-crt-runtime-l1-1-0.dll

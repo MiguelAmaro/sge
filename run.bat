@@ -1,4 +1,8 @@
-@echo off
-pushd build
-Win32_graphics.exe
-popd
+@ECHO OFF
+PUSHD build
+
+REM START cmd /k Win32_SGE.exe
+
+Win32_SGE.exe
+
+POPD

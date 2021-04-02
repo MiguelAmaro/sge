@@ -1,62 +1,64 @@
 version(1);
+project_name = "Simple Game Engine";
 
-project_name =  "3D Graphics Programming Simple";
-
-patterns = {
-"*.c",
-"*.h",
-"*.bat",
-"*.sh",
-"*.4coder",
+patterns = 
+{
+    "*.c",
+    "*.h",
+    "*.bat",
+    "*.sh",
+    "*.4coder",
 };
 
 blacklist_patterns = {
-".*",
+    ".*",
 };
 
-load_paths_win = {
-	{"."}
+load_paths_custom = { {"."} };
+
+load_paths = 
+{
+    .win = { { .path = ".", .recursive = true, .relative = true }, },
 };
 
-load_paths = {
-	{ 
-		{ {"."}, .recursive = true, .relative = true },
-.os = "win" 
-	},
-};
-
-command_list = {
-	{  
-		.name             = "build",
-		.out              = "*compilation*",
-		.footer_panel     = true, 
-		.save_dirty_files = true, 
-		.cursor_at_end    = false,
-		.cmd              = {
-			{"build.bat", .os = "win" }, 
-		},
-	},
-	{  
-		.name              = "run",
-		.out              = "*run*", 
-		.footer_panel     = true, 
-		.save_dirty_files = false, 
-		.cursor_at_end    = true,
-		.cmd              = {
-			{ "run.bat", .os = "win" },
-		},
-	},
-	{   
-		.name             = "debug",
-		.footer_panel     = false, 
-		.save_dirty_files = false, 
-		.cursor_at_end    = true,
-		.cmd              = {
-			{ "debug.bat", .os = "win" },
-		},
-	},
+command_list =
+{
+    {
+        .name             = "build",
+        .out              = "*compilation*",
+        .footer_panel     = true,
+        .save_dirty_files = true,
+        .cursor_at_end    = false,
+        .win              = "build.bat",
+        .cmd              = 
+        { 
+            { "build.bat", .os = "win"  }
+        },
+    },
+    {
+        .name             = "run",
+        .footer_panel     = false,
+        .save_dirty_files = false,
+        .cursor_at_end    = false,
+        .cmd              = 
+        {
+            { "run.bat", .os = "win" }
+        },
+    },
+    {
+        .name             = "debug",
+        .out              = "",
+        .footer_panel     = false,
+        .save_dirty_files = false,
+        .cursor_at_end    = true,
+        .cmd              = 
+        {
+            { "debug.bat", .os = "win" }
+        }
+    },
 };
 
 fkey_command[1] = "build";
-fkey_command[2] = "run";
+fkey_command[2] = "run"  ;
 fkey_command[3] = "debug";
+

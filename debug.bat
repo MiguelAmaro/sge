@@ -1,8 +1,9 @@
 @ECHO OFF
-SET DebugFile=  .\debug\SimpleGameEngine.rdbg
-SET Executable= .\build\Win32_graphics.exe
 
-CALL F:\Apps\RemedyBG\remedybg.exe %DebugFile%
+SET Debug_File= .\debug\SGE.rdbg
+SET Executable= .\build\Win32_SGE.exe
+
+CALL F:\Apps\RemedyBG\remedybg.exe %Debug_File%
 
 PAUSE
 
