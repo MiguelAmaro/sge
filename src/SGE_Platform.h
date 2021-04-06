@@ -28,6 +28,7 @@ typedef struct Platform
     
     // INPUT
     b32 key_down[KEY_MAX];
+    // NOTE(MIGUEL): replace by handame hero implementation
     f32 frames_per_second_target;
     f32 mouse_x;
     f32 mouse_y;

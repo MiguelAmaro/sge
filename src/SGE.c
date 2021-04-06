@@ -24,7 +24,7 @@ internal void game_update_sound_buffer(game_sound_output_buffer *sound_buffer, u
 {
     local_persist f32 t_sin;
     //u16 tone_hz     = 256;
-    u16 tone_volume = 3000;
+    u16 tone_volume = 100;
     u16 wave_period = sound_buffer->samples_per_second / tone_hz;
     
     u16 *sample_out = sound_buffer->samples;
@@ -72,7 +72,7 @@ SGE_UPDATE(SGEUpdate)
             
             if(controller->is_analog)
             {// NOTE(MIGUEL): analouge movement tunning
-                printf("%f \n", controller->stick_avg_x);
+                //printf("%f \n", controller->stick_avg_x);
                 glm_vec3_copy(
                               (vec3) {
                                   move_speed * 8 * -(controller->stick_avg_y),

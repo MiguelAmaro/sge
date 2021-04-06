@@ -5,24 +5,36 @@ IF NOT EXIST build MKDIR build
 REM REFERENCES:https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-alphabetically?view=vs-2019
 
 REM ************************************************************
-REM *********               DEFINITIONS               **********
+REM ************************************************************
+REM **                                                        **
+REM **                       DEFINITIONS                      **
+REM **                                                        **
+REM ************************************************************
 REM ************************************************************
 
-REM ====================    PROJECT/FILES      ====================
-SET Project_Name=SGE
-SET Sources=^
-..\src\Win32_%Project_Name%.c ^
+REM ==========              PROJECT/FILES             ==========     
+REM ============================================================
+SET PROJECT_NAME=SGE
+SET SOURCES=^
+..\src\Win32_%PROJECT_NAME%.c ^
 ..\src\Win32_OpenGL.c ^
 ..\src\SGE_FileIO.c ^
 ..\src\SGE_Helpers.c ^
 ..\lib\glad\src\glad.c
 
-REM ====================    COMPILER(MSVC)     ====================
-SET Compiler_Common=^
+SET BUILD_MODES=^
+-DSGE_WIN32=1 ^
+-DSGE_SLOW=1 ^
+-DSGE_INTERNAL=1 ^
+-DRION=0
+
+REM ==========              COMPILER(MSVC)            ==========     
+REM ============================================================
+SET MSVC_COMMON=^
 -nologo
 
 REM TODO(MIGUEL): ENABLE WARNINGS ONE BY ONE AND RESOLVE
-SET Warnings= ^
+SET MSVC_WARNINGS= ^
 -wd4057 ^
 -wd4013 ^
 -wd4057 ^
@@ -41,28 +53,29 @@ SET Warnings= ^
 
 REM NOTE(MIGUEL):-MD is using Dynamic CRT Lib which is what is supporting the console
 REM TODO(MIGUEL): Figure out a way to get a console that doesnt need to use the MD flag
-SET Compiler_Flags=^
-%Compiler_Common% ^
+SET MSVC_FLAGS=^
+%MSVC_COMMON% ^
 -MD ^
 -GR ^
--Od ^
 -Oi ^
+-Od ^
 -WX ^
 -W4 ^
 -FC ^
 -Z7 ^
 -permissive ^
-%Warnings%
+%MSVC_WARNINGS%
 
-SET Include_Directories=^
+SET INCLUDE_PATHS=^
 -I ..\lib\
 
-REM ==================    LINKER(MSVC)   ====================
-SET Common_Linker_Flags=^
+REM ==========             LINKER(MSVC)               ==========     
+REM ============================================================
+SET LINKER_FLAGS=^
 -incremental:no ^
 -opt:ref
 
-SET Libraries=^
+SET LIBRARIES=^
 User32.lib ^
 Gdi32.lib ^
 Dinput8.lib ^
@@ -70,25 +83,41 @@ Dxguid.lib ^
 Opengl32.lib ^
 Kernel32.lib ^
 Ws2_32.lib ^
+winmm.lib ^
 Shell32.lib ^
 ..\lib\bin\cglm.lib
 
+
 REM ************************************************************
-REM **********              START BUILD               **********
+REM ************************************************************
+REM **                                                        **
+REM **                       START BUILD                      **
+REM **                                                        **
+REM ************************************************************
 REM ************************************************************
 PUSHD build
 REM path=F:\Dev\SimpleGameEngine\build;%path%
 
 CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.20292.0
 
-ECHO ====================      WINDOWS       ====================
+ECHO ==========             COMPILE AND LINK           ==========     
+ECHO ============================================================
+CALL cl -std:c17 %BUILD_MODES% %MSVC_FLAGS% %INCLUDE_PATHS% %SOURCES% /link %LIBRARIES%
 
-ECHO --------------------  COMPILE AND LINK  --------------------
-CALL cl -std:c17 %Compiler_Flags% %Include_Directories% %Sources% /link %Libraries%
 
-
-ECHO --------------------    CREATE A DLL    --------------------
-CALL cl -std:c17 -nologo -MD -Zi %Include_Directories% ..\src\SGE.c -FmWin32_SGE.map glad.obj Win32_OpenGL.obj -LD /link -PDB:SGE_%random% -DLL -EXPORT:SGEInit -EXPORT:SGEUpdate
+ECHO ==========              CREATE A DLL              ==========     
+ECHO ============================================================
+CALL cl ^
+-std:c17 ^
+-nologo ^
+-MD ^
+-Zi ^
+%INCLUDE_PATHS% ^
+..\src\SGE.c ^
+-FmWin32_SGE.map ^
+glad.obj Win32_OpenGL.obj ^
+-LD /link -PDB:SGE_%random% ^
+-DLL -EXPORT:SGEInit -EXPORT:SGEUpdate
 
 
 POPD

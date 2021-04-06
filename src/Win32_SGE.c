@@ -18,26 +18,41 @@
 //#include "SGE_SerialPort.h"
 //#include "SGE_OpenGL.h"
 
+// NOTE(MIGUEL): HMH Plan & Track
+// TODO(MIGUEL): HMH 015(debugio - when he uses file io)
+// TODO(MIGUEL): HMH 014(gamememory - if its very different than ryans)
+// TODO(MIGUEL): HMH 018
+// TODO(MIGUEL): HMH 019
+// TODO(MIGUEL): HMH 020
+// TODO(MIGUEL): HMH 023
+// TODO(MIGUEL): HMH 024
+// TODO(MIGUEL): HMH 028
+// TODO(MIGUEL): HMH ...
+
 //DONE!!! TODO(MIGUEL): Make a fucntion tx hat can read one file with vertex and fragment shader code
-// TODO(MIGUEL): Make a shader that outputs a sinewave
 // TODO(MIGUEL): Make a cube using the wiki opengl tutorial
 // TODO(MIGUEL): Create a movable object
 // TODO(MIGUEL): Make a tile map and implement some basic colision detection
 // TODO(MIGUEL): Apply some kenemtics to movement  
 // TODO(MIGUEL): Add some simple collisin detection learingin opengl
 // TODO(MIGUEL): Create a networking layer
+// TODO(MIGUEL): Make a shader that outputs a sinewave
 // TODO(MIGUEL): LOOK OVER GAME ENGINE ARCH BOOK FOR NECCESARY ENGINE SYSTEMS AND UPDATE TODOS
 // TODO(MIGUEL): Add openCV
 
 #define RENDER_OPENGL (0)
 
+#define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
 #define PI_32BIT 3.14159265359
 
+
+//~ GLOBALS
 global Platform g_platform = {0};
 
 global win32_back_buffer g_main_window_back_buffer = { 0 }; // NOTE(MIGUEL): platform copy of the backbuffer
 global u32 g_window_width  = 0; // NOTE(MIGUEL): Moving to app_state
 global u32 g_window_height = 0; // NOTE(MIGUEL): Moving to app_state
+global u64 g_tick_frequency = { 0 };
 
 global IDirectSoundBuffer *g_secondary_sound_buffer = (void *)0x00;
 
@@ -99,13 +114,13 @@ global win32_state win32_state_;
 
 global Entity Sprite = {0};
 global OpenGL_Render_Info sprite_render_info;
-global vec4 color       = { 1.0f, 1.0f, 1.0f };
+global vec4 vec_color       = { 1.0f, 1.0f, 1.0f };
 
 global mat4 translation = GLM_MAT4_ZERO_INIT;// NOTE(MIGUEL): This is in the App stuct
 global mat4 scale       = GLM_MAT4_ZERO_INIT;
 global mat4 rotation    = GLM_MAT4_ZERO_INIT;
 global vec3 scalefactor = { 100.0f, 100.0f, 0.0f };
-
+// TODO(MIGUEL): 
 // NOTE(MIGUEL): Should there just be one projectin matrix for everthing
 global Entity Nick = {0};
 global OpenGL_Render_Info nick_render_info;
@@ -473,6 +488,95 @@ void win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock,
     return;
 }
 
+void win32_debug_draw_vertical_line(win32_back_buffer *back_buffer, u32 x, u32 top, u32 bottom, u32 color)
+{
+    u8 *pixel = (( u8 *)back_buffer->data             +
+                 (  x * back_buffer->bytes_per_pixel) +
+                 (top * back_buffer->pitch          ));
+    
+    for(u32 y = top; y < bottom; y++)
+    {
+        *(u32 *)pixel *= color;
+        
+        pixel += back_buffer->pitch;
+    }
+    
+    return;
+}
+
+
+inline void win32_draw_sound_time_marker(win32_back_buffer  *back_buffer ,
+                                         win32_sound_output *sound_output,
+                                         f32 buffer_conversion_factor,
+                                         u32 padding_x, u32 top, u32 bottom,
+                                         u32 cursor_pos, u32 color)
+{
+    
+    ASSERT(cursor_pos < sound_output->secondary_buffer_size);
+    
+    f32 offset              = buffer_conversion_factor * cursor_pos;
+    
+    u32 marker_x_pos        = padding_x + offset ;
+    
+    win32_debug_draw_vertical_line(back_buffer, marker_x_pos, top, bottom, color);
+    
+    return;
+}
+
+
+void win32_debug_sync_display(win32_back_buffer *back_buffer, win32_debug_sound_time_marker *markers, u32 marker_count, 
+                              win32_sound_output *sound_output,
+                              f32 target_seconds_per_frame)
+{
+    u32 padding_x = 16;
+    u32 padding_y = 16;
+    
+    u32 top    = padding_y;
+    u32 bottom = back_buffer->height - padding_y;
+    
+    f32 buffer_conversion_factor = (f32)(back_buffer->width - (padding_x * 2)) / (f32)sound_output->secondary_buffer_size;
+    
+    // NOTE(MIGUEL): for HMH 015
+    for(u32 marker_index = 0; marker_index < marker_count; marker_index++)
+    {
+        win32_debug_sound_time_marker *current_marker = &markers[marker_index];
+        
+        win32_draw_sound_time_marker(back_buffer                 ,
+                                     sound_output                ,
+                                     buffer_conversion_factor    ,
+                                     padding_x                   ,
+                                     top, bottom                 , 
+                                     current_marker->play_cursor ,
+                                     0xFFff0000);
+        
+        win32_draw_sound_time_marker(back_buffer                  ,
+                                     sound_output                 ,
+                                     buffer_conversion_factor     ,
+                                     padding_x                    ,
+                                     top, bottom                  , 
+                                     current_marker->write_cursor ,
+                                     0xFF0000ff);
+    }
+    
+    return;  
+}
+
+inline LARGE_INTEGER win32_get_current_tick(void)
+{
+    LARGE_INTEGER result;
+    QueryPerformanceCounter(&result);
+    
+    return result;
+}
+
+// NOTE(MIGUEL): inline supporeted in C ?????
+inline f32 win32_get_seconds_elapsed(LARGE_INTEGER start_tick, LARGE_INTEGER end_tick)
+{
+    f32 seconds_elapsed = ((f32)(end_tick.QuadPart - start_tick.QuadPart) / (f32)g_tick_frequency);
+    
+    return seconds_elapsed;
+}
+
 int CALLBACK 
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowCode) 
 {
@@ -490,18 +594,21 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
         }
     }
     
-    
     AllocConsole();
+    
     freopen("CONOUT$", "w", stdout);
     
     HANDLE Debug_console = GetStdHandle(STD_OUTPUT_HANDLE );
     
-    //**************************************
-    // MAIN WINDOW SETUP
-    //
-    // DEFINING WINDOW CLASS TO REGISTER
-    //**************************************
+    /*************************************************************************/
+    /*************************************************************************/
+    /*                                                                       */
+    /*                      W I N D O W   S E T U P                          */
+    /*                                                                       */
+    /*************************************************************************/
+    /*************************************************************************/
     
+    //~ DEFINING WINDOW CLASS TO REGISTER
     WNDCLASS WindowClass      = {0};
     WindowClass.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
     WindowClass.lpfnWndProc   = win32_Main_Window_Procedure;
@@ -510,18 +617,11 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
     WindowClass.lpszClassName = "MyWindowClass";
     
     
-    //**************************************
-    // MAIN WINDOW SETUP
-    //
-    // REGISTER WINDOW CLASS WITH OS
-    //**************************************
+    //~ REGISTER WINDOW CLASS WITH OS
     if(RegisterClass(&WindowClass)) 
     {
-        //**************************************
-        // MAIN WINDOW SETUP
-        //
-        // CREATE THE WINDOW AND DISPLAY IT
-        //**************************************
+        
+        //~ CREATE THE WINDOW AND DISPLAY IT
         
         HWND window = CreateWindowEx(0, WindowClass.lpszClassName,
                                      "Simple Game Engine",
@@ -534,26 +634,43 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
         //This is for the joystick!!!
         //CreateDevice(Window, Instance);
         /*
-        HDC   gl_device_context = GetDC(Window);
+                                                                
+HDC   gl_device_context = GetDC(Window);
         HGLRC gl_render_context = win32_Init_OpenGL(gl_device_context);
-        
+                                                                                                                                
         ASSERT(gladLoadGL());
-        
+                                                                                                                                
         u32 gl_major = 0;
         u32 gl_minor = 0;
-
+                                
         glGetIntegerv(GL_MAJOR_VERSION, &gl_major);
         glGetIntegerv(GL_MINOR_VERSION, &gl_minor);
         printf       ("OPENGL VERSION: %d.%d \n"  , 
-                      gl_major, gl_minor);
+                    gl_major, gl_minor);
         */
         // NOTE(MIGUEL): This should Init on users command
         //win32_serial_Port_Init();
         
         //~ BACKBUFFER INTIT
+        
         HDC device_context = GetDC(window);
         win32_back_buffer_init(&g_main_window_back_buffer);
         
+        //~ TIMING STUFF
+#define FRAMES_OF_AUDIO_LATENCY (3)
+#define GAME_UPDATE_HZ (60 / 2)
+        u32 monitor_refresh_hz       = 60;
+        u32 game_update_hz           = monitor_refresh_hz / 2;
+        f32 target_seconds_per_frame = 1.0f / (f32)game_update_hz;
+        
+        
+        u32 scheduler_granularity_millis = 1;
+        b32 sleep_granularity_was_set    = ( timeBeginPeriod(scheduler_granularity_millis) == TIMERR_NOERROR);
+        
+        if(!sleep_granularity_was_set)
+        {
+            printf("sleep granularity was not set\n");
+        }
         
         
         /*************************************************************************/
@@ -759,11 +876,11 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             sound_output.is_playing            =     0;
             sound_output.samples_per_second    = 48000;
             sound_output.tone_hz               =   256;
-            sound_output.tone_volume           =   200;
+            sound_output.tone_volume           =    10;
             sound_output.wave_period           = sound_output.samples_per_second / sound_output.tone_hz;
             sound_output.running_sample_index  =     0;
             sound_output.bytes_per_sample      = sizeof(u16) * 2 ;
-            sound_output.latency_sample_count  = sound_output.samples_per_second / 15 ;
+            sound_output.latency_sample_count  = FRAMES_OF_AUDIO_LATENCY * (sound_output.samples_per_second / game_update_hz);
             sound_output.secondary_buffer_size = sound_output.samples_per_second * sound_output.bytes_per_sample;
             
             u16 *samples = (u16 *)VirtualAlloc(0, sound_output.secondary_buffer_size,
@@ -777,14 +894,20 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             
             g_secondary_sound_buffer->lpVtbl->Play(g_secondary_sound_buffer,0, 0, DSBPLAY_LOOPING);
             
+            
+            u32 debug_sound_time_marker_index = 0;
+            win32_debug_sound_time_marker debug_sound_time_markers[GAME_UPDATE_HZ / 2] = { 0 };
+            u32 last_play_cursor = 0;
+            b32 sound_is_valid   = 0;
+            
             //-
             
             game_input  input[2]  = { 0 };
             game_input *input_new = &input[0];
             game_input *input_old = &input[1];
             
-            //-
-            
+            //~ TIMING STUFF
+#if RION
             s64 performance_counter_frequency = 1;
             {
                 LARGE_INTEGER freq = { 0LL };
@@ -794,19 +917,34 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             
             LARGE_INTEGER begin_frame_time_data = { 0LL };
             LARGE_INTEGER end_frame_time_data   = { 0LL };
+#else // NOTE(MIGUEL): CASEY HMH
             
+            LARGE_INTEGER frequency_query_result = { 0LL };
+            QueryPerformanceFrequency(&frequency_query_result);
+            
+            // NOTE(MIGUEL): regular u64 to not have to deal with union shinanegans when computing ms/frame
+            g_tick_frequency = frequency_query_result.QuadPart;
+            
+            LARGE_INTEGER tick_work_start = win32_get_current_tick(); // NOTE(MIGUEL): is last tick counter HMH
+            
+            // NOTE(MIGUEL): for profiling
+            u64 start_cycle_count = __rdtsc(); // NOTE(MIGUEL): is last cycle counter HMH
+#endif
             u32 load_counter = 120; // Frames
             
-            //****************************************************************************
-            // MAIN PROGRAM LOOP
-            //
-            // MESSAGE PROCESSING AND RENDERING
-            //****************************************************************************
+            
+            /*************************************************************************/
+            /*************************************************************************/
+            /*                                                                       */
+            /*                        M A I N    L O O P                             */
+            /*                                                                       */
+            /*************************************************************************/
+            /*************************************************************************/
+            
             while(!g_platform.quit)
             {
-                // ************************************************
-                // HOUSEKEEPING
-                //*************************************************
+                
+                //~ HOUSEKEEPING
                 
                 // LIVE CODE EDITTING
                 if(load_counter++ == 120)
@@ -816,6 +954,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     load_counter = 0;
                 }
                 
+#if RION
                 // TIMING STUFF
                 g_platform.last_time     = g_platform.current_time;
                 g_platform.current_time += 1 / g_platform.frames_per_second_target;
@@ -823,7 +962,10 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 
                 QueryPerformanceCounter(&begin_frame_time_data);
                 // END OF TIMING STUFF
+#else // NOTE(MIGUEL): CASEY HMH
                 
+                
+#endif
                 
                 /*************************************************************************/
                 /*************************************************************************/
@@ -838,39 +980,39 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 /*
                 game_controller_input *keyboard_controller_old = get_controller(input_old, 0);
                 game_controller_input *keyboard_controller_new = get_controller(input_new, 0);
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 //keyboard_controller_new = { 0 }; // Fuck this
                 memset(keyboard_controller_new, 0, sizeof(game_controller_input));
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 keyboard_controller_new->is_connected = 1;
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 for(u32 button_index = 0; button_index < ARRAY_COUNT(keyboard_controller_new->buttons); button_index++)
                 {
                     keyboard_controller_new->buttons[button_index].ended_down = keyboard_controller_old->buttons[button_index].ended_down;
                 }
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 win32_process_pending_messages(&input_new->controllers[0]);
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 //if(GlobalPause)
                 // MOUSE
                 POINT mouse_pos;
                 GetCursorPos(&mouse_pos);
                 ScreenToClient(Window, &mouse_pos);
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 input_new->mouse_x = mouse_pos.x;
                 input_new->mouse_y = mouse_pos.y;
                 input_new->mouse_z = 0; // For Mouse Wheel
-                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
                 win32_process_keyboard_message(&input_new->mouse_buttons[0],
-                                               GetKeyState(VK_LBUTTON) & (1 << 15));
+                                            GetKeyState(VK_LBUTTON) & (1 << 15));
                 win32_process_keyboard_message(&input_new->mouse_buttons[1],
-                                               GetKeyState(VK_MBUTTON) & (1 << 15));
+                                            GetKeyState(VK_MBUTTON) & (1 << 15));
                 win32_process_keyboard_message(&input_new->mouse_buttons[2],
-                                               GetKeyState(VK_RBUTTON) & (1 << 15));
+                                            GetKeyState(VK_RBUTTON) & (1 << 15));
                 win32_process_keyboard_message(&input_new->mouse_buttons[3],
-                                               GetKeyState(VK_XBUTTON1) & (1 << 15));
+                                            GetKeyState(VK_XBUTTON1) & (1 << 15));
                 win32_process_keyboard_message(&input_new->mouse_buttons[4],
-                                               GetKeyState(VK_XBUTTON2) & (1 << 15));
+                                            GetKeyState(VK_XBUTTON2) & (1 << 15));
                 */
                 //~ GAMEPAD CONTROLLER PROCESSING
                 win32_process_pending_messages(&input_new->controllers[0]);
@@ -986,19 +1128,18 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 
                 //~ AUDIO - DIRECTSOUND
                 
+                // NOTE(MIGUEL): Compute how muuch to fill and where
                 u32 target_cursor  = 0;
                 u32 byte_to_lock   = 0;
                 u32 bytes_to_write = 0;
-                u32 play_cursor    = 0;
-                u32 write_cursor   = 0;
-                b32 sound_is_valid = 1;
+                // NOTE(MIGUEL): play & write cursors moved to SoftW render section
                 
-                if(SUCCEEDED(g_secondary_sound_buffer->lpVtbl->GetCurrentPosition(g_secondary_sound_buffer, &play_cursor, &write_cursor)))
+                if(sound_is_valid)
                 {
                     // NOTE(MIGUEL): this for changes in the tone_hz made by the plat_indie layer
                     sound_output.wave_period = sound_output.samples_per_second / sound_output.tone_hz;
                     
-                    target_cursor = (play_cursor + (sound_output.latency_sample_count * sound_output.bytes_per_sample)) % sound_output.secondary_buffer_size;
+                    target_cursor = (last_play_cursor + (sound_output.latency_sample_count * sound_output.bytes_per_sample)) % sound_output.secondary_buffer_size;
                     
                     byte_to_lock  = (sound_output.running_sample_index * sound_output.bytes_per_sample) % sound_output.secondary_buffer_size; 
                     
@@ -1011,8 +1152,6 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     {
                         bytes_to_write  = target_cursor - byte_to_lock;
                     }
-                    
-                    sound_is_valid = 1;
                 }
                 
                 game_sound_output_buffer sound_buffer = { 0 };
@@ -1020,7 +1159,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 sound_buffer.sample_count       = bytes_to_write / sound_output.bytes_per_sample;
                 sound_buffer.samples            =  samples;
                 
-                //~ SOFTWARE RENDERING
+                //~ GRAPHICS - SOFTWARE
                 
                 win32_back_buffer_resize(&g_main_window_back_buffer, g_window_width, g_window_height);
                 game_back_buffer back_buffer = { 0 };
@@ -1040,7 +1179,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 /*************************************************************************/
                 /*************************************************************************/
                 
-                //~ HARDWARE RENDERING - OPENGL
+                //~ GRAPHICS - HARDWARE - OPENGL
 #if RENDER_OPENGL
                 // NOTE(MIGUEL): 02/26/2021 - NO OPENGL RENDERING YET
                 local_persist b32 first_render = true;
@@ -1135,33 +1274,21 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 SwapBuffers(gl_device_context);
 #endif
                 
-                //~ SOFTWARE RENDERING
-                win32_client_draw(&g_main_window_back_buffer, device_context,
-                                  g_window_width, g_window_height);
-                
                 
                 
                 //~ AUDIO - DIRECTSOUND
-                
                 if(sound_is_valid)
                 {
                     win32_fill_sound_buffer(&sound_output, byte_to_lock, bytes_to_write, &sound_buffer);
                 }
                 
-                // *************************************************
-                // HOUSEKEEPING
-                // *************************************************
-                //~ INPUT STUFF
-                game_input *temp;
-                temp      = input_new;
-                input_new = input_old;
-                input_old = temp;
                 
-                //~ TIMER STUFF
+                
+                //~ TIMING - FRAME IDLE
+#if RION
                 QueryPerformanceCounter(&end_frame_time_data);
                 
                 //printf("Frame data: %lld <- ( %lld - %lld ) \n", (end_frame_time_data.QuadPart - begin_frame_time_data.QuadPart), end_frame_time_data.QuadPart, begin_frame_time_data.QuadPart);
-                
                 // NOTE(MIGUEL): Wait any time, if neccssary
                 // TODO(MIGUEL): think about changing target fps if current target is not met
                 {
@@ -1180,6 +1307,132 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                         begin_wait_time_data = end_wait_time_data;
                     }
                 }
+                
+#else // NOTE(MIGUEL): CASEY HMH
+                
+                
+                LARGE_INTEGER tick_work_end  = win32_get_current_tick();
+                LARGE_INTEGER tick_frame_end = { 0 };
+                f32 seconds_elapsed_for_work = win32_get_seconds_elapsed(tick_work_start, tick_work_end);
+                
+                f32 seconds_elapsed_for_frame = seconds_elapsed_for_work;
+                
+                u32 mil = 0;
+                // NOTE(MIGUEL): Go Idle
+                if(seconds_elapsed_for_frame < target_seconds_per_frame)
+                {
+                    
+                    if(sleep_granularity_was_set)
+                    {
+                        u32 millis_to_sleep = (u32)(1000.0f * (target_seconds_per_frame - seconds_elapsed_for_frame));
+                        mil = millis_to_sleep;
+                        if(millis_to_sleep > 0)
+                        {
+                            Sleep(millis_to_sleep);
+                        }
+                    }
+                    
+                    // NOTE(MIGUEL): testing shit goes here
+                    f32 test_seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, win32_get_current_tick());
+                    //ASSERT(test_seconds_elapsed_for_frame < target_seconds_per_frame);
+                    
+                    LARGE_INTEGER tick_idle;
+                    while(seconds_elapsed_for_frame < target_seconds_per_frame)
+                    {
+                        tick_idle   = win32_get_current_tick();
+                        seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, tick_idle);
+                    }
+                }
+                else
+                {
+                    // NOTE(MIGUEL): missed frame rate
+                }
+                
+                tick_frame_end = win32_get_current_tick();
+                
+                
+#endif
+                
+                
+                //~ SOFTWARE RENDERING
+                
+#if SGE_INTERNAL
+                //- DEBUG - AUDIO - DIRECT SOUND 
+                win32_debug_sync_display(&g_main_window_back_buffer,
+                                         debug_sound_time_markers,
+                                         ARRAYCOUNT(debug_sound_time_markers),
+                                         &sound_output,
+                                         target_seconds_per_frame);
+                //- DEBUG - AUDIO - DIRECT SOUND (END) 
+#endif
+                
+                win32_client_draw(&g_main_window_back_buffer, device_context,
+                                  g_window_width, g_window_height);
+                
+                
+                u32 play_cursor    = 0;
+                u32 write_cursor   = 0;
+                
+                
+                if((g_secondary_sound_buffer->lpVtbl->GetCurrentPosition(g_secondary_sound_buffer, 
+                                                                         &play_cursor, &write_cursor) == DS_OK))
+                {
+                    last_play_cursor = play_cursor;
+                    
+                    if(!sound_is_valid)
+                    {
+                        sound_output.running_sample_index = write_cursor / sound_output.bytes_per_sample;
+                    }
+                    sound_is_valid = 1;
+                }
+                else
+                {
+                    sound_is_valid = 0;
+                }
+                
+                
+#if SGE_INTERNAL
+                //- DEBUG - AUDIO - DIRECT SOUND 
+                // NOTE(MIGUEL): play & write cursors declared uptop
+                // NOTE(MIGUEL): function implementation not finished
+                {
+                    win32_debug_sound_time_marker *marker = &debug_sound_time_markers[debug_sound_time_marker_index++ % (GAME_UPDATE_HZ / 2)];
+                    
+                    marker->play_cursor  = play_cursor ;
+                    marker->write_cursor = write_cursor;
+                    
+                } 
+                //- DEBUG - AUDIO - DIRECT SOUND (END)
+#endif
+                
+                // *************************************************
+                // HOUSEKEEPING
+                // *************************************************
+                //~ TIMING STUFF
+                
+                // NOTE(MIGUEL): for profiling
+                u64 end_cycle_count = __rdtsc(); // NOTE(MIGUEL): is last cycle counter HMH
+                
+                u64 cycles_elapsed        = end_cycle_count - start_cycle_count; 
+                f32 mega_cycles_per_frame = ((f32)cycles_elapsed / (f32)(1000.0f * 1000.0f));
+                
+                u64 ticks_elapsed         = ( tick_frame_end.QuadPart - tick_work_start.QuadPart                );
+                f32 millis_per_frame      = 1000.0f * win32_get_seconds_elapsed(tick_work_start, tick_frame_end);
+                
+                u32 frames_per_second     = g_tick_frequency / ticks_elapsed;
+                
+                printf("ms/frame %f | %dFPS | %.02f Mcycles/frame \n", millis_per_frame, frames_per_second, mega_cycles_per_frame);
+                
+                
+                tick_work_start   = tick_frame_end ;
+                start_cycle_count = end_cycle_count;
+                
+                
+                //~ INPUT STUFF
+                game_input *temp;
+                temp      = input_new;
+                input_new = input_old;
+                input_old = temp;
                 
             }
             

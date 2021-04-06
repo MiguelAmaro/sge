@@ -20,6 +20,7 @@ typedef struct
     FILETIME dll_last_write_time;
 } win32_game_code;
 
+// NOTE(MIGUEL): consider naming to _offscreen_buffer;
 typedef struct
 {
     BITMAPINFO info      ;
@@ -44,14 +45,20 @@ typedef struct
     u32 *tiles;
 } Tile_map;
 
-typedef struct World
+typedef struct
 {
     u32 tilemap_count_x;
     u32 tilemap_count_y;
     
     Tile_map *tile_maps;
-} World;
+} world;
 
+
+typedef struct
+{
+    u32 play_cursor ;
+    u32 write_cursor;
+} win32_debug_sound_time_marker;
 
 internal LRESULT CALLBACK 
 win32_Main_Window_Procedure (HWND Window, UINT Message , WPARAM w_param, LPARAM l_param);
