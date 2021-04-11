@@ -105,9 +105,9 @@ REM path=F:\Dev\SimpleGameEngine\build;%path%
 
 PUSHD build
 
-IF %Platform%==--win (CALL :WINDOWS)
-IF %Platform%==--lin (CALL :LINUX  )
-IF %Platform%==--mac (CALL :MAC    )
+IF %PLATFORM%==--win (CALL :WINDOWS)
+IF %PLATFORM%==--lin (CALL :LINUX  )
+IF %PLATFORM%==--mac (CALL :MAC    )
 
 POPD
 EXIT /B 0
