@@ -19,7 +19,6 @@
 //#include "SGE_OpenGL.h"
 
 // NOTE(MIGUEL): HMH Plan & Track
-// TODO(MIGUEL): HMH 015(debugio - when he uses file io)
 // TODO(MIGUEL): HMH 014(gamememory - if its very different than ryans)
 // TODO(MIGUEL): HMH 018
 // TODO(MIGUEL): HMH 019
@@ -42,11 +41,12 @@
 
 #define RENDER_OPENGL (0)
 
-#define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
 #define PI_32BIT 3.14159265359
 
 
 //~ GLOBALS
+global b32 g_running = true ;
+global b32 g_pause   = false;
 global Platform g_platform = {0};
 
 global win32_back_buffer g_main_window_back_buffer = { 0 }; // NOTE(MIGUEL): platform copy of the backbuffer
@@ -77,14 +77,105 @@ global x_input_set_state *XInputSetState_ = x_input_set_state_stub;
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
 
 
+//~ DEBUG FILE I/O
+
+DEBUG_PLATFORM_READ_ENTIRE_FILE (debug_platform_read_entire_file );
+DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
+DEBUG_PLATFORM_FREE_FILE_MEMORY (debug_platform_free_file_memory );
+
+DEBUG_PLATFORM_READ_ENTIRE_FILE (debug_platform_read_entire_file )
+{
+    debug_read_file_result result = {0};
+    
+    HANDLE file_handle = CreateFileA(file_name,
+                                     GENERIC_READ,
+                                     FILE_SHARE_READ,
+                                     0,
+                                     OPEN_EXISTING,
+                                     0, 0);
+    
+    if(file_handle != INVALID_HANDLE_VALUE)
+    {
+        LARGE_INTEGER file_size;
+        
+        if(GetFileSizeEx(file_handle, &file_size))
+        {
+            u32 file_size_32bit = safe_truncate_u64(file_size.QuadPart );
+            
+            result.contents = VirtualAlloc(0, file_size_32bit, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+            
+            
+            if(result.contents)
+            {
+                u32 bytes_read;
+                if(ReadFile(file_handle, result.contents, file_size_32bit,
+                            &bytes_read, 0) && file_size_32bit == bytes_read)
+                {
+                    result.contents_size = file_size_32bit;
+                }
+                else
+                {
+                    // NOTE(MIGUEL): Failed file read!!!
+                    debug_platform_free_file_memory(result.contents);
+                    result.contents = 0;
+                }
+            }
+            else { /*// NOTE(MIGUEL): logging */ }
+        }
+        else     { /*// NOTE(MIGUEL): logging */ }
+        
+        CloseHandle(file_name);
+    }
+    else         { /*// NOTE(MIGUEL): logging */ }
+    
+    return result;
+}
+
+DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file)
+{
+    b32 result = false;
+    
+    HANDLE file_handle = CreateFileA(file_name, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    
+    if(file_handle != INVALID_HANDLE_VALUE)
+    {
+        DWORD bytes_written;
+        if(WriteFile(file_handle, memory, memory_size, &bytes_written, 0))
+        {
+            // NOTE(casey): File read successfully
+            result = (bytes_written == memory_size);
+        }
+        else { /*// NOTE(MIGUEL): logging */ }
+        
+        CloseHandle(file_handle);
+    }
+    else     { /*// NOTE(MIGUEL): logging */ }
+    
+    
+    return(result);
+}
+
+
+DEBUG_PLATFORM_FREE_FILE_MEMORY (debug_platform_free_file_memory )
+{
+    if(memory)
+    {
+        VirtualFree(memory, 0, MEM_RELEASE);
+    }
+    
+    return;
+}
+
+//~ DYANAMIC LOADING
+
 internal void win32_xinput_load_functions()
 {
     HMODULE xinput_lib;
     
-    xinput_lib   = LoadLibrary("xinput1_4.dll"); 
+    xinput_lib   = LoadLibrary("xinput1_4.dll"  ); 
     
     if(!xinput_lib)
-    { xinput_lib = LoadLibrary("xinput1_3.dll"); }
+    { xinput_lib = LoadLibrary("xinput1_3.dll"  ); }
     
     if(!xinput_lib)
     { xinput_lib = LoadLibrary("xinput9_1_0.dll"); }
@@ -98,9 +189,8 @@ internal void win32_xinput_load_functions()
     return;
 }
 
-
 internal void
-win32_process_pending_messages(game_controller_input *keyboard_controller);
+win32_process_pending_messages(win32_state *state, game_controller_input *keyboard_controller);
 
 // ************************
 // OPENGL ABSTRACTIONS
@@ -142,69 +232,7 @@ global int   BytesPerPixel = 4;
 //#define false (0)
 /*
 */
-internal void
-win32_begin_recording_input(win32_state *state, s32 input_record_index)
-{
-    state->input_record_index = input_record_index;
-    
-    u8 *file_name = "engine_input.sgei";
-    
-    state->record_handle = CreateFileA(file_name, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-    
-    return;
-}
 
-internal void
-win32_end_recording_input(win32_state *state)
-{
-    CloseHandle(state->record_handle);
-    
-    return;
-}
-
-internal void
-win32_begin_input_playback(win32_state *state, game_input *new_input)
-{
-    //state->input_record_index = input_record_index;
-    
-    u8 *file_name = "engine_input.sgei";
-    state->playback_handle = CreateFileA(file_name, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
-    
-    return;
-}
-
-internal void
-win32_end_input_playback(win32_state *state)
-{
-    CloseHandle(state->playback_handle);
-    
-    return;
-}
-
-
-internal void
-win32_record_input(win32_state *state, game_input *new_input)
-{ 
-    u32 bytes_written;
-    
-    WriteFile(state->record_handle, new_input, sizeof(new_input), &bytes_written, 0);
-    
-    return;
-}
-
-internal void
-win32_playback_input(win32_state *state, game_input *new_input)
-{
-    u32 bytes_read;
-    if(ReadFile(state->record_handle, new_input, sizeof(new_input), &bytes_read, 0))
-    {
-        u32 playing_index = state->input_playback_index;
-        win32_end_input_playback  (state);
-        win32_begin_input_playback(state, new_input);
-    }
-    
-    return;
-}
 
 internal void
 win32_xinput_process_digital_button(game_button_state *state_new, game_button_state *state_old,
@@ -240,7 +268,8 @@ win32_process_keyboard_message(game_button_state *state_new, b32 is_down)
     return;
 }
 
-void win32_client_draw(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height)
+internal void
+win32_client_draw(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height)
 {
     StretchDIBits(device_context,
                   0, 0,  window_width,  window_height,
@@ -251,7 +280,8 @@ void win32_client_draw(win32_back_buffer *buffer, HDC device_context, u32 window
     return;
 }
 
-void win32_back_buffer_init(win32_back_buffer *back_buffer)
+internal void
+win32_back_buffer_init(win32_back_buffer *back_buffer)
 {
     back_buffer->width                        =         INITIAL_WINDOW_WIDTH ;
     back_buffer->height                       =         INITIAL_WINDOW_HEIGHT;
@@ -272,7 +302,8 @@ void win32_back_buffer_init(win32_back_buffer *back_buffer)
     return;
 }
 
-void win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 height)
+internal void
+win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 height)
 {
     if(back_buffer->data)
     {
@@ -296,7 +327,9 @@ void win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 hei
     
     return;
 }
-void win32_client_get_dimensions(RECT client_rect, u32 *width, u32 *height)
+
+internal void
+win32_client_get_dimensions(RECT client_rect, u32 *width, u32 *height)
 {
     *width  = client_rect.right  - client_rect.left;
     *height = client_rect.bottom - client_rect.top ;
@@ -304,7 +337,8 @@ void win32_client_get_dimensions(RECT client_rect, u32 *width, u32 *height)
     return;
 }
 
-void win32_directsound_init(HWND window, u32 samples_per_second, LPDIRECTSOUNDBUFFER *secondary_sound_buffer, u32 sound_buffer_size)
+internal void
+win32_directsound_init(HWND window, u32 samples_per_second, LPDIRECTSOUNDBUFFER *secondary_sound_buffer, u32 sound_buffer_size)
 {
     // NOTE(MIGUEL): Load the lib
     HMODULE direct_sound_lib = LoadLibraryA("dsound.dll");
@@ -380,22 +414,8 @@ void win32_directsound_init(HWND window, u32 samples_per_second, LPDIRECTSOUNDBU
     return;
 }
 
-typedef struct
-{
-    b32 is_playing           ;
-    u32 samples_per_second   ;
-    u32 tone_hz              ;
-    s32 tone_volume          ;
-    u32 wave_period          ;
-    u32 running_sample_index ;
-    u32 bytes_per_sample     ;
-    u32 secondary_buffer_size;
-    f32 t_sin                ;
-    u32 latency_sample_count ;
-} win32_sound_output;
-
-
-void win32_clear_sound_buffer(win32_sound_output *sound_output)
+internal void
+win32_clear_sound_buffer(win32_sound_output *sound_output)
 {
     
     void *buffer_region;
@@ -441,7 +461,8 @@ void win32_clear_sound_buffer(win32_sound_output *sound_output)
     return;
 }
 
-void win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock, u32 bytes_to_write, game_sound_output_buffer *source_buffer)
+internal void
+win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock, u32 bytes_to_write, game_sound_output_buffer *source_buffer)
 {
     
     void *buffer_region;
@@ -488,17 +509,32 @@ void win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock,
     return;
 }
 
-void win32_debug_draw_vertical_line(win32_back_buffer *back_buffer, u32 x, u32 top, u32 bottom, u32 color)
+internal void
+win32_debug_draw_vertical_line(win32_back_buffer *back_buffer, u32 x, u32 top, u32 bottom, u32 color)
 {
-    u8 *pixel = (( u8 *)back_buffer->data             +
-                 (  x * back_buffer->bytes_per_pixel) +
-                 (top * back_buffer->pitch          ));
-    
-    for(u32 y = top; y < bottom; y++)
+    // TODO(MIGUEL): study this function
+    if(top <= 0)
     {
-        *(u32 *)pixel *= color;
+        top = 0;
+    }
+    
+    if(bottom > back_buffer->height)
+    {
+        bottom = back_buffer->height;
+    }
+    
+    if((x >= 0) && (x < back_buffer->width))
+    {
+        u8 *pixel = (( u8 *)back_buffer->data             +
+                     (  x * back_buffer->bytes_per_pixel) +
+                     (top * back_buffer->pitch          ));
         
-        pixel += back_buffer->pitch;
+        for(u32 y = top; y < bottom; y++)
+        {
+            *(u32 *)pixel = color;
+            
+            pixel += back_buffer->pitch;
+        }
     }
     
     return;
@@ -511,9 +547,6 @@ inline void win32_draw_sound_time_marker(win32_back_buffer  *back_buffer ,
                                          u32 padding_x, u32 top, u32 bottom,
                                          u32 cursor_pos, u32 color)
 {
-    
-    ASSERT(cursor_pos < sound_output->secondary_buffer_size);
-    
     f32 offset              = buffer_conversion_factor * cursor_pos;
     
     u32 marker_x_pos        = padding_x + offset ;
@@ -524,15 +557,15 @@ inline void win32_draw_sound_time_marker(win32_back_buffer  *back_buffer ,
 }
 
 
-void win32_debug_sync_display(win32_back_buffer *back_buffer, win32_debug_sound_time_marker *markers, u32 marker_count, 
-                              win32_sound_output *sound_output,
-                              f32 target_seconds_per_frame)
+internal void
+win32_debug_sync_display(win32_back_buffer *back_buffer, win32_debug_sound_time_marker *markers, u32 marker_count, 
+                         u32 last_marker_index, win32_sound_output *sound_output,
+                         f32 target_seconds_per_frame)
 {
     u32 padding_x = 16;
     u32 padding_y = 16;
     
-    u32 top    = padding_y;
-    u32 bottom = back_buffer->height - padding_y;
+    u32 line_height = 64;
     
     f32 buffer_conversion_factor = (f32)(back_buffer->width - (padding_x * 2)) / (f32)sound_output->secondary_buffer_size;
     
@@ -541,21 +574,90 @@ void win32_debug_sync_display(win32_back_buffer *back_buffer, win32_debug_sound_
     {
         win32_debug_sound_time_marker *current_marker = &markers[marker_index];
         
+        ASSERT(current_marker->output_play_cursor  < sound_output->secondary_buffer_size);
+        ASSERT(current_marker->output_write_cursor < sound_output->secondary_buffer_size);
+        ASSERT(current_marker->output_location     < sound_output->secondary_buffer_size);
+        ASSERT(current_marker->flip_play_cursor    < sound_output->secondary_buffer_size);
+        ASSERT(current_marker->flip_write_cursor   < sound_output->secondary_buffer_size);
+        
+        u32 top    =               padding_y;
+        u32 bottom = line_height + padding_y;
+        
+        u32 play_color  = 0xFFffffff;
+        u32 write_color = 0xFFff0000;
+        
+        
+        if(marker_index == last_marker_index)
+        { 
+            top    += line_height + padding_y;
+            bottom += line_height + padding_y;
+            
+            play_color  = 0xFFff00ff;
+            write_color = 0xFF00ff00;
+            
+            
+            win32_draw_sound_time_marker(back_buffer                 ,
+                                         sound_output                ,
+                                         buffer_conversion_factor    ,
+                                         padding_x                   ,
+                                         top, bottom                 , 
+                                         current_marker->output_play_cursor,
+                                         play_color);
+            
+            
+            win32_draw_sound_time_marker(back_buffer                 ,
+                                         sound_output                ,
+                                         buffer_conversion_factor    ,
+                                         padding_x                   ,
+                                         top, bottom                 , 
+                                         current_marker->output_write_cursor,
+                                         play_color);
+            
+            
+            top    += line_height + padding_y;
+            bottom += line_height + padding_y;
+            
+            
+            win32_draw_sound_time_marker(back_buffer                 ,
+                                         sound_output                ,
+                                         buffer_conversion_factor    ,
+                                         padding_x                   ,
+                                         top, bottom                 , 
+                                         current_marker->output_location,
+                                         play_color);
+            
+            win32_draw_sound_time_marker(back_buffer                 ,
+                                         sound_output                ,
+                                         buffer_conversion_factor    ,
+                                         padding_x                   ,
+                                         top, bottom                 , 
+                                         current_marker->output_location +
+                                         current_marker->output_byte_count,
+                                         play_color);
+            
+            
+            top    += line_height + padding_y;
+            bottom += line_height + padding_y;
+            
+            
+        }
+        
+        
         win32_draw_sound_time_marker(back_buffer                 ,
                                      sound_output                ,
                                      buffer_conversion_factor    ,
                                      padding_x                   ,
                                      top, bottom                 , 
-                                     current_marker->play_cursor ,
-                                     0xFFff0000);
+                                     current_marker->flip_play_cursor ,
+                                     play_color);
         
         win32_draw_sound_time_marker(back_buffer                  ,
-                                     sound_output                 ,
+                                     sound_output                    ,
                                      buffer_conversion_factor     ,
                                      padding_x                    ,
                                      top, bottom                  , 
-                                     current_marker->write_cursor ,
-                                     0xFF0000ff);
+                                     current_marker->flip_write_cursor ,
+                                     write_color);
     }
     
     return;  
@@ -580,26 +682,6 @@ inline f32 win32_get_seconds_elapsed(LARGE_INTEGER start_tick, LARGE_INTEGER end
 int CALLBACK 
 WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowCode) 
 {
-    u8 exe_file_name[MAX_PATH];
-    
-    DWORD size_of_file_name = GetModuleFileName(0, exe_file_name, sizeof(exe_file_name));
-    
-    u8 *one_past_last_slash = exe_file_name +  size_of_file_name;
-    
-    for(u8 *scan = exe_file_name; *scan; ++scan)
-    {
-        if(*scan == '\\')
-        {
-            one_past_last_slash = scan + 1;
-        }
-    }
-    
-    AllocConsole();
-    
-    freopen("CONOUT$", "w", stdout);
-    
-    HANDLE Debug_console = GetStdHandle(STD_OUTPUT_HANDLE );
-    
     /*************************************************************************/
     /*************************************************************************/
     /*                                                                       */
@@ -608,48 +690,25 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
     /*************************************************************************/
     /*************************************************************************/
     
-    //~ DEFINING WINDOW CLASS TO REGISTER
     WNDCLASS WindowClass      = {0};
-    WindowClass.style         = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+    WindowClass.style         = CS_HREDRAW | CS_VREDRAW;
     WindowClass.lpfnWndProc   = win32_Main_Window_Procedure;
     WindowClass.hInstance     = Instance;
     //WindowClass.hIcon;
     WindowClass.lpszClassName = "MyWindowClass";
     
     
-    //~ REGISTER WINDOW CLASS WITH OS
     if(RegisterClass(&WindowClass)) 
     {
         
-        //~ CREATE THE WINDOW AND DISPLAY IT
+        HWND window = CreateWindowExA(0,//WS_EX_TOPMOST | WS_EX_LAYERED, 
+                                      WindowClass.lpszClassName,
+                                      "Simple Game Engine",
+                                      WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                                      20, 20,
+                                      INITIAL_WINDOW_WIDTH, INITIAL_WINDOW_HEIGHT,
+                                      0, 0, Instance, 0);
         
-        HWND window = CreateWindowEx(0, WindowClass.lpszClassName,
-                                     "Simple Game Engine",
-                                     WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-                                     20, 20,
-                                     INITIAL_WINDOW_WIDTH, INITIAL_WINDOW_HEIGHT,
-                                     0, 0, Instance, 0);
-        
-        // TODO: figure out why app crashes if stick is not connected
-        //This is for the joystick!!!
-        //CreateDevice(Window, Instance);
-        /*
-                                                                
-HDC   gl_device_context = GetDC(Window);
-        HGLRC gl_render_context = win32_Init_OpenGL(gl_device_context);
-                                                                                                                                
-        ASSERT(gladLoadGL());
-                                                                                                                                
-        u32 gl_major = 0;
-        u32 gl_minor = 0;
-                                
-        glGetIntegerv(GL_MAJOR_VERSION, &gl_major);
-        glGetIntegerv(GL_MINOR_VERSION, &gl_minor);
-        printf       ("OPENGL VERSION: %d.%d \n"  , 
-                    gl_major, gl_minor);
-        */
-        // NOTE(MIGUEL): This should Init on users command
-        //win32_serial_Port_Init();
         
         //~ BACKBUFFER INTIT
         
@@ -681,194 +740,62 @@ HDC   gl_device_context = GetDC(Window);
         /*************************************************************************/
         /*************************************************************************/
         // PLATFORM INITIALIZATION
+        win32_state state_win32 = { 0 };
+        game_memory sge_memory  = { 0 };
         {
-            g_platform.permanent_storage_size = PERMANENT_STORAGE_SIZE;
-            g_platform.permanent_storage      = VirtualAlloc(0, 
-                                                             g_platform.permanent_storage_size,
-                                                             MEM_COMMIT | MEM_RESERVE,
-                                                             PAGE_READWRITE);
+#if SGE_INTERNAL
+            LPVOID base_address = (LPVOID)TERABYTES(2);
+#else
+            LPVOID base_address = 0;
+#endif
+            sge_memory.permanent_storage_size = PERMANENT_STORAGE_SIZE;
+            sge_memory.transient_storage_size = TRANSIENT_STORAGE_SIZE;
+            
+            state_win32.main_memory_block_size = (sge_memory.permanent_storage_size +
+                                                  sge_memory.transient_storage_size);
+            
+            state_win32.main_memory_block = VirtualAlloc(base_address, 
+                                                         (size_t)state_win32.main_memory_block_size,
+                                                         MEM_COMMIT | MEM_RESERVE,
+                                                         PAGE_READWRITE);
             
             // TODO(MIGUEL): Add transient storage
-            g_platform.permanent_storage_size = TRANSIENT_STORAGE_SIZE;
-            g_platform.transient_storage      = VirtualAlloc(0, 
-                                                             g_platform.transient_storage_size,
-                                                             MEM_COMMIT | MEM_RESERVE,
-                                                             PAGE_READWRITE);
+            sge_memory.permanent_storage = ((u8 *)state_win32.main_memory_block);
             
-            g_platform.frames_per_second_target = 60.0f;
+            sge_memory.transient_storage = ((u8 *)sge_memory.permanent_storage +
+                                            sge_memory.permanent_storage_size);
+            
+            //g_platform.frames_per_second_target = 60.0f;
             
         }
+        sge_memory.debug_platform_read_entire_file  = debug_platform_read_entire_file ;
+        sge_memory.debug_platform_write_entire_file = debug_platform_write_entire_file;
+        sge_memory.debug_platform_free_file_memory  = debug_platform_free_file_memory ;
+        
+        
+        // NOTE(MIGUEL): wtf does this even do???
+        win32_get_exe_file_name(&state_win32);
+        
+        u8 game_code_dll_full_path_source[WIN32_STATE_FILE_NAME_COUNT];
+        win32_build_exe_path_file_name(&state_win32, "SGE.dll",
+                                       sizeof(game_code_dll_full_path_source), game_code_dll_full_path_source);
+        
+        u8 game_code_dll_full_path_temp  [WIN32_STATE_FILE_NAME_COUNT];
+        win32_build_exe_path_file_name(&state_win32, "SGE_temp.dll",
+                                       sizeof(game_code_dll_full_path_temp), game_code_dll_full_path_temp);
+        
         
         if(window)
         {
             MSG Message;
             
             /// LOAD DEPENDINCIES
-            win32_game_code Game = win32_load_game_code();
+            win32_game_code Game = win32_load_game_code(game_code_dll_full_path_source,
+                                                        game_code_dll_full_path_temp  );
             win32_xinput_load_functions();
             
-            Game.Init(&g_platform);
             
-            // **************************************
-            // InitGL STUFF
-            //
-            // // TODO(MIGUEL): Find a better system for this shit
-            // // NOTE(MIGUEL): 02/26/2021 - Ditching GL & following HMH SW Rendering approach for learning
-            // **************************************
-#if RENDER_OPENGL
-            //~ INIT SPRITE
-            
-            f32 sprite_vertices[] = { 
-                // pos      // tex
-                0.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 0.0f, 
-                
-                0.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 1.0f, 1.0f, 1.0f,
-                1.0f, 0.0f, 1.0f, 0.0f
-            };
-            
-            Sprite.vertices = sprite_vertices;
-            
-            //printf("gen vert arrays addr: %llx#2 ", (u64)&glGenVertexArrays);
-            //printf("gen vert arrays addr: %llx#2 ", (u64)&glGetError);
-            
-            OpenGL_VertexBuffer_Create  (&(sprite_render_info.vertex_buffer_id), sprite_vertices, sizeof(sprite_vertices));
-            
-            GL_Call(glGenVertexArrays(1, &sprite_render_info.vertex_attributes_id));
-            GL_Call(glBindVertexArray(    sprite_render_info.vertex_attributes_id));
-            
-            GL_Call(glEnableVertexAttribArray(0));
-            GL_Call(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)0x00));
-            
-            
-            // THE AFFECTS OF THIS MIGHT NOT BE APPARENT UNSLESS THERE ARE CERTAIN CONDITIONS
-            GL_Call(glGenTextures(1, &sprite_render_info.texture));
-            GL_Call(glBindTexture(GL_TEXTURE_2D, sprite_render_info.texture));
-            // CONFIGUE OPENGL WRAPPING OPTIONS
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT));
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT));
-            // CONFIGURE OPENGL FILTERING OPTIONS
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST    ));
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR     ));
-            
-            //GL_Call(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, texture_border_color)); 
-            
-            // LOAD TEXTURE
-            s32 sprite_tex_width, sprite_tex_height, sprite_nrChannels;
-            //stbi_set_flip_vertically_on_load(true);  
-            u8 *sprite_tex_data = stbi_load("../res/images/geo.png", &sprite_tex_width, &sprite_tex_height, &sprite_nrChannels, STBI_rgb_alpha); 
-            if(sprite_tex_data)
-            {
-                //printf("Tex Data: \n %d | %d | %s  \n", sprite_tex_width, sprite_tex_height, sprite_tex_data);
-                //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                // NOTE(MIGUEL): NO AFFECT
-                GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite_tex_width, sprite_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sprite_tex_data));
-                GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
-            }
-            else
-            {
-                printf("Failed to load texture");
-            }
-            
-            stbi_image_free(sprite_tex_data);
-            
-            
-            // THIS SHADER MAyBE FUCKED UP
-            ReadAShaderFile(&sprite_render_info.shader, "../res/shaders/SpriteShader.glsl");
-            
-            
-            // NOTE(MIGUEL): ISSUES HERE !!!! 
-            GL_Call(glUseProgram(sprite_render_info.shader));
-            GL_Call(glUniform1i(glGetUniformLocation(sprite_render_info.shader, "sprite_texture"), 1));
-            
-            // NOTE(MIGUEL): deleting the folowing 2 lines changes it from black to brown
-            
-            // FOR LATER
-            mat4 projection;
-            GL_Call(glm_ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f, projection));
-            GL_Call(glUniformMatrix4fv(glGetUniformLocation(sprite_render_info.shader, "projection"), 1, GL_FALSE, (f32 *)projection));
-            
-            // UNBIND BUFFER
-            GL_Call(glBindBuffer(GL_ARRAY_BUFFER, 0)); 
-            GL_Call(glBindVertexArray(0));
-            
-            sprite_render_info.uniform_model      = glGetUniformLocation(sprite_render_info.shader, "model");
-            sprite_render_info.uniform_color      = glGetUniformLocation(sprite_render_info.shader, "spriteColor");
-            sprite_render_info.uniform_projection = glGetUniformLocation(sprite_render_info.shader, "projection");
-            
-            
-            //~ INIT SPRITE NICK
-            
-            // NOTE(MIGUEL): Use GEO Sprite vertices
-            
-            Nick.vertices = sprite_vertices;
-            
-            OpenGL_VertexBuffer_Create(&nick_render_info.vertex_buffer_id, sprite_vertices, sizeof(sprite_vertices));
-            
-            //GL_Call(glBindBuffer(GL_ARRAY_BUFFER, Nick.vertex_Attributes));
-            GL_Call(glGenVertexArrays(1, &nick_render_info.vertex_attributes_id));
-            GL_Call(glBindVertexArray(nick_render_info.vertex_attributes_id));
-            GL_Call(glEnableVertexAttribArray(0));
-            GL_Call(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(f32), (void *)0x00));
-            
-            
-            // THE AFFECTS OF THIS MIGHT NOT BE APPARENT UNSLESS THERE ARE CERTAIN CONDITIONS
-            GL_Call(glGenTextures(1, &nick_render_info.texture));
-            GL_Call(glBindTexture(GL_TEXTURE_2D, nick_render_info.texture));
-            // CONFIGUE OPENGL WRAPPING OPTIONS
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S    , GL_MIRRORED_REPEAT));
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T    , GL_MIRRORED_REPEAT));
-            // CONFIGURE OPENGL FILTERING OPTIONS
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST        ));
-            GL_Call(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR         ));
-            
-            //GL_Call(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, texture_border_color)); 
-            
-            // LOAD TEXTURE
-            //s32 sprite_tex_width, sprite_tex_height, sprite_nrChannels;
-            //stbi_set_flip_vertically_on_load(true);  
-            sprite_tex_data = stbi_load("../res/images/nick.png", &sprite_tex_width, &sprite_tex_height, &sprite_nrChannels, STBI_rgb_alpha); 
-            
-            if(sprite_tex_data)
-            {
-                // NOTE(MIGUEL): NO AFFECT
-                GL_Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sprite_tex_width, sprite_tex_height, 0, GL_RGBA,      GL_UNSIGNED_BYTE, sprite_tex_data));
-                GL_Call(glGenerateMipmap(GL_TEXTURE_2D));
-            }
-            else
-            {
-                printf("Failed to load texture");
-            }
-            
-            stbi_image_free(sprite_tex_data);
-            
-            
-            // THIS SHADER MAyBE FUCKED UP
-            ReadAShaderFile(&nick_render_info.shader, "../res/shaders/Nick.glsl");
-            
-            
-            // NOTE(MIGUEL): ISSUES HERE !!!! 
-            GL_Call(glUseProgram(nick_render_info.shader));
-            GL_Call(glUniform1i(glGetUniformLocation(nick_render_info.shader, "sprite_texture"), 1));
-            
-            // NOTE(MIGUEL): deleting the folowing 2 lines changes it from black to brown
-            
-            // FOR LATER
-            mat4 nick_projection;
-            GL_Call(glm_ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f, nick_projection));
-            GL_Call(glUniformMatrix4fv(glGetUniformLocation(nick_render_info.shader, "projection"), 1, GL_FALSE, (f32 *)nick_projection));
-            
-            // UNBIND BUFFER
-            GL_Call(glBindBuffer(GL_ARRAY_BUFFER, 0));
-            GL_Call(glBindVertexArray(0));
-            
-            nick_render_info.uniform_model      = glGetUniformLocation(nick_render_info.shader, "model"      );
-            nick_render_info.uniform_color      = glGetUniformLocation(nick_render_info.shader, "spriteColor");
-            nick_render_info.uniform_input      = glGetUniformLocation(nick_render_info.shader, "mousePos"   );
-            nick_render_info.uniform_projection = glGetUniformLocation(nick_render_info.shader, "projection" );
-#endif
+            Game.init(&g_platform);
             
             //~ DIRECT SOUND INIT
             
@@ -882,6 +809,9 @@ HDC   gl_device_context = GetDC(Window);
             sound_output.bytes_per_sample      = sizeof(u16) * 2 ;
             sound_output.latency_sample_count  = FRAMES_OF_AUDIO_LATENCY * (sound_output.samples_per_second / game_update_hz);
             sound_output.secondary_buffer_size = sound_output.samples_per_second * sound_output.bytes_per_sample;
+            sound_output.fill_pos_tolerance    = FRAMES_OF_AUDIO_LATENCY * (sound_output.samples_per_second *
+                                                                            sound_output.bytes_per_sample   /
+                                                                            game_update_hz) / 4;
             
             u16 *samples = (u16 *)VirtualAlloc(0, sound_output.secondary_buffer_size,
                                                MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
@@ -897,10 +827,53 @@ HDC   gl_device_context = GetDC(Window);
             
             u32 debug_sound_time_marker_index = 0;
             win32_debug_sound_time_marker debug_sound_time_markers[GAME_UPDATE_HZ / 2] = { 0 };
-            u32 last_play_cursor = 0;
-            b32 sound_is_valid   = 0;
+            u32 audio_latency_bytes  = 0;
+            f32 audio_latency_millis = 0.0f;
+            b32 sound_is_valid       = 0;
             
-            //-
+            
+            //-INPUT 
+            
+            
+            for(int replay_index = 0; replay_index < ARRAYCOUNT(state_win32.input_replay_buffers);
+                ++replay_index )
+            {
+                win32_replay_buffer *replay_buffer = &state_win32.input_replay_buffers[replay_index];
+                
+                // TODO(casey): Recording system still seems to take too long
+                // on record start - find out what Windows is doing and if
+                // we can speed up / defer some of that processing.
+                
+                win32_input_get_file_location(&state_win32, stream_state, replay_index,
+                                              sizeof(replay_buffer->file_name), replay_buffer->file_name);
+                
+                replay_buffer->file_handle = CreateFileA(replay_buffer->file_name,
+                                                         GENERIC_WRITE | 
+                                                         GENERIC_READ,
+                                                         0, 0, CREATE_ALWAYS, 
+                                                         0, 0);
+                
+                LARGE_INTEGER max_size;
+                
+                max_size.QuadPart = state_win32.main_memory_block_size;
+                
+                replay_buffer->memory_map = CreateFileMapping(replay_buffer->file_handle,
+                                                              0, PAGE_READWRITE,
+                                                              max_size.HighPart,
+                                                              max_size.LowPart, 0);
+                
+                replay_buffer->memory_block = MapViewOfFile(replay_buffer->memory_map,
+                                                            FILE_MAP_ALL_ACCESS,
+                                                            0, 0,
+                                                            state_win32.main_memory_block_size);
+                if(replay_buffer->memory_block )
+                {
+                }
+                else
+                {
+                    // TODO(casey): Diagnostic
+                }
+            }
             
             game_input  input[2]  = { 0 };
             game_input *input_new = &input[0];
@@ -941,31 +914,21 @@ HDC   gl_device_context = GetDC(Window);
             /*************************************************************************/
             /*************************************************************************/
             
-            while(!g_platform.quit)
+            while(g_running)
             {
-                
-                //~ HOUSEKEEPING
-                
-                // LIVE CODE EDITTING
-                if(load_counter++ == 120)
+                //~ LIVE CODE EDITTING
+                FILETIME new_dll_write_time = win32_get_last_write_time(game_code_dll_full_path_source);
                 {
-                    win32_unload_game_code(&Game);
-                    Game = win32_load_game_code();
-                    load_counter = 0;
+                    
+                    
+                    if(CompareFileTime(&new_dll_write_time, &Game.dll_last_write_time) != 0)
+                    {
+                        win32_unload_game_code(&Game);
+                        Game = win32_load_game_code(game_code_dll_full_path_source,
+                                                    game_code_dll_full_path_temp  );
+                        load_counter = 0;
+                    }
                 }
-                
-#if RION
-                // TIMING STUFF
-                g_platform.last_time     = g_platform.current_time;
-                g_platform.current_time += 1 / g_platform.frames_per_second_target;
-                s64 desired_frame_time_counts = performance_counter_frequency / g_platform.frames_per_second_target;
-                
-                QueryPerformanceCounter(&begin_frame_time_data);
-                // END OF TIMING STUFF
-#else // NOTE(MIGUEL): CASEY HMH
-                
-                
-#endif
                 
                 /*************************************************************************/
                 /*************************************************************************/
@@ -977,468 +940,484 @@ HDC   gl_device_context = GetDC(Window);
                 
                 //~ CONTROLLER PROCESSING
                 // KEYBOARD
-                /*
-                game_controller_input *keyboard_controller_old = get_controller(input_old, 0);
-                game_controller_input *keyboard_controller_new = get_controller(input_new, 0);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                //keyboard_controller_new = { 0 }; // Fuck this
-                memset(keyboard_controller_new, 0, sizeof(game_controller_input));
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                keyboard_controller_new->is_connected = 1;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                for(u32 button_index = 0; button_index < ARRAY_COUNT(keyboard_controller_new->buttons); button_index++)
+                
+                game_controller_input *keyboard_controller_snapshot_old = get_controller(input_old, 0);
+                game_controller_input *keyboard_controller_snapshot_new = get_controller(input_new, 0);
+                
+                memset(keyboard_controller_snapshot_new, 0, sizeof(game_controller_input));
+                
+                keyboard_controller_snapshot_new->is_connected = 1;
+                
+                for(u32 button_index = 0; button_index < ARRAYCOUNT(keyboard_controller_snapshot_new->buttons); button_index++)
                 {
-                    keyboard_controller_new->buttons[button_index].ended_down = keyboard_controller_old->buttons[button_index].ended_down;
+                    keyboard_controller_snapshot_new->buttons[button_index].ended_down = (keyboard_controller_snapshot_old->buttons[button_index].ended_down);
                 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                win32_process_pending_messages(&input_new->controllers[0]);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                //if(GlobalPause)
-                // MOUSE
-                POINT mouse_pos;
-                GetCursorPos(&mouse_pos);
-                ScreenToClient(Window, &mouse_pos);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                input_new->mouse_x = mouse_pos.x;
-                input_new->mouse_y = mouse_pos.y;
-                input_new->mouse_z = 0; // For Mouse Wheel
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                win32_process_keyboard_message(&input_new->mouse_buttons[0],
-                                            GetKeyState(VK_LBUTTON) & (1 << 15));
-                win32_process_keyboard_message(&input_new->mouse_buttons[1],
-                                            GetKeyState(VK_MBUTTON) & (1 << 15));
-                win32_process_keyboard_message(&input_new->mouse_buttons[2],
-                                            GetKeyState(VK_RBUTTON) & (1 << 15));
-                win32_process_keyboard_message(&input_new->mouse_buttons[3],
-                                            GetKeyState(VK_XBUTTON1) & (1 << 15));
-                win32_process_keyboard_message(&input_new->mouse_buttons[4],
-                                            GetKeyState(VK_XBUTTON2) & (1 << 15));
-                */
-                //~ GAMEPAD CONTROLLER PROCESSING
-                win32_process_pending_messages(&input_new->controllers[0]);
                 
-                DWORD max_controller_count = XUSER_MAX_COUNT;
+                win32_process_pending_messages(&state_win32, keyboard_controller_snapshot_new);
                 
-                for(u32 controller_index = 0; controller_index < max_controller_count; controller_index++)
+                if(!g_pause)
                 {
-                    XINPUT_STATE controller_state;
+                    // MOUSE
+                    POINT mouse_pos;
+                    GetCursorPos(&mouse_pos);
+                    ScreenToClient(window, &mouse_pos);
                     
-                    game_controller_input *controller_snapshot_old = &input_old->controllers[controller_index];
-                    game_controller_input *controller_snapshot_new = &input_new->controllers[controller_index];
+                    input_new->mouse_x = mouse_pos.x;
+                    input_new->mouse_y = mouse_pos.y;
+                    input_new->mouse_z = 0; // For Mouse Wheel
                     
-                    if(XInputGetState(controller_index, &controller_state) == ERROR_SUCCESS)
+                    win32_process_keyboard_message(&input_new->mouse_buttons[0],
+                                                   GetKeyState(VK_LBUTTON)  & (1 << 15));
+                    win32_process_keyboard_message(&input_new->mouse_buttons[1],
+                                                   GetKeyState(VK_MBUTTON)  & (1 << 15));
+                    win32_process_keyboard_message(&input_new->mouse_buttons[2],
+                                                   GetKeyState(VK_RBUTTON)  & (1 << 15));
+                    win32_process_keyboard_message(&input_new->mouse_buttons[3],
+                                                   GetKeyState(VK_XBUTTON1) & (1 << 15));
+                    win32_process_keyboard_message(&input_new->mouse_buttons[4],
+                                                   GetKeyState(VK_XBUTTON2) & (1 << 15));
+                    
+                    //~ GAMEPAD CONTROLLER PROCESSING
+                    win32_process_pending_messages(&state_win32, &input_new->controllers[0]);
+                    
+                    DWORD max_controller_count = XUSER_MAX_COUNT;
+                    
+                    for(u32 controller_index = 0; controller_index < max_controller_count; controller_index++)
                     {
-                        XINPUT_GAMEPAD *Pad = &controller_state.Gamepad;
-                        controller_snapshot_new->is_connected = 1;
+                        u32 gamepad_controller_index = controller_index + 1;
                         
-                        b32 button_start = (Pad->wButtons & XINPUT_GAMEPAD_START     );
-                        b32 button_back  = (Pad->wButtons & XINPUT_GAMEPAD_BACK      );
+                        game_controller_input *controller_snapshot_old = get_controller(input_old,
+                                                                                        gamepad_controller_index);
+                        game_controller_input *controller_snapshot_new = get_controller(input_new,
+                                                                                        gamepad_controller_index);
+                        XINPUT_STATE controller_state;
                         
-                        b32 dpad_up      = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_UP   );
-                        b32 dpad_down    = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN );
-                        b32 dpad_left    = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT );
-                        b32 dpad_right   = (Pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
-                        
-                        
-                        // DEADZONE PROCESSING 
-                        controller_snapshot_new->is_analog   = 1;
-                        controller_snapshot_new->stick_avg_x = win32_xinput_process_stick(Pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-                        
-                        controller_snapshot_new->stick_avg_y = win32_xinput_process_stick(Pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-                        
-                        // STICK JOLT TO BUTTON PRESS CONVERSION
-                        f32 threshold = 0.5f;
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
-                                                            &controller_snapshot_old->button_x,
-                                                            (controller_snapshot_new->stick_avg_x < -threshold ? 0 : 1)
-                                                            , 1);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
-                                                            &controller_snapshot_old->button_x,
-                                                            (controller_snapshot_new->stick_avg_x >  threshold ? 0 : 1)
-                                                            , 1);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
-                                                            &controller_snapshot_old->button_y,
-                                                            (controller_snapshot_new->stick_avg_y < -threshold ? 1 : 0)
-                                                            , 1);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
-                                                            &controller_snapshot_old->button_y,
-                                                            (controller_snapshot_new->stick_avg_y >  threshold ? 1 : 0)
-                                                            , 1);
-                        
-                        
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->shoulder_left, 
-                                                            &controller_snapshot_old->shoulder_left,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_LEFT_SHOULDER);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->shoulder_right, 
-                                                            &controller_snapshot_old->shoulder_right,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_RIGHT_SHOULDER);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_a, 
-                                                            &controller_snapshot_old->button_a,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_A);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_b, 
-                                                            &controller_snapshot_old->button_b,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_B);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
-                                                            &controller_snapshot_old->button_x,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_X);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
-                                                            &controller_snapshot_old->button_y,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_Y);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_start, 
-                                                            &controller_snapshot_old->button_start,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_START);
-                        
-                        win32_xinput_process_digital_button(&controller_snapshot_new->button_back, 
-                                                            &controller_snapshot_old->button_back,
-                                                            Pad->wButtons, XINPUT_GAMEPAD_BACK);
-                        
-                    }// Controller Plugged in
-                    else
-                    {}// Controller not available
-                }
-                
-                /*
-                                if(g_platform.input_record_index)
-                                {
-                                    win32_record_input(g_platform, new_input);
-                                }
-                                if(g_platform.input_play_index)
-                                {
-                                    win32_playback_input(g_platform, new_input);
-                                }
-                                */
-                
-                /*************************************************************************/
-                /*************************************************************************/
-                /*                                                                       */
-                /*                              U P D A T E                              */
-                /*                                                                       */
-                /*************************************************************************/
-                /*************************************************************************/
-                
-                //~ AUDIO - DIRECTSOUND
-                
-                // NOTE(MIGUEL): Compute how muuch to fill and where
-                u32 target_cursor  = 0;
-                u32 byte_to_lock   = 0;
-                u32 bytes_to_write = 0;
-                // NOTE(MIGUEL): play & write cursors moved to SoftW render section
-                
-                if(sound_is_valid)
-                {
-                    // NOTE(MIGUEL): this for changes in the tone_hz made by the plat_indie layer
-                    sound_output.wave_period = sound_output.samples_per_second / sound_output.tone_hz;
-                    
-                    target_cursor = (last_play_cursor + (sound_output.latency_sample_count * sound_output.bytes_per_sample)) % sound_output.secondary_buffer_size;
-                    
-                    byte_to_lock  = (sound_output.running_sample_index * sound_output.bytes_per_sample) % sound_output.secondary_buffer_size; 
-                    
-                    if(byte_to_lock > target_cursor)
-                    {
-                        bytes_to_write  = sound_output.secondary_buffer_size - byte_to_lock;
-                        bytes_to_write += target_cursor;
-                    }
-                    else
-                    {
-                        bytes_to_write  = target_cursor - byte_to_lock;
-                    }
-                }
-                
-                game_sound_output_buffer sound_buffer = { 0 };
-                sound_buffer.samples_per_second = sound_output.samples_per_second;
-                sound_buffer.sample_count       = bytes_to_write / sound_output.bytes_per_sample;
-                sound_buffer.samples            =  samples;
-                
-                //~ GRAPHICS - SOFTWARE
-                
-                win32_back_buffer_resize(&g_main_window_back_buffer, g_window_width, g_window_height);
-                game_back_buffer back_buffer = { 0 };
-                back_buffer.width  = g_main_window_back_buffer.width ;
-                back_buffer.height = g_main_window_back_buffer.height;
-                back_buffer.pitch  = g_main_window_back_buffer.pitch ;
-                back_buffer.data   = g_main_window_back_buffer.data  ;
-                
-                // NOTE(MIGUEL): What shoud the func name be? see line 86
-                g_platform.quit |= Game.Update(&g_platform, input_new, &back_buffer, &sound_buffer, sound_output.tone_hz);
-                
-                /*************************************************************************/
-                /*************************************************************************/
-                /*                                                                       */
-                /*                              O U T P U T                              */
-                /*                                                                       */
-                /*************************************************************************/
-                /*************************************************************************/
-                
-                //~ GRAPHICS - HARDWARE - OPENGL
-#if RENDER_OPENGL
-                // NOTE(MIGUEL): 02/26/2021 - NO OPENGL RENDERING YET
-                local_persist b32 first_render = true;
-                
-                //glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-                glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                
-                
-                // NOTE(MIGUEL): A lot of fuckery going on here
-                mat4 model                    = GLM_MAT4_ZERO_INIT; // constructor
-                mat4 nick_model               = GLM_MAT4_ZERO_INIT; // constructor
-                nick_render_info.matrix_model = (f32 *)&nick_model;
-                
-                GL_Call(glUseProgram(sprite_render_info.shader));
-                
-                if(first_render)
-                {
-                    glm_translate_make(translation     , (vec3){200.0f, 200.0f, 0.0f});
-                    glm_scale_make    (scale           , (vec3){200.0f, 200.0f, 1.0f});
-                    glm_rotate_make   (rotation        , glm_rad(10.0f) ,(vec3){0.0f, 1.0f, 0.0f});
-                    
-                    glm_translate_make(nick_translation, (vec3){1.0f, 1.0f, 0.0f});
-                    glm_scale_make    (nick_scale      , (vec3){200.0f, 200.0f, 1.0f});
-                    glm_rotate_make   (nick_rotation   , glm_rad(10.0f) ,(vec3){0.0f, 1.0f, 0.0f});
-                    
-                    Helpers_Display _Matrix4(translation, "Translate Matrix");
-                    Helpers_Display_Matrix4(scale      , "Scale Matrix"    );
-                    Helpers_Display_Matrix4(rotation   , "Rotate Matrix"   );
-                    
-                    first_render = false;
-                }
-                //rotate++;
-                
-                //~SPRITE RENDERER_00 BACKGROUND
-                GL_Call(glUniformMatrix4fv(sprite_render_info.uniform_model, 1, GL_FALSE, (f32 *)model));
-                GL_Call(glUniform3f       (sprite_render_info.uniform_color, color[0],color[1], color[2]));
-                
-                GL_Call(glActiveTexture(GL_TEXTURE1));
-                GL_Call(glBindTexture  (GL_TEXTURE_2D, sprite_render_info.texture));
-                
-                // Enables the alpha channel
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                
-                //glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-                
-                GL_Call(glBindVertexArray(sprite_render_info.vertex_attributes_id));
-                GL_Call(glDrawArrays     (GL_TRIANGLES, 0, 6));
-                GL_Call(glBindVertexArray(0));
-                
-                
-                
-                //~SPRITE RENDERER_01
-                vec3 player_translate;
-                glm_vec3_copy(((App *)(g_platform.permanent_storage))->player_translate, player_translate);
-                
-                glm_translate(translation, player_translate);
-                
-                glm_mat4_mulN((mat4 *[]){&translation, &scale }, 2, model);
-                
-                //glm_mat4_print(model, stdout);
-                
-                //Helpers_Display_Matrix4(model, "Model Matrix");
-                
-                GL_Call(glUniformMatrix4fv(sprite_render_info.uniform_model, 1, GL_FALSE, (f32 *)model));
-                GL_Call(glUniform3f       (sprite_render_info.uniform_color, color[0],color[1], color[2]));
-                
-                GL_Call(glActiveTexture(GL_TEXTURE1));
-                GL_Call(glBindTexture  (GL_TEXTURE_2D, sprite_render_info.texture));
-                
-                // Enables the alpha channel
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                
-                //glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-                
-                GL_Call(glBindVertexArray(sp rite_render_info.vertex_attributes_id));
-                GL_Call(glDrawArrays     (GL_TRIANGLES, 0, 6));
-                GL_Call(glBindVertexArray(0));
-                
-                
-                //~ SPRITE RENDERER_02
-                
-                GL_Call(glUseProgram(nick_render_info.shader));
-                
-                glm_translate       (nick_translation, (vec3){ ( cos(g_platform.current_time) ), (  sin(g_platform.current_time) ), 0.0f} );
-                glm_mat4_mulN       ((mat4 *[]){&nick_translation, &nick_scale }, 2, nick_model);
-                
-                win32_OpenGL_draw_sprite(g_platform, &nick_render_info, (f32 *)&nick_color );
-                
-                SwapBuffers(gl_device_context);
-#endif
-                
-                
-                
-                //~ AUDIO - DIRECTSOUND
-                if(sound_is_valid)
-                {
-                    win32_fill_sound_buffer(&sound_output, byte_to_lock, bytes_to_write, &sound_buffer);
-                }
-                
-                
-                
-                //~ TIMING - FRAME IDLE
-#if RION
-                QueryPerformanceCounter(&end_frame_time_data);
-                
-                //printf("Frame data: %lld <- ( %lld - %lld ) \n", (end_frame_time_data.QuadPart - begin_frame_time_data.QuadPart), end_frame_time_data.QuadPart, begin_frame_time_data.QuadPart);
-                // NOTE(MIGUEL): Wait any time, if neccssary
-                // TODO(MIGUEL): think about changing target fps if current target is not met
-                {
-                    s64 counts_in_frame = end_frame_time_data.QuadPart - begin_frame_time_data.QuadPart;
-                    s64 counts_to_wait  = desired_frame_time_counts    - counts_in_frame               ;
-                    
-                    LARGE_INTEGER begin_wait_time_data;
-                    LARGE_INTEGER   end_wait_time_data;
-                    
-                    QueryPerformanceCounter(&begin_wait_time_data);
-                    
-                    while(counts_to_wait > 0)
-                    {
-                        QueryPerformanceCounter(&end_wait_time_data);
-                        counts_to_wait      -= end_wait_time_data.QuadPart - begin_wait_time_data.QuadPart;
-                        begin_wait_time_data = end_wait_time_data;
-                    }
-                }
-                
-#else // NOTE(MIGUEL): CASEY HMH
-                
-                
-                LARGE_INTEGER tick_work_end  = win32_get_current_tick();
-                LARGE_INTEGER tick_frame_end = { 0 };
-                f32 seconds_elapsed_for_work = win32_get_seconds_elapsed(tick_work_start, tick_work_end);
-                
-                f32 seconds_elapsed_for_frame = seconds_elapsed_for_work;
-                
-                u32 mil = 0;
-                // NOTE(MIGUEL): Go Idle
-                if(seconds_elapsed_for_frame < target_seconds_per_frame)
-                {
-                    
-                    if(sleep_granularity_was_set)
-                    {
-                        u32 millis_to_sleep = (u32)(1000.0f * (target_seconds_per_frame - seconds_elapsed_for_frame));
-                        mil = millis_to_sleep;
-                        if(millis_to_sleep > 0)
-                        {
-                            Sleep(millis_to_sleep);
+                        if(XInputGetState(controller_index, &controller_state) == ERROR_SUCCESS)
+                        { 
+                            XINPUT_GAMEPAD *pad = &controller_state.Gamepad;
+                            controller_snapshot_new->is_connected = 1;
+                            
+                            b32 button_start = (pad->wButtons & XINPUT_GAMEPAD_START     );
+                            b32 button_back  = (pad->wButtons & XINPUT_GAMEPAD_BACK      );
+                            
+                            b32 dpad_up      = (pad->wButtons & XINPUT_GAMEPAD_DPAD_UP   );
+                            b32 dpad_down    = (pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN );
+                            b32 dpad_left    = (pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT );
+                            b32 dpad_right   = (pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+                            
+                            
+                            // DEADZONE PROCESSING 
+                            controller_snapshot_new->stick_avg_x = win32_xinput_process_stick(pad->sThumbLX, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+                            
+                            controller_snapshot_new->stick_avg_y = win32_xinput_process_stick(pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+                            
+                            if((controller_snapshot_new->stick_avg_x != 0.0f) ||
+                               (controller_snapshot_new->stick_avg_y != 0.0f))
+                            {
+                                controller_snapshot_new->is_analog = true;
+                            }
+                            if(pad->wButtons & XINPUT_GAMEPAD_DPAD_UP)
+                            {
+                                controller_snapshot_new->stick_avg_y = 1.0f ;
+                                controller_snapshot_new->is_analog    = false;
+                            }
+                            
+                            if(pad->wButtons & XINPUT_GAMEPAD_DPAD_DOWN)
+                            {
+                                controller_snapshot_new->stick_avg_y = -1.0f;
+                                controller_snapshot_new->is_analog    = false;
+                            }
+                            
+                            if(pad->wButtons & XINPUT_GAMEPAD_DPAD_LEFT)
+                            {
+                                controller_snapshot_new->stick_avg_x = -1.0f;
+                                controller_snapshot_new->is_analog    = false;
+                            }
+                            
+                            if(pad->wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)
+                            {
+                                controller_snapshot_new->stick_avg_x = 1.0f ;
+                                controller_snapshot_new->is_analog    = false;
+                            }
+                            
+                            // STICK JOLT TO BUTTON PRESS CONVERSION
+                            f32 threshold = 0.5f;
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
+                                                                &controller_snapshot_old->button_x,
+                                                                (controller_snapshot_new->stick_avg_x < -threshold ? 0 : 1)
+                                                                , 1);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
+                                                                &controller_snapshot_old->button_x,
+                                                                (controller_snapshot_new->stick_avg_x >  threshold ? 0 : 1)
+                                                                , 1);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
+                                                                &controller_snapshot_old->button_y,
+                                                                (controller_snapshot_new->stick_avg_y < -threshold ? 1 : 0)
+                                                                , 1);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
+                                                                &controller_snapshot_old->button_y,
+                                                                (controller_snapshot_new->stick_avg_y >  threshold ? 1 : 0)
+                                                                , 1);
+                            
+                            
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->shoulder_left, 
+                                                                &controller_snapshot_old->shoulder_left,
+                                                                pad->wButtons, XINPUT_GAMEPAD_LEFT_SHOULDER);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->shoulder_right, 
+                                                                &controller_snapshot_old->shoulder_right,
+                                                                pad->wButtons, XINPUT_GAMEPAD_RIGHT_SHOULDER);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_a, 
+                                                                &controller_snapshot_old->button_a,
+                                                                pad->wButtons, XINPUT_GAMEPAD_A);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_b, 
+                                                                &controller_snapshot_old->button_b,
+                                                                pad->wButtons, XINPUT_GAMEPAD_B);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_x, 
+                                                                &controller_snapshot_old->button_x,
+                                                                pad->wButtons, XINPUT_GAMEPAD_X);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_y, 
+                                                                &controller_snapshot_old->button_y,
+                                                                pad->wButtons, XINPUT_GAMEPAD_Y);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_start, 
+                                                                &controller_snapshot_old->button_start,
+                                                                pad->wButtons, XINPUT_GAMEPAD_START);
+                            
+                            win32_xinput_process_digital_button(&controller_snapshot_new->button_back, 
+                                                                &controller_snapshot_old->button_back,
+                                                                pad->wButtons, XINPUT_GAMEPAD_BACK);
+                            
+                        }
+                        else 
+                        { /*// NOTE(MIGUEL): Controller not avalailable - logging */
+                            controller_snapshot_new->is_connected = 0;
                         }
                     }
                     
-                    // NOTE(MIGUEL): testing shit goes here
-                    f32 test_seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, win32_get_current_tick());
-                    //ASSERT(test_seconds_elapsed_for_frame < target_seconds_per_frame);
                     
-                    LARGE_INTEGER tick_idle;
-                    while(seconds_elapsed_for_frame < target_seconds_per_frame)
+                    if(state_win32.input_record_index)
                     {
-                        tick_idle   = win32_get_current_tick();
-                        seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, tick_idle);
+                        win32_input_record(&state_win32, input_new);
                     }
-                }
-                else
-                {
-                    // NOTE(MIGUEL): missed frame rate
-                }
-                
-                tick_frame_end = win32_get_current_tick();
-                
-                
-#endif
-                
-                
-                //~ SOFTWARE RENDERING
-                
-#if SGE_INTERNAL
-                //- DEBUG - AUDIO - DIRECT SOUND 
-                win32_debug_sync_display(&g_main_window_back_buffer,
-                                         debug_sound_time_markers,
-                                         ARRAYCOUNT(debug_sound_time_markers),
-                                         &sound_output,
-                                         target_seconds_per_frame);
-                //- DEBUG - AUDIO - DIRECT SOUND (END) 
-#endif
-                
-                win32_client_draw(&g_main_window_back_buffer, device_context,
-                                  g_window_width, g_window_height);
-                
-                
-                u32 play_cursor    = 0;
-                u32 write_cursor   = 0;
-                
-                
-                if((g_secondary_sound_buffer->lpVtbl->GetCurrentPosition(g_secondary_sound_buffer, 
-                                                                         &play_cursor, &write_cursor) == DS_OK))
-                {
-                    last_play_cursor = play_cursor;
-                    
-                    if(!sound_is_valid)
+                    if(state_win32.input_playback_index)
                     {
-                        sound_output.running_sample_index = write_cursor / sound_output.bytes_per_sample;
+                        win32_input_playback(&state_win32, input_new);
                     }
-                    sound_is_valid = 1;
-                }
-                else
-                {
-                    sound_is_valid = 0;
-                }
-                
-                
+                    
+                    
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    /*                                                                       */
+                    /*                              U P D A T E                              */
+                    /*                                                                       */
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    
+                    //~ GRAPHICS - SOFTWARE
+                    
+                    //win32_back_buffer_resize(&g_main_window_back_buffer, g_window_width, g_window_height);
+                    
+                    game_back_buffer back_buffer = { 0 };
+                    back_buffer.width           = g_main_window_back_buffer.width ;
+                    back_buffer.height          = g_main_window_back_buffer.height;
+                    back_buffer.pitch           = g_main_window_back_buffer.pitch ;
+                    back_buffer.data            = g_main_window_back_buffer.data  ;
+                    back_buffer.bytes_per_pixel = g_main_window_back_buffer.bytes_per_pixel;
+                    
+                    // NOTE(MIGUEL): What shoud the func name be? see line 86
+                    Game.update(&sge_memory, input_new, &back_buffer);
+                    
+                    
+                    //~ AUDIO - DIRECTSOUND
+                    
+                    u32  play_cursor;
+                    u32 write_cursor;
+                    
+                    if((g_secondary_sound_buffer->lpVtbl->GetCurrentPosition(g_secondary_sound_buffer, 
+                                                                             &play_cursor, &write_cursor) == DS_OK))
+                    {  
+                        if(!sound_is_valid)
+                        {
+                            sound_output.running_sample_index = write_cursor / sound_output.bytes_per_sample;
+                            sound_is_valid = 1;
+                        }
+                        // NOTE(MIGUEL): this for changes in the tone_hz made by the plat_indie layer
+                        //sound_output.wave_period = sound_output.samples_per_second / sound_output.tone_hz;
+                        
+                        
+                        // NOTE(MIGUEL): Compute how muuch to fill and where
+                        u32 frame_samples_size_estimate = (sound_output.samples_per_second *
+                                                           sound_output.bytes_per_sample)  / game_update_hz;
+                        u32 expected_frame_boundry = play_cursor + frame_samples_size_estimate;
+                        u32 byte_to_lock  = ((sound_output.running_sample_index * 
+                                              sound_output.bytes_per_sample)    % 
+                                             (sound_output.secondary_buffer_size)); 
+                        
+                        
+                        u32 safe_write_cursor = write_cursor;
+                        if(safe_write_cursor < play_cursor)
+                        {
+                            safe_write_cursor += sound_output.secondary_buffer_size;
+                        }
+                        ASSERT(safe_write_cursor >= play_cursor);
+                        
+                        safe_write_cursor += sound_output.fill_pos_tolerance;
+                        
+                        b32 audio_card_is_low_latency = (safe_write_cursor < expected_frame_boundry);
+                        
+                        u32 target_cursor  = 0;
+                        if(audio_card_is_low_latency)
+                        {
+                            
+                            target_cursor = (expected_frame_boundry + 
+                                             frame_samples_size_estimate);
+                        }
+                        else
+                        {
+                            target_cursor = (write_cursor                + 
+                                             frame_samples_size_estimate + 
+                                             sound_output.fill_pos_tolerance);
+                        }
+                        target_cursor =  target_cursor % sound_output.secondary_buffer_size;
+                        
+                        u32 bytes_to_write = 0;
+                        if(byte_to_lock > target_cursor)
+                        {
+                            bytes_to_write  = sound_output.secondary_buffer_size - byte_to_lock;
+                            bytes_to_write += target_cursor;
+                        }
+                        else
+                        {
+                            bytes_to_write  = target_cursor - byte_to_lock;
+                        }
+                        
+                        game_sound_output_buffer sound_buffer = { 0 };
+                        sound_buffer.samples_per_second = sound_output.samples_per_second;
+                        sound_buffer.sample_count       = bytes_to_write / sound_output.bytes_per_sample;
+                        sound_buffer.samples            =  samples;
+                        
+                        Game.get_sound_samples(&sge_memory, &sound_buffer);
+                        
+                        
+                        /*************************************************************************/
+                        /*************************************************************************/
+                        /*                                                                       */
+                        /*                          O U T P U T - A U D I O                      */
+                        /*                                                                       */
+                        /*************************************************************************/
+                        /*************************************************************************/
+                        
 #if SGE_INTERNAL
-                //- DEBUG - AUDIO - DIRECT SOUND 
-                // NOTE(MIGUEL): play & write cursors declared uptop
-                // NOTE(MIGUEL): function implementation not finished
-                {
-                    win32_debug_sound_time_marker *marker = &debug_sound_time_markers[debug_sound_time_marker_index++ % (GAME_UPDATE_HZ / 2)];
-                    
-                    marker->play_cursor  = play_cursor ;
-                    marker->write_cursor = write_cursor;
-                    
-                } 
-                //- DEBUG - AUDIO - DIRECT SOUND (END)
+                        u32 next_index = ((debug_sound_time_marker_index) % 
+                                          (ARRAYCOUNT(debug_sound_time_markers)));
+                        
+                        win32_debug_sound_time_marker *marker = &debug_sound_time_markers[next_index];
+                        
+                        marker->output_play_cursor  = play_cursor;
+                        marker->output_write_cursor = write_cursor;
+                        marker->output_location     = byte_to_lock;
+                        marker->output_byte_count   = bytes_to_write;
+                        
+                        u32 unwrapped_write_cursor = write_cursor;
+                        
+                        if(unwrapped_write_cursor < play_cursor)
+                        {
+                            unwrapped_write_cursor += sound_output.secondary_buffer_size;
+                        }
+                        
+                        audio_latency_bytes = unwrapped_write_cursor - play_cursor;
+                        
+                        audio_latency_millis = ( 1000.0f * ((f32)audio_latency_bytes / (f32)sound_output.bytes_per_sample) 
+                                                / (f32)sound_output.samples_per_second);
+                        /*
+                        printf("BTL: %6u |"
+                               "TC: %6u |"
+                               "BTW: %4u - PC: %6u |"
+                               "WC: %6u |"
+                               "DELTA: %4ubytes |"
+                               "LATENCY: %.4fms"
+                               "\n",
+                               byte_to_lock,
+                               target_cursor,
+                               bytes_to_write,
+                               play_cursor,
+                               write_cursor,
+                               audio_latency_bytes,
+                                   audio_latency_millis);
+                        */
 #endif
-                
-                // *************************************************
-                // HOUSEKEEPING
-                // *************************************************
-                //~ TIMING STUFF
-                
-                // NOTE(MIGUEL): for profiling
-                u64 end_cycle_count = __rdtsc(); // NOTE(MIGUEL): is last cycle counter HMH
-                
-                u64 cycles_elapsed        = end_cycle_count - start_cycle_count; 
-                f32 mega_cycles_per_frame = ((f32)cycles_elapsed / (f32)(1000.0f * 1000.0f));
-                
-                u64 ticks_elapsed         = ( tick_frame_end.QuadPart - tick_work_start.QuadPart                );
-                f32 millis_per_frame      = 1000.0f * win32_get_seconds_elapsed(tick_work_start, tick_frame_end);
-                
-                u32 frames_per_second     = g_tick_frequency / ticks_elapsed;
-                
-                printf("ms/frame %f | %dFPS | %.02f Mcycles/frame \n", millis_per_frame, frames_per_second, mega_cycles_per_frame);
-                
-                
-                tick_work_start   = tick_frame_end ;
-                start_cycle_count = end_cycle_count;
-                
-                
-                //~ INPUT STUFF
-                game_input *temp;
-                temp      = input_new;
-                input_new = input_old;
-                input_old = temp;
-                
+                        win32_fill_sound_buffer(&sound_output, byte_to_lock, bytes_to_write, &sound_buffer);
+                    }
+                    else
+                    {
+                        sound_is_valid = 0;
+                    }
+                    
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    /*                                                                       */
+                    /*                          T I M I N G - I D L E                        */
+                    /*                                                                       */
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    LARGE_INTEGER tick_frame_end = { 0 };
+                    LARGE_INTEGER tick_work_end  = win32_get_current_tick();
+                    
+                    f32 seconds_elapsed_for_work = win32_get_seconds_elapsed(tick_work_start, tick_work_end);
+                    
+                    f32 seconds_elapsed_for_frame = seconds_elapsed_for_work;
+                    
+                    u32 mil = 0;// TODO(MIGUEL): debug
+                    // NOTE(MIGUEL): Go Idle
+                    if(seconds_elapsed_for_frame < target_seconds_per_frame)
+                    {
+                        
+                        if(sleep_granularity_was_set)
+                        {
+                            u32 millis_to_sleep = (u32)(1000.0f * (target_seconds_per_frame - seconds_elapsed_for_frame));
+                            mil = millis_to_sleep;
+                            if(millis_to_sleep > 0)
+                            {
+                                Sleep(millis_to_sleep);
+                            }
+                        }
+                        
+                        // NOTE(MIGUEL): testing shit goes here
+                        f32 test_seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, win32_get_current_tick());
+                        
+                        // NOTE(MIGUEL): always fails!!!!
+                        if(test_seconds_elapsed_for_frame < target_seconds_per_frame)
+                        {
+                            // TODO(MIGUEL): log missed sleep 
+                            
+                        }
+                        
+                        
+                        LARGE_INTEGER tick_idle;
+                        while(seconds_elapsed_for_frame < target_seconds_per_frame)
+                        {
+                            tick_idle   = win32_get_current_tick();
+                            seconds_elapsed_for_frame = win32_get_seconds_elapsed(tick_work_start, tick_idle);
+                        }
+                    }
+                    else
+                    {
+                        // NOTE(MIGUEL): missed frame rate
+                        // TODO(MIGUEL): logfing
+                    }
+                    
+                    tick_frame_end = win32_get_current_tick();
+                    
+                    
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    /*                                                                       */
+                    /*                     O U T P U T - G R A P H I C S                     */
+                    /*                                                                       */
+                    /*************************************************************************/
+                    /*************************************************************************/
+                    
+                    
+                    //~ SOFTWARE RENDERING
+                    
+#if SGE_INTERNAL
+                    //- DEBUG - AUDIO - DIRECT SOUND 
+                    
+                    
+                    win32_debug_sync_display(&g_main_window_back_buffer,
+                                             debug_sound_time_markers,
+                                             ARRAYCOUNT(debug_sound_time_markers), 
+                                             (debug_sound_time_marker_index % ARRAYCOUNT(debug_sound_time_markers)) - 1,
+                                             &sound_output,
+                                             target_seconds_per_frame);
+                    //- DEBUG - AUDIO - DIRECT SOUND (END) 
+#endif
+                    
+                    win32_client_draw(&g_main_window_back_buffer, device_context,
+                                      g_window_width, g_window_height);
+                    
+                    
+                    
+                    // *************************************************
+                    // HOUSEKEEPING
+                    // *************************************************
+                    //~ DEBUG - AUDIO - DIRECT SOUND 
+#if SGE_INTERNAL
+                    // NOTE(MIGUEL): play & write cursors declared uptop
+                    // NOTE(MIGUEL): function implementation not finished
+                    {
+                        u32 play_cursor    = 0;
+                        u32 write_cursor   = 0;
+                        // NOTE(MIGUEL): this may fuck me
+                        
+                        if((g_secondary_sound_buffer->lpVtbl->GetCurrentPosition(g_secondary_sound_buffer, 
+                                                                                 &play_cursor, &write_cursor) == DS_OK))
+                        { 
+                            
+                            u32 next_index = ((debug_sound_time_marker_index) % 
+                                              (ARRAYCOUNT(debug_sound_time_markers)));
+                            
+                            win32_debug_sound_time_marker *marker = &debug_sound_time_markers[next_index];
+                            
+                            ASSERT(next_index < ARRAYCOUNT(debug_sound_time_markers));
+                            
+                            
+                            
+                            marker->flip_play_cursor  =  play_cursor;
+                            marker->flip_write_cursor = write_cursor;
+                        } 
+                        
+                        // NOTE(MIGUEL): casey puts this at the bottom of the  loop
+                        debug_sound_time_marker_index++;
+                    }
+#endif
+                    
+                    //~ TIMING STUFF
+                    
+                    // NOTE(MIGUEL): for profiling
+                    u64 end_cycle_count = __rdtsc(); // NOTE(MIGUEL): is last cycle counter HMH
+                    
+                    u64 cycles_elapsed        = end_cycle_count - start_cycle_count; 
+                    f32 mega_cycles_per_frame = ((f32)cycles_elapsed / (f32)(1000.0f * 1000.0f));
+                    
+                    u64 ticks_elapsed         = ( tick_frame_end.QuadPart - tick_work_start.QuadPart                );
+                    f32 millis_per_frame      = 1000.0f * win32_get_seconds_elapsed(tick_work_start, tick_frame_end);
+                    
+                    u32 frames_per_second     = g_tick_frequency / ticks_elapsed;
+                    /*
+                    printf("%fms/frame |"
+                           "FPS: %d |"
+                           "%.02f Mcycles/frame"
+                           "\n", 
+                           millis_per_frame,
+                           frames_per_second,
+                           mega_cycles_per_frame);
+                    */
+                    
+                    tick_work_start   = tick_frame_end ;
+                    start_cycle_count = end_cycle_count;
+                    
+                    
+                    //~ INPUT STUFF
+                    game_input *temp;
+                    temp      = input_new;
+                    input_new = input_old;
+                    input_old = temp;
+                    
+                } // NOTE(MIGUEL): global_pause_scope
             }
             
             //CloseHandle(global_Device.comm);//Closing the Serial Port
-            FreeConsole();
-            
+            //FreeConsole();
         }
         else { /*// NOTE(MIGUEL): diagnostic */ }
     }
@@ -1463,7 +1442,7 @@ typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const int *piAttribILi
 wglChoosePixelFormatARB_type    *wglChoosePixelFormatARB;
 
 internal void
-win32_process_pending_messages(game_controller_input *keyboard_controller)
+win32_process_pending_messages(win32_state *state, game_controller_input *keyboard_controller)
 {
     MSG message;
     
@@ -1473,7 +1452,7 @@ win32_process_pending_messages(game_controller_input *keyboard_controller)
         {
             case WM_QUIT:
             {
-                g_platform.quit = true;
+                g_running = false;
             }  break;
             
             case WM_SYSKEYUP:
@@ -1542,38 +1521,53 @@ win32_process_pending_messages(game_controller_input *keyboard_controller)
                     {
                         win32_process_keyboard_message(&keyboard_controller->button_back, is_down);
                     }
-#if HANDMADE_INTERNAL
-                    else if(vk_code == 'P')
+                    
+#if SGE_INTERNAL
+                    if(vk_code == 'P')
                     {
                         if(is_down)
                         {
-                            GlobalPause = !GlobalPause;
+                            g_pause= !g_pause;
+                        }
+                    }
+                    //~ Extra:Live Loop Stuff
+                    if(vk_code == 'L')
+                    {
+                        if(is_down)
+                        {
+                            if(state->input_playback_index == 0)
+                            {
+                                
+                                if(state->input_record_index == 0)
+                                {
+                                    win32_input_begin_recording(state, 1);
+                                }
+                                else
+                                {
+                                    win32_input_end_recording (state  );
+                                    win32_input_begin_playback(state, 1);
+                                }
+                            }
+                            else
+                            {
+                                win32_input_end_playback(state);
+                            }
                         }
                     }
 #endif
-                    b32 alt_key_was_down = ( message.lParam & (1 << 29));
-                    if((vk_code == VK_F4) && alt_key_was_down)
-                    {
-                        g_platform.quit = true;
-                    }
-                    
+                }
+                
+                b32 alt_key_was_down = ( message.lParam & (1 << 29));
+                if((vk_code == VK_F4) && alt_key_was_down)
+                {
+                    g_running = false;
                 }
             } break;
-            
-            case WM_MOUSEMOVE:
-            {
-                //g_platform.mouse_x_direction = g_platform.mouse_x < (l_param & 0x0000FFFF)? (u32)(1): (u32)(-1);
-                g_platform.mouse_x =  (message.lParam & 0x0000FFFF);
-                
-                //g_platform.mouse_y_direction = g_platform.mouse_y < (l_param & 0xFFFF0000 >> 16)? (u32)(-1): (u32)(1);
-                g_platform.mouse_y = ((message.lParam & 0xFFFF0000) >> 16);
-                
-            }  break;
             
             default:
             {
                 TranslateMessage(&message);
-                DispatchMessage (&message);
+                DispatchMessageA(&message);
             } break;
         }
     }
@@ -1586,37 +1580,29 @@ win32_Main_Window_Procedure(HWND window, UINT message , WPARAM w_param, LPARAM l
 {
     LRESULT result = 0;
     
-    u32 key_code  =     0;
-    u32 key_index =     0;
-    b32 key_down  = false; 
-    
     switch(message)
     {
-        case WM_SIZE:
-        {
-            RECT client_rect;
-            GetClientRect(window, &client_rect); //Get RECT of window excludes borders
-            
-            g_platform.window_width  = client_rect.right  - client_rect.left;
-            g_platform.window_height = client_rect.bottom - client_rect.top ;
-            
-            g_window_width  = client_rect.right  - client_rect.left;
-            g_window_height = client_rect.bottom - client_rect.top;
-        } break;
-        
         case WM_CLOSE:
-        {
-            g_platform.quit = true;
-        } break;
+        { g_running = false; }
+        break;
         
         case WM_DESTROY:
-        {
-            g_platform.quit = true;
-        } break;
+        { g_running = false; }
+        break;
+        
+        case WM_ACTIVATEAPP:
+        { 
+#if 0
+            w_param == TRUE? 
+                (SetLayeredWindowAttributes(window, RGB(0, 0, 0), 255, LWA_ALPHA)) :
+            (SetLayeredWindowAttributes(window, RGB(0, 0, 0), 64 , LWA_ALPHA)) ; 
+#endif
+        }
+        break;
         
         case WM_PAINT:
         {
-            // NOTE(MIGUEL): WILL PAINT WITH OPEN GL NOT WINDOWS
+            // TODO(MIGUEL): update this to HMH 025
             RECT        client_rect   ;
             HDC         device_context;
             PAINTSTRUCT paint         ;
@@ -1625,75 +1611,31 @@ win32_Main_Window_Procedure(HWND window, UINT message , WPARAM w_param, LPARAM l
             
             GetClientRect(window, &client_rect); //Get RECT of window excludes borders
             
-            u32 client_width ;
-            u32 client_height;
-            win32_client_get_dimensions(client_rect, &client_width, &client_height);
+            win32_client_get_dimensions(client_rect, &g_window_width, &g_window_height);
             
             win32_client_draw(&g_main_window_back_buffer, device_context,
                               g_window_width, g_window_height);
             EndPaint(window, &paint);
         } break;
         
+        case WM_SYSKEYDOWN:
+        
+        case WM_SYSKEYUP:
+        
         case WM_KEYDOWN:
-        {
-            key_down  = message == WM_KEYDOWN;
-            key_code  = w_param;
-            key_index = 0;
-            
-            if(key_code  >= 'A' && key_code <= 'Z')
-            {
-                key_index = KEY_a + (key_code - 'A');
-            }
-            g_platform.key_down[key_index] = key_down;
-        } break;
-        // TODO(MIGUEL): Add code for WM_KEYUP
+        
         case WM_KEYUP:
         {
-            key_down  = message == WM_KEYDOWN;
-            key_code  = w_param;
-            key_index = 0;
-            
-            if(key_code >= 'A' && key_code <= 'Z')
-            { 
-                key_index = KEY_a + (key_code - 'A');
-            }
-            g_platform.key_down[key_index] = key_down;
-            
-            //~ Extra:Live Loop Stuff
-            if(key_code == 'L')
-            {
-                /*
-*/
-                if(win32_state_.input_record_index == 0)
-                {
-                    win32_begin_recording_input(&win32_state_, 1);
-                }
-                else
-                {
-                    win32_end_recording_input(&win32_state_   );
-                    //win32_playback_input     (&win32_state_, input_new);
-                }
-            }
-        } break;
-        
-        case WM_MOUSEMOVE:
-        {
-            //g_platform.mouse_x_direction = g_platform.mouse_x < (l_param & 0x0000FFFF)? (u32)(1): (u32)(-1);
-            g_platform.mouse_x =  (l_param & 0x0000FFFF);
-            
-            //g_platform.mouse_y_direction = g_platform.mouse_y < (l_param & 0xFFFF0000 >> 16)? (u32)(-1): (u32)(1);
-            g_platform.mouse_y = ((l_param & 0xFFFF0000) >> 16);
-            
+            ASSERT(!"Keyboard input came in through a non-dispatch message!");
         } break;
         
         default:
         {
-            OutputDebugStringA("Default\n");
-            result = DefWindowProc(window, message, w_param, l_param);
+            result = DefWindowProcA(window, message, w_param, l_param);
         } break;
     }
     
-    return(result);
+    return result;
 }
 
 internal void
@@ -1834,42 +1776,44 @@ win32_get_last_write_time(u8 *file_name)
 {
     FILETIME last_write_time = { 0 };
     
-    WIN32_FIND_DATA file_info;
-    HANDLE file_handle = FindFirstFile(file_name, &file_info);
+    WIN32_FILE_ATTRIBUTE_DATA file_info;
     
-    if(file_handle != INVALID_HANDLE_VALUE)
+    if(GetFileAttributesEx(file_name, GetFileExInfoStandard, &file_info))
     {
         last_write_time = file_info.ftLastWriteTime;
-        FindClose(file_handle);
     }
     
     return last_write_time;
 }
 
 internal win32_game_code
-win32_load_game_code(void)
+win32_load_game_code(u8 *source_dll_name, u8 *temp_dll_name)
 {
-    win32_game_code result = {0};
+    win32_game_code result = { 0 };
     
-    u8 *source_dll_name = "SGE.dll"     ;
-    u8 *  temp_dll_name = "SGE_temp.dll";
+    //u8 *source_dll_name = "SGE.dll"     ;
+    //u8 *  temp_dll_name = "SGE_temp.dll";
     
     result.dll_last_write_time = win32_get_last_write_time(source_dll_name);
     
     CopyFile(source_dll_name, temp_dll_name, FALSE);
-    result.SGE_DLL= LoadLibraryA(temp_dll_name);
+    result.SGE_DLL = LoadLibraryA(temp_dll_name);
     
     if(result.SGE_DLL)
     {
-        result.Update = (SGE_Update *)GetProcAddress(result.SGE_DLL, "SGEUpdate");
-        result.Init   = (SGE_Init   *)GetProcAddress(result.SGE_DLL, "SGEInit"  );
+        result.update            = (SGE_Update         *)GetProcAddress(result.SGE_DLL, "SGEUpdate"         );
+        result.init              = (SGE_Init           *)GetProcAddress(result.SGE_DLL, "SGEInit"           );
+        result.get_sound_samples = (SGE_GetSoundSamples*)GetProcAddress(result.SGE_DLL, "SGEGetSoundSamples");
         
-        result.is_valid = (result.Update && result.Init);
+        result.is_valid = (result.update && 
+                           result.init   &&
+                           result.get_sound_samples);
     }
     if(!(result.is_valid))
     {
-        result.Init   = SGEInitStub  ;
-        result.Update = SGEUpdateStub;
+        result.init   = 0;
+        result.update = 0;
+        result.get_sound_samples = 0;
     }
     
     return result;
@@ -1884,8 +1828,228 @@ win32_unload_game_code(win32_game_code *game)
     }
     
     game->is_valid = false;
-    game->Init     = SGEInitStub  ;
-    game->Update   = SGEUpdateStub;
+    game->init     = 0;
+    game->update   = 0;
+    game->get_sound_samples = 0;
+    
+    return;
+}
+
+internal void
+win32_get_exe_file_name(win32_state *state)
+{
+    u32 file_name_size = GetModuleFileNameA(0, state->exe_file_name, sizeof(state->exe_file_name));
+    
+    state->one_past_last_exe_file_name_slash = state->exe_file_name;
+    
+    for(char *scan = state->exe_file_name; *scan; ++scan)
+    {
+        if(*scan == '\\')
+        {
+            state->one_past_last_exe_file_name_slash = scan + 1;
+        }
+    }
+    
+    return;
+}
+
+internal void
+win32_build_exe_path_file_name(win32_state *state, u8 *file_name,
+                               int dest_count, u8 *dest)
+{
+    string_concat(state->one_past_last_exe_file_name_slash - state->exe_file_name, state->exe_file_name,
+                  string_get_length(file_name), file_name,
+                  dest_count, dest);
+    
+    return;
+}
+
+internal void
+string_concat(size_t source_a_count, u8 *source_a,
+              size_t source_b_count, u8 *source_b,
+              size_t dest_count    , u8 *dest    )
+{
+    // TODO(MIGUEL): dest bounds checking!
+    
+    for(u32 index = 0; index < source_a_count; index++)
+    {
+        *dest++ = *source_a++;
+    }
+    
+    for(u32 index = 0; index < source_b_count; index++)
+    {
+        *dest++ = *source_b++;
+    }
+    
+    *dest++ = 0;
+}
+
+
+internal u32
+string_get_length(u8 *string)
+{
+    u32 count = 0;
+    
+    while(*string++) { ++count; }
+    
+    return count;
+}
+
+//~ INPUT RECORDING API
+
+internal void
+win32_input_get_file_location(win32_state *state, b32 input_stream,
+                              u32 slot_index, u32 dest_count, u8 *dest)
+{
+    char temp[64];
+    
+    wsprintf(temp, "loop_edit_%d_%s.sgei", slot_index, input_stream ? "input" : "state");
+    
+    win32_build_exe_path_file_name(state, temp, dest_count, dest);
+    
+    return;
+}
+
+internal win32_replay_buffer *
+win32_input_get_replay_buffer(win32_state *state, u32 index)
+{
+    ASSERT(index < ARRAYCOUNT(state->input_replay_buffers));
+    
+    win32_replay_buffer *result = &state->input_replay_buffers[index];
+    
+    return result;
+}
+
+//- RECORDING 
+
+internal void
+win32_input_begin_recording(win32_state *state, s32 input_record_index)
+{
+    // NOTE(MIGUEL): input recording setup
+    
+    win32_replay_buffer *replay_buffer = win32_input_get_replay_buffer(state, input_record_index);
+    
+    // NOTE(MIGUEL): mem_block is the mapped file
+    if(replay_buffer->memory_block)
+    {
+        state->input_record_index = input_record_index;
+        
+        u8 file_name[WIN32_STATE_FILE_NAME_COUNT];
+        
+        win32_input_get_file_location(state,
+                                      stream_input,
+                                      input_record_index,
+                                      sizeof(file_name),
+                                      file_name);
+        
+        state->input_record_handle = CreateFileA(file_name,
+                                                 GENERIC_WRITE,
+                                                 0, 0,
+                                                 CREATE_ALWAYS,
+                                                 0, 0);
+        
+        // NOTE(MIGUEL): Store state at this point to reset on playback
+        CopyMemory(replay_buffer->memory_block, state->main_memory_block, state->main_memory_block_size);
+    }
+    
+    return;
+}
+
+
+internal void
+win32_input_record(win32_state *state, game_input *new_input)
+{ 
+    u32 bytes_written = 0;
+    
+    
+    WriteFile(state->input_record_handle,
+              new_input,
+              sizeof(*new_input),
+              &bytes_written, 0);
+    
+    return;
+}
+
+
+internal void
+win32_input_end_recording(win32_state *state)
+{
+    CloseHandle(state->input_record_handle);
+    state->input_record_index = 0;
+    
+    return;
+}
+
+//- PLAYBACK 
+
+internal void
+win32_input_begin_playback(win32_state *state, u32 input_playback_index)
+{
+    
+    win32_replay_buffer *replay_buffer = win32_input_get_replay_buffer(state, input_playback_index);
+    
+    if(replay_buffer->memory_block)
+    {
+        state->input_playback_index = input_playback_index;
+        
+        u8 file_name[WIN32_STATE_FILE_NAME_COUNT];
+        
+        win32_input_get_file_location(state,
+                                      stream_input,
+                                      input_playback_index,
+                                      sizeof(file_name),
+                                      file_name);
+        
+        state->input_playback_handle = CreateFileA(file_name,
+                                                   GENERIC_READ,
+                                                   0, 0,
+                                                   OPEN_EXISTING,
+                                                   0, 0);
+        
+        // NOTE(MIGUEL): reset the state
+        CopyMemory(state->main_memory_block, replay_buffer->memory_block, state->main_memory_block_size);
+    }
+    
+    return;
+}
+
+internal void
+win32_input_playback(win32_state *state, game_input *new_input)
+{
+    u32 bytes_read = 0;
+    
+    printf("playing input back \n");
+    // NOTE(MIGUEL): Overwrite actual controller input
+    //               with pre-recorded input in file
+    if(ReadFile(state->input_playback_handle,
+                new_input,
+                sizeof(*new_input),
+                &bytes_read, 0))
+    {
+        if(bytes_read == 0)
+        {
+            u32 input_playback_index = state->input_playback_index;
+            
+            win32_input_end_playback  (state);
+            win32_input_begin_playback(state, input_playback_index);
+            
+            // NOTE(MIGUEL): why another read???
+            ReadFile(state->input_playback_handle,
+                     new_input,
+                     sizeof(*new_input),
+                     &bytes_read, 0);
+        }
+    }
+    
+    return;
+}
+
+internal void
+win32_input_end_playback(win32_state *state)
+{
+    printf("playback end \n");
+    CloseHandle(state->input_playback_handle);
+    state->input_playback_index = 0;
     
     return;
 }

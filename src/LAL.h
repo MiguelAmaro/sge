@@ -16,9 +16,10 @@
 #define local_persist   static
 #define global          static
 
-#define KILOBYTES(size) (size * 1024)
-#define MEGABYTES(size) (KILOBYTES(size) * 1024)
-#define GIGABYTES(size) (MEGABYTES(size) * 1024)
+#define KILOBYTES(size) (         (size) * 1024LL)
+#define MEGABYTES(size) (KILOBYTES(size) * 1024LL)
+#define GIGABYTES(size) (MEGABYTES(size) * 1024LL)
+#define TERABYTES(size) (GIGABYTES(size) * 1024LL)
 
 typedef uint8_t  u8 ;
 typedef uint16_t u16;

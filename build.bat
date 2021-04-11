@@ -12,6 +12,12 @@ REM **                                                        **
 REM ************************************************************
 REM ************************************************************
 
+REM ==========              BUILD OPTIONS             ==========     
+REM ============================================================
+SET PLATFORM=%1
+SET OUTPUT=%2
+
+
 REM ==========              PROJECT/FILES             ==========     
 REM ============================================================
 SET PROJECT_NAME=SGE
@@ -95,29 +101,56 @@ REM **                       START BUILD                      **
 REM **                                                        **
 REM ************************************************************
 REM ************************************************************
-PUSHD build
 REM path=F:\Dev\SimpleGameEngine\build;%path%
 
-CALL "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.20292.0
+PUSHD build
 
-ECHO ==========             COMPILE AND LINK           ==========     
+IF %Platform%==--win (CALL :WINDOWS)
+IF %Platform%==--lin (CALL :LINUX  )
+IF %Platform%==--mac (CALL :MAC    )
+
+POPD
+EXIT /B 0
+
+
+:WINDOWS
+
+IF %OUTPUT%==--exe       (CALL :COMPILE_WIN_EXE)
+
+IF %OUTPUT%==--dll       (CALL :COMPILE_WIN_DLL)
+
+EXIT
+
+
+ECHO ==========                  E X E                 ==========     
 ECHO ============================================================
+:COMPILE_WIN_EXE
+
 CALL cl -std:c17 %BUILD_MODES% %MSVC_FLAGS% %INCLUDE_PATHS% %SOURCES% /link %LIBRARIES%
 
+EXIT
 
-ECHO ==========              CREATE A DLL              ==========     
+
+ECHO ==========                  D L L                 ==========     
 ECHO ============================================================
+:COMPILE_WIN_DLL
+
 CALL cl ^
 -std:c17 ^
 -nologo ^
 -MD ^
 -Zi ^
+%BUILD_MODES% ^
 %INCLUDE_PATHS% ^
 ..\src\SGE.c ^
 -FmWin32_SGE.map ^
 glad.obj Win32_OpenGL.obj ^
--LD /link -PDB:SGE_%random% ^
--DLL -EXPORT:SGEInit -EXPORT:SGEUpdate
+-LD /link -PDB:SGE_%random%.pdb ^
+-DLL ^
+-EXPORT:SGEInit ^
+-EXPORT:SGEUpdate ^
+-EXPORT:SGEGetSoundSamples ^
 
+EXIT
 
 POPD

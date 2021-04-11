@@ -12,6 +12,8 @@ enum {
     KEY_MAX
 };
 
+// NOTE(MIGUEL): Will abandon this shit rippppppppppppppppppppppppp fuck meeee
+// cry
 typedef struct Platform
 {
     b32 quit;
