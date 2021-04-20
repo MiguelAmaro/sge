@@ -1,32 +1,5 @@
 #include "Win32_OpenGL.h"
 
-void win32_OpenGL_draw_sprite(readonly Platform *platform, readonly OpenGL_Render_Info *render_info, readonly f32 *color)
-{
-    // NOTE(MIGUEL): Include way to specify gl texture?
-    
-    // NOTE(MIGUEL): Maybe take an array of uniforms 
-    GL_Call(glUniformMatrix4fv(render_info->uniform_model, 1, GL_FALSE, (f32 *)render_info->matrix_model));
-    GL_Call(glUniform3f       (render_info->uniform_color, color[0],color[1], color[2]));
-    GL_Call(glUniform2f       (render_info->uniform_input, platform->mouse_x / platform->window_width, platform->mouse_y / platform->window_height));
-    
-    GL_Call(glActiveTexture   (GL_TEXTURE1));
-    GL_Call(glBindTexture     (GL_TEXTURE_2D, render_info->texture));
-    
-    // Enables the alpha channel
-    glEnable   (GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    //glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    
-    GL_Call(glBindVertexArray(render_info->vertex_attributes_id));
-    GL_Call(glDrawArrays     (GL_TRIANGLES, 0, 6));
-    GL_Call(glBindVertexArray(0));
-    
-    
-    return;
-}
-
-
 // TODO(MIGUEL): Change GL_ to OpenGL_
 GLenum 
 GL_CheckError_(readonly u8 *file, u32 line)

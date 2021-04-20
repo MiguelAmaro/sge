@@ -47,7 +47,6 @@
 //~ GLOBALS
 global b32 g_running = true ;
 global b32 g_pause   = false;
-global Platform g_platform = {0};
 
 global win32_back_buffer g_main_window_back_buffer = { 0 }; // NOTE(MIGUEL): platform copy of the backbuffer
 global u32 g_window_width  = 0; // NOTE(MIGUEL): Moving to app_state
@@ -233,6 +232,25 @@ global int   BytesPerPixel = 4;
 /*
 */
 
+void win32_print_last_sys_error(void)
+{
+    LPTSTR error_msg;
+    u32 error_code    = GetLastError();
+    u32 error_msg_len = 0;
+    
+    error_msg_len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                                   FORMAT_MESSAGE_FROM_SYSTEM     ,
+                                   NULL                           ,
+                                   error_code                     ,
+                                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                   (u8 *)&error_msg, 0, NULLPTR);
+    
+    OutputDebugStringA(error_msg);
+    
+    LocalFree(error_msg);
+    
+    return;
+}
 
 internal void
 win32_xinput_process_digital_button(game_button_state *state_new, game_button_state *state_old,
@@ -269,41 +287,7 @@ win32_process_keyboard_message(game_button_state *state_new, b32 is_down)
 }
 
 internal void
-win32_client_draw(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height)
-{
-    StretchDIBits(device_context,
-                  0, 0,  window_width,  window_height,
-                  0, 0, buffer->width, buffer->height,
-                  buffer->data, &(buffer->info),
-                  DIB_RGB_COLORS, SRCCOPY);
-    
-    return;
-}
-
-internal void
-win32_back_buffer_init(win32_back_buffer *back_buffer)
-{
-    back_buffer->width                        =         INITIAL_WINDOW_WIDTH ;
-    back_buffer->height                       =         INITIAL_WINDOW_HEIGHT;
-    back_buffer->bytes_per_pixel              =                             4;
-    back_buffer->pitch = (back_buffer->width * back_buffer->bytes_per_pixel) ;
-    
-    back_buffer->info.bmiHeader.biSize        =      sizeof(BITMAPINFOHEADER);
-    back_buffer->info.bmiHeader.biWidth       =         back_buffer->width   ; 
-    back_buffer->info.bmiHeader.biHeight      = -((s32)(back_buffer->height)); 
-    back_buffer->info.bmiHeader.biPlanes      =                             1;
-    back_buffer->info.bmiHeader.biBitCount    =                            32;
-    back_buffer->info.bmiHeader.biCompression =                        BI_RGB;
-    
-    // NOTE(MIGUEL): Data will be copied from the app_back_buffer in transient memory
-    back_buffer->data = VirtualAlloc(0, (back_buffer->width * back_buffer->height) * back_buffer->bytes_per_pixel, 
-                                     MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    
-    return;
-}
-
-internal void
-win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 height)
+win32_back_buffer_set_size(win32_back_buffer *back_buffer, u32 width, u32 height)
 {
     if(back_buffer->data)
     {
@@ -312,6 +296,7 @@ win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 height)
     
     back_buffer->width                        =                         width;
     back_buffer->height                       =                        height;
+    back_buffer->bytes_per_pixel              =                             4;
     back_buffer->pitch =  (back_buffer->width * back_buffer->bytes_per_pixel);
     
     back_buffer->info.bmiHeader.biSize        =      sizeof(BITMAPINFOHEADER);
@@ -324,15 +309,6 @@ win32_back_buffer_resize(win32_back_buffer *back_buffer, u32 width, u32 height)
     // NOTE(MIGUEL): Data will be copied from the app_back_buffer in transient memory
     back_buffer->data = VirtualAlloc(0, (back_buffer->width * back_buffer->height) * back_buffer->bytes_per_pixel, 
                                      MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    
-    return;
-}
-
-internal void
-win32_client_get_dimensions(RECT client_rect, u32 *width, u32 *height)
-{
-    *width  = client_rect.right  - client_rect.left;
-    *height = client_rect.bottom - client_rect.top ;
     
     return;
 }
@@ -700,20 +676,23 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
     
     if(RegisterClass(&WindowClass)) 
     {
+        g_window_width  = INITIAL_WINDOW_WIDTH ;
+        g_window_height = INITIAL_WINDOW_HEIGHT;
         
         HWND window = CreateWindowExA(0,//WS_EX_TOPMOST | WS_EX_LAYERED, 
                                       WindowClass.lpszClassName,
                                       "Simple Game Engine",
                                       WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                       20, 20,
-                                      INITIAL_WINDOW_WIDTH, INITIAL_WINDOW_HEIGHT,
+                                      g_window_width, g_window_height,
                                       0, 0, Instance, 0);
         
         
         //~ BACKBUFFER INTIT
         
         HDC device_context = GetDC(window);
-        win32_back_buffer_init(&g_main_window_back_buffer);
+        
+        win32_back_buffer_set_size(&g_main_window_back_buffer, g_window_width, g_window_height);
         
         //~ TIMING STUFF
 #define FRAMES_OF_AUDIO_LATENCY (3)
@@ -795,7 +774,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             win32_xinput_load_functions();
             
             
-            Game.init(&g_platform);
+            Game.init(&sge_memory);
             
             //~ DIRECT SOUND INIT
             
@@ -941,6 +920,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                 //~ CONTROLLER PROCESSING
                 // KEYBOARD
                 
+                input_new->delta_t = target_seconds_per_frame; 
+                
                 game_controller_input *keyboard_controller_snapshot_old = get_controller(input_old, 0);
                 game_controller_input *keyboard_controller_snapshot_new = get_controller(input_new, 0);
                 
@@ -1011,6 +992,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                             
                             controller_snapshot_new->stick_avg_y = win32_xinput_process_stick(pad->sThumbLY, XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
                             
+                            // DPAD PROCESSING
                             if((controller_snapshot_new->stick_avg_x != 0.0f) ||
                                (controller_snapshot_new->stick_avg_y != 0.0f))
                             {
@@ -1332,20 +1314,28 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
 #if SGE_INTERNAL
                     //- DEBUG - AUDIO - DIRECT SOUND 
                     
-                    
+                    /*
                     win32_debug_sync_display(&g_main_window_back_buffer,
                                              debug_sound_time_markers,
                                              ARRAYCOUNT(debug_sound_time_markers), 
                                              (debug_sound_time_marker_index % ARRAYCOUNT(debug_sound_time_markers)) - 1,
                                              &sound_output,
-                                             target_seconds_per_frame);
+                                             target_seconds_per_frame);*/
                     //- DEBUG - AUDIO - DIRECT SOUND (END) 
 #endif
                     
-                    win32_client_draw(&g_main_window_back_buffer, device_context,
-                                      g_window_width, g_window_height);
+                    HDC                     device_context   ;
+                    win32_window_dimensions window_dimensions;
                     
+                    device_context     = GetDC(window);
+                    window_dimensions  = win32_window_get_dimensions(window);
                     
+                    win32_window_display(&g_main_window_back_buffer,
+                                         device_context,
+                                         window_dimensions.width,
+                                         window_dimensions.height);
+                    
+                    ReleaseDC(window, device_context);
                     
                     // *************************************************
                     // HOUSEKEEPING
@@ -1393,15 +1383,18 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     f32 millis_per_frame      = 1000.0f * win32_get_seconds_elapsed(tick_work_start, tick_frame_end);
                     
                     u32 frames_per_second     = g_tick_frequency / ticks_elapsed;
-                    /*
-                    printf("%fms/frame |"
-                           "FPS: %d |"
-                           "%.02f Mcycles/frame"
-                           "\n", 
-                           millis_per_frame,
-                           frames_per_second,
-                           mega_cycles_per_frame);
-                    */
+                    
+                    u8 timing_log[256];
+                    
+                    _snprintf(timing_log, sizeof(timing_log),"%fms/frame |"
+                              "FPS: %d |"
+                              "%.02f Mcycles/frame"
+                              "\n", 
+                              millis_per_frame,
+                              frames_per_second,
+                              mega_cycles_per_frame);
+                    
+                    OutputDebugStringA(timing_log);
                     
                     tick_work_start   = tick_frame_end ;
                     start_cycle_count = end_cycle_count;
@@ -1489,6 +1482,7 @@ win32_process_pending_messages(win32_state *state, game_controller_input *keyboa
                         //MoveRight
                         win32_process_keyboard_message(&keyboard_controller->button_b, is_down);
                     }
+                    
                     else if(vk_code == 'Q')
                     {
                         win32_process_keyboard_message(&keyboard_controller->shoulder_left, is_down);
@@ -1603,18 +1597,20 @@ win32_Main_Window_Procedure(HWND window, UINT message , WPARAM w_param, LPARAM l
         case WM_PAINT:
         {
             // TODO(MIGUEL): update this to HMH 025
-            RECT        client_rect   ;
+            win32_window_dimensions window_dimensions = { 0 };
             HDC         device_context;
             PAINTSTRUCT paint         ;
             
-            device_context = BeginPaint(window, &paint);
+            // NOTE(MIGUEL): window dinmension args 
+            //               are ignored in the followin funciton
+            device_context    = BeginPaint(window, &paint);
+            window_dimensions = win32_window_get_dimensions(window);
             
-            GetClientRect(window, &client_rect); //Get RECT of window excludes borders
+            win32_window_display(&g_main_window_back_buffer,
+                                 device_context,
+                                 window_dimensions.width,
+                                 window_dimensions.height);
             
-            win32_client_get_dimensions(client_rect, &g_window_width, &g_window_height);
-            
-            win32_client_draw(&g_main_window_back_buffer, device_context,
-                              g_window_width, g_window_height);
             EndPaint(window, &paint);
         } break;
         
@@ -1895,7 +1891,65 @@ string_get_length(u8 *string)
     return count;
 }
 
-//~ INPUT RECORDING API
+
+//~ WINDOW INTERFACE
+internal win32_window_dimensions
+win32_window_get_dimensions(HWND window)
+{
+    win32_window_dimensions dimensions;
+    RECT client_rect                  ;
+    
+    //Get RECT of window excludes borders
+    GetClientRect(window, &client_rect);
+    
+    dimensions.width  = client_rect.right  - client_rect.left;
+    dimensions.height = client_rect.bottom - client_rect.top ;
+    
+    return dimensions;
+}
+
+
+internal void
+win32_window_display(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height)
+{
+    s32 offset_x = 10;
+    s32 offset_y = 10;
+    
+    // NOTE(MIGUEL): clear extra window area to black
+    PatBlt(device_context,
+           (0)           , (0)       , 
+           (window_width), (offset_y),
+           BLACKNESS);
+    
+    PatBlt(device_context,
+           (0)           , (offset_y + buffer->height),
+           (window_width), (window_width),
+           BLACKNESS);
+    
+    PatBlt(device_context,
+           (0)       , (0)            ,
+           (offset_x), (window_height),
+           BLACKNESS);
+    
+    PatBlt(device_context,
+           (offset_x + buffer->width), (0)            ,
+           (window_width)            , (window_height),
+           BLACKNESS);
+    
+    
+    StretchDIBits(device_context,
+                  offset_x, offset_y,
+                  buffer->width, buffer->height,
+                  0, 0,
+                  buffer->width,   buffer->height,
+                  buffer->data , &(buffer->info),
+                  DIB_RGB_COLORS, SRCCOPY);
+    
+    return;
+}
+
+
+//~ INPUT RECORDING INTERFACE
 
 internal void
 win32_input_get_file_location(win32_state *state, b32 input_stream,

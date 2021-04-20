@@ -28,6 +28,12 @@ typedef struct
 
 typedef struct
 {
+    u32 width;
+    u32 height;
+} win32_window_dimensions;
+
+typedef struct
+{
     HMODULE SGE_DLL   ;
     SGE_Update          *update;
     SGE_Init            *init  ;
@@ -71,16 +77,8 @@ typedef struct
     u32 *tiles;
 } Tile_map;
 
-typedef struct
-{
-    u32 tilemap_count_x;
-    u32 tilemap_count_y;
-    
-    Tile_map *tile_maps;
-} world;
 
-
-//~ AUDIO 
+//~ AUDIO INTERFACE
 
 typedef struct
 {
@@ -126,7 +124,16 @@ internal HGLRC
 win32_Init_OpenGL             (HDC real_dc);
 
 
-//~ LIVE CODE EDITING
+
+//~ WINDOW INTERFACE
+internal win32_window_dimensions
+win32_window_get_dimensions(HWND window);
+
+internal void
+win32_window_display(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height);
+
+
+//~ LIVE CODE EDITING INTERFACE
 internal win32_game_code 
 win32_load_game_code          (u8 *source_dll_name, u8 *temp_dll_name);
 
@@ -134,7 +141,7 @@ internal void
 win32_unload_game_code        (win32_game_code *game);
 
 
-//~ FILE MANAGING API
+//~ FILE MANAGING INTERFACE
 internal FILETIME 
 win32_get_last_write_time     (u8 *file_name);
 
@@ -146,7 +153,7 @@ win32_build_exe_path_file_name(win32_state *state, u8 *file_name,
                                int dest_count, u8 *dest);
 
 
-//~ INPUT RECORDING API
+//~ INPUT RECORDING INTERFACE
 internal void
 win32_input_get_file_location (win32_state *state, b32 input_stream,
                                u32 slot_index, u32 dest_count, u8 *dest);
