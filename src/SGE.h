@@ -20,6 +20,8 @@ safe_truncate_u64(u64 value)
 
 typedef struct
 {
+    s32 player_tilemap_x;
+    s32 player_tilemap_y;
     f32 player_x;
     f32 player_y;
     
@@ -30,6 +32,11 @@ typedef struct
 typedef struct
 {
     u32 *tiles;
+    
+} tile_map;
+
+typedef struct
+{
     u32 count_x;
     u32 count_y;
     
@@ -37,14 +44,29 @@ typedef struct
     f32 upper_left_y;
     f32 tile_height ;
     f32 tile_width  ;
-} tile_map;
-
-typedef struct
-{
+    
     u32 tilemap_count_x;
     u32 tilemap_count_y;
     tile_map *tilemaps;
 } world;
+
+typedef struct
+{
+    s32 tilemap_x;
+    s32 tilemap_y;
+    s32 tile_x;
+    s32 tile_y;
+    f32 x;
+    f32 y;
+} canonical_position;
+
+typedef struct
+{
+    s32 tilemap_x;
+    s32 tilemap_y;
+    f32 x;
+    f32 y;
+} raw_position;
 
 
 //~ FUNCTION DECLERATIONS

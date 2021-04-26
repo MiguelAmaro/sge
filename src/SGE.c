@@ -9,7 +9,7 @@
 // TODO(MIGUEL): GUI: No cursor, Buttons with key
 // TODO(MIGUEL): Integrate Opencv once app has access to camera feed
 // NOTE(MIGUEL): Check Network.h for Networking TODOS
-
+//fuck git
 
 inline s32
 round_f32_to_s32   (f32 value);
@@ -19,6 +19,9 @@ round_f32_to_u32   (f32 value);
 
 inline s32
 truncate_f32_to_s32(f32 value); 
+
+inline s32
+floor_f32_to_s32(f32 value); 
 
 
 SGE_GET_SOUND_SAMPLES(SGEGetSoundSamples)
@@ -40,28 +43,30 @@ SGE_INIT(SGEInit)
 //~ TILEMAP INTERFACE
 
 inline u32
-tilemap_get_tile_value_unchecked(tile_map *tilemap, s32 tile_x, s32 tile_y)
+tilemap_get_tile_value_unchecked(world *the_world, tile_map *tilemap, s32 tile_x, s32 tile_y)
 {
-    u32 tilemap_value = tilemap->tiles[tile_y * tilemap->count_x + tile_x];
+    ASSERT(tilemap);
+    ASSERT((tile_x >= 0) && (tile_x < the_world->count_x) &&
+           (tile_y >= 0) && (tile_y < the_world->count_y));
+    
+    u32 tilemap_value = tilemap->tiles[tile_y * the_world->count_x + tile_x];
     
     return(tilemap_value);
 }
 
 internal b32
-tilemap_is_point_occupied(tile_map *tilemap, f32 test_x, f32 test_y)
+tilemap_is_point_occupied(world *the_world, tile_map *tilemap, f32 test_x, f32 test_y)
 {
-    b32 is_occupied = 0;
+    b32 is_occupied = 1;
     
-    s32 player_tile_x = truncate_f32_to_s32((test_x - tilemap->upper_left_x) / tilemap->tile_width );
-    s32 player_tile_y = truncate_f32_to_s32((test_y - tilemap->upper_left_y) / tilemap->tile_height);
-    
-    if((player_tile_x >= 0) && 
-       (player_tile_x < tilemap->count_x) &&
-       (player_tile_y >= 0) && 
-       (player_tile_y < tilemap->count_y))
+    if(tilemap)
     {
-        u32 tilemap_value = tilemap_get_tile_value_unchecked(tilemap, player_tile_x, player_tile_y);
-        is_occupied = (tilemap_value == 1);
+        if((test_x >= 0) && (test_x < the_world->count_x) &&
+           (test_y >= 0) && (test_y < the_world->count_y))
+        {
+            u32 tilemap_value = tilemap_get_tile_value_unchecked(the_world, tilemap, test_x, test_y);
+            is_occupied = (tilemap_value == 1);
+        }
     }
     
     return is_occupied;
@@ -84,28 +89,59 @@ world_get_tilemap(world *the_world, s32 tilemap_x, s32 tilemap_y)
     return tilemap;
 }
 
+inline canonical_position
+world_get_canonical_position(world *the_world, raw_position pos)
+{
+    canonical_position result;
+    
+    result.tilemap_x = pos.tilemap_x;
+    result.tilemap_y = pos.tilemap_y;
+    
+    f32 x = pos.x - the_world->upper_left_x; 
+    f32 y = pos.y - the_world->upper_left_y;
+    result.tile_x = floor_f32_to_s32((x) / the_world->tile_width );
+    result.tile_y = floor_f32_to_s32((y) / the_world->tile_height);
+    
+    result.x = x - result.tile_x * the_world->tile_width;
+    result.y = y - result.tile_y * the_world->tile_height;
+    
+    ASSERT(result.x >= 0);
+    ASSERT(result.y >= 0);
+    ASSERT(result.x < the_world->tile_width);
+    ASSERT(result.y < the_world->tile_height);
+    
+    if(result.tile_x < 0)
+    {
+        result.tile_x = the_world->count_x + result.tile_x;
+        --result.tilemap_x;
+    }
+    if(result.tile_y < 0)
+    { 
+        result.tile_y = the_world->count_x + result.tile_y;
+        --result.tilemap_y;
+    }
+    if(result.tile_x >= the_world->count_x)
+    {
+        result.tile_x = result.tile_x - the_world->count_x;
+        ++result.tilemap_x;
+    }
+    if(result.tile_y >= the_world->count_y)
+    {
+        result.tile_y = result.tile_y - the_world->count_y;
+        ++result.tilemap_y;
+    }
+    
+    return result;
+}
+
 internal b32
-world_is_point_empty(world *the_world, s32 tilemap_x, s32 tilemap_y, f32 test_x, f32 test_y)
+world_is_point_empty(world *the_world, raw_position test_pos)
 {
     b32 is_empty = 0;
     
-    tile_map *tilemap = world_get_tilemap(the_world, tilemap_x, tilemap_y);
-    
-    if(tilemap)
-    {
-        s32 player_tile_x = truncate_f32_to_s32((test_x - tilemap->upper_left_x) / tilemap->tile_width );
-        s32 player_tile_y = truncate_f32_to_s32((test_y - tilemap->upper_left_y) / tilemap->tile_height);
-        
-        
-        if((player_tile_x >= 0) && 
-           (player_tile_x < tilemap->count_x) &&
-           (player_tile_y >= 0) && 
-           (player_tile_y < tilemap->count_y))
-        {
-            u32 tilemap_value = tilemap_get_tile_value_unchecked(tilemap, player_tile_x, player_tile_y);
-            is_empty = (tilemap_value != 0);
-        }
-    }
+    canonical_position can_pos = world_get_canonical_position(the_world, test_pos); 
+    tile_map *tilemap = world_get_tilemap(the_world, can_pos.tilemap_x, can_pos.tilemap_y);
+    is_empty = !tilemap_is_point_occupied(the_world, tilemap, can_pos.tile_x, can_pos.tile_y);
     
     return is_empty;
 }
@@ -117,15 +153,7 @@ SGE_UPDATE(SGEUpdate)
     
     ASSERT(sizeof(game_state) <= sge_memory->permanent_storage_size);
     
-    game_state *sge_state = (game_state *)sge_memory->permanent_storage;
     
-    if(!sge_memory->is_initialized)
-    {   
-        sge_state->player_x = 150;
-        sge_state->player_y = 150;
-        
-        sge_memory->is_initialized = 1;
-    }
     
 #define TILE_MAP_COUNT_X (17)
 #define TILE_MAP_COUNT_Y ( 9)
@@ -185,35 +213,40 @@ SGE_UPDATE(SGEUpdate)
     };
     
     tile_map tilemaps[2][2];
-    tilemaps[0][0].count_x      =  TILE_MAP_COUNT_X;
-    tilemaps[0][0].count_y      =  TILE_MAP_COUNT_Y;
-    tilemaps[0][0].upper_left_x =  -30.0f;
-    tilemaps[0][0].upper_left_y =    0.0f;
-    tilemaps[0][0].tile_width   =   60.0f;
-    tilemaps[0][0].tile_height  =   60.0f;
-    tilemaps[0][0].tiles        = (u32 *)tiles_00;
     
-    tilemaps[0][1]              =  tilemaps[0][0];
-    tilemaps[0][1].tiles        = (u32 *)tiles_01;
+    world the_world;
+    the_world.tilemap_count_x   = 2;
+    the_world.tilemap_count_y   = 2;
+    the_world.tilemaps = (tile_map *)tilemaps;
     
-    tilemaps[1][0]              =  tilemaps[0][0];
-    tilemaps[1][0].tiles        = (u32 *)tiles_10;
+    the_world.count_x      =  TILE_MAP_COUNT_X;
+    the_world.count_y      =  TILE_MAP_COUNT_Y;
+    the_world.upper_left_x =  -30.0f;
+    the_world.upper_left_y =    0.0f;
+    the_world.tile_width   =   60.0f;
+    the_world.tile_height  =   60.0f;
     
-    tilemaps[1][1]              =  tilemaps[0][0];
-    tilemaps[1][1].tiles        = (u32 *)tiles_11;
+    tilemaps[0][0].tiles = (u32 *)tiles_00;
+    tilemaps[0][1].tiles = (u32 *)tiles_10;
+    tilemaps[1][0].tiles = (u32 *)tiles_01;
+    tilemaps[1][1].tiles = (u32 *)tiles_11;
     
-    tile_map *tilemap = &tilemaps[0][0];
     
-    f32 player_r= 0.0; 
-    f32 player_g= 1.0; 
-    f32 plaeyer_b= 1.0; 
+    f32 player_width  = 0.75f * the_world.tile_width; 
+    f32 player_height = 1.00f * the_world.tile_height;
     
-    f32 player_width  = 0.75f * tilemap->tile_width ; 
-    f32 player_height = 1.00f * tilemap->tile_height;
+    game_state *sge_state = (game_state *)sge_memory->permanent_storage;
+    if(!sge_memory->is_initialized)
+    {   
+        sge_state->player_x = 150;
+        sge_state->player_y = 150;
+        
+        sge_memory->is_initialized = 1;
+    }
     
-    f32 player_left = sge_state->player_x - (0.5f * player_width );
-    f32 player_top  = sge_state->player_y - (1.0f * player_height);
     
+    tile_map *tilemap = world_get_tilemap(&the_world, sge_state->player_tilemap_x, sge_state->player_tilemap_y);
+    ASSERT(tilemap);
     
     // ************************************************
     // INPUT RESPONSE
@@ -256,18 +289,37 @@ SGE_UPDATE(SGEUpdate)
                 delta_player_x = 1.0f;
             }
             
-            delta_player_x *= 64.0;
-            delta_player_y *= 64.0;
+            delta_player_x *= 100.0;
+            delta_player_y *= 100.0;
             
             f32 new_player_x = sge_state->player_x + delta_player_x * input->delta_t;
             f32 new_player_y = sge_state->player_y + delta_player_y * input->delta_t;
             
-            if(!tilemap_is_point_occupied(tilemap, new_player_x - 0.5f * player_width, new_player_y) &&
-               !tilemap_is_point_occupied(tilemap, new_player_x + 0.5f * player_width, new_player_y) &&
-               !tilemap_is_point_occupied(tilemap, new_player_x, new_player_y))
+            raw_position player_pos = 
             {
-                sge_state->player_x = new_player_x;
-                sge_state->player_y = new_player_y;
+                sge_state->player_tilemap_x,
+                sge_state->player_tilemap_y,
+                new_player_x,
+                new_player_y,
+            };
+            
+            raw_position player_left = player_pos;
+            player_left.x -= 0.5f * player_width;
+            
+            raw_position player_right = player_pos;
+            player_right.x += 0.5f * player_width;
+            
+            if(world_is_point_empty(&the_world, player_left ) &&
+               world_is_point_empty(&the_world, player_right) &&
+               world_is_point_empty(&the_world, player_pos))
+            {
+                canonical_position can_pos = world_get_canonical_position(&the_world, player_pos);
+                
+                sge_state->player_tilemap_x = can_pos.tilemap_x;
+                sge_state->player_tilemap_y = can_pos.tilemap_y;
+                
+                sge_state->player_x = the_world.upper_left_x + the_world.tile_width * can_pos.tile_x + can_pos.x;
+                sge_state->player_y = the_world.upper_left_y + the_world.tile_height * can_pos.tile_y + can_pos.y;
             }
         }
     } /// END OF INPUT LOOP
@@ -279,12 +331,12 @@ SGE_UPDATE(SGEUpdate)
                         0.1, 0.0, 1.0);
     
     
-    for(u32 row = 0; row < tilemap->count_y; row++)
+    for(u32 row = 0; row < the_world.count_y; row++)
     {
-        for(u32 column = 0; column < tilemap->count_x; column++)
+        for(u32 column = 0; column < the_world.count_x; column++)
         {
             
-            u32 tileid = tilemap_get_tile_value_unchecked(tilemap, column, row);
+            u32 tileid = tilemap_get_tile_value_unchecked(&the_world, tilemap, column, row);
             
             f32 gray = 0.5f; 
             
@@ -293,11 +345,11 @@ SGE_UPDATE(SGEUpdate)
                 gray = 1.0f;
             }
             
-            f32 min_x = tilemap->upper_left_x + ((f32)column * tilemap->tile_width);
-            f32 min_y = tilemap->upper_left_y + ((f32)row    * tilemap->tile_height);	
+            f32 min_x = the_world.upper_left_x + ((f32)column * the_world.tile_width);
+            f32 min_y = the_world.upper_left_y + ((f32)row    * the_world.tile_height);	
             
-            f32 max_x = min_x + tilemap->tile_width ;
-            f32 max_y = min_y + tilemap->tile_height;
+            f32 max_x = min_x + the_world.tile_width ;
+            f32 max_y = min_y + the_world.tile_height;
             
             game_draw_rectangle(back_buffer,
                                 min_x, max_x,
@@ -305,6 +357,10 @@ SGE_UPDATE(SGEUpdate)
                                 gray + 0.3, gray, gray);
         }
     }
+    
+    
+    f32 player_left = sge_state->player_x - (0.5f * player_width );
+    f32 player_top  = sge_state->player_y - (1.0f * player_height);
     
     game_draw_rectangle(back_buffer,
                         player_left, player_left + player_width,
@@ -364,6 +420,16 @@ inline s32
 truncate_f32_to_s32(f32 value)
 {
     s32 result = (s32)value;
+    
+    return result;
+}
+
+
+#include "math.h"
+inline s32
+floor_f32_to_s32(f32 value)
+{
+    s32 result = (s32)floorf(value);
     
     return result;
 }

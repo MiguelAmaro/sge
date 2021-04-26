@@ -142,7 +142,7 @@ CALL cl ^
 -Zi ^
 %BUILD_MODES% ^
 %INCLUDE_PATHS% ^
-..\src\SGE.c ^
+F:\Dev\SimpleGameEngine\src\SGE.c ^
 -FmWin32_SGE.map ^
 glad.obj Win32_OpenGL.obj ^
 -LD /link -PDB:SGE_%random%.pdb ^
