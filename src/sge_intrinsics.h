@@ -8,7 +8,7 @@
 inline s32
 round_f32_to_s32(f32 value)
 {
-    s32 result = (s32)(value + 0.5f);
+    s32 result = (s32)roundf(value);
     
     return result;
 }
@@ -16,7 +16,7 @@ round_f32_to_s32(f32 value)
 inline u32
 round_f32_to_u32(f32 value)
 {
-    u32 result = (u32)(value + 0.5f);
+    u32 result = (u32)roundf(value);
     
     return result;
 }

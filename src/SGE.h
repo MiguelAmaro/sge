@@ -8,9 +8,6 @@
 #define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
 #define PI_32BIT 3.14159265359
 
-#define WORLD_CHUNK_SHIFT (8)
-#define WORLD_CHUNK_MASK  ((1 << 8) - 1)
-
 inline u32
 safe_truncate_u64(u64 value)
 {
@@ -21,50 +18,32 @@ safe_truncate_u64(u64 value)
     return result;
 }
 
-typedef struct
-{
-    u32 *tiles;
-    
-} tile_chunk;
 
 typedef struct
 {
-    u32 tile_chunk_x;
-    u32 tile_chunk_y;
-    
-    u32 tile_rel_x;
-    u32 tile_rel_y;
-} tile_chunk_position;
+    memory_index size;
+    memory_index used;
+    u8 *base_ptr;
+} memory_arena;
+
+
+#include "sge_intrinsics.h"
+#include "sge_tile.h"
+#include "sge_tile.c"
 
 typedef struct
 {
-    u32 tile_abs_x;
-    u32 tile_abs_y;
-    
-    f32 tile_rel_x;
-    f32 tile_rel_y;
-} world_position;
-
-typedef struct
-{
-    f32 tile_side_in_meters;
-    s32 tile_side_in_pixels;
-    f32 meters_to_pixels;
-    
-    u32 chunk_dimensions;
-    
-    s32 tilechunk_count_x;
-    s32 tilechunk_count_y;
-    
-    tile_chunk *tilechunks;
+    tile_map *tilemap;
 } world;
 
-
 typedef struct
 {
-    world_position player_pos;
+    memory_arena the_world_arena;
+    world       *the_world      ;
     
-    f32 accelx;
+    tile_map_position player_pos;
+    
+    f32 accelx; //my extra stuff
     f32 accely;
 } game_state;
 
