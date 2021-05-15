@@ -50,7 +50,6 @@ SET MSVC_WARNINGS= ^
 -wd4201 ^
 -wd4204 ^
 -wd4218 ^
--wd4244 ^
 -wd4431 ^
 -wd4456 ^
 -wd4700 ^
@@ -90,8 +89,7 @@ Opengl32.lib ^
 Kernel32.lib ^
 Ws2_32.lib ^
 winmm.lib ^
-Shell32.lib ^
-..\lib\bin\cglm.lib
+Shell32.lib
 
 
 REM ************************************************************
@@ -137,9 +135,7 @@ ECHO ============================================================
 
 CALL cl ^
 -std:c17 ^
--nologo ^
--MD ^
--Zi ^
+%MSVC_FLAGS% ^
 %BUILD_MODES% ^
 %INCLUDE_PATHS% ^
 F:\Dev\SimpleGameEngine\src\SGE.c ^

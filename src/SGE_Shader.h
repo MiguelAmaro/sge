@@ -112,7 +112,7 @@ ReadAShaderFile(u32 *ShaderProgram, readonly u8 *path)
     // WRITE FILE INTO BUFFER
     for(u32 i = 0; i < BytesToRead || *(Shader + i) == EOF; i++)
     {
-        *(Shader + i) = fgetc(File);
+        *(Shader + i) = (u8)fgetc(File);
     }
     
     //printf("\n\n************************\n  %s \nsize: %d \n ******************** \n", path, BytesToRead);

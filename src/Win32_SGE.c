@@ -525,7 +525,7 @@ inline void win32_draw_sound_time_marker(win32_back_buffer  *back_buffer ,
 {
     f32 offset              = buffer_conversion_factor * cursor_pos;
     
-    u32 marker_x_pos        = padding_x + offset ;
+    u32 marker_x_pos        = padding_x + (u32)offset ;
     
     win32_debug_draw_vertical_line(back_buffer, marker_x_pos, top, bottom, color);
     
@@ -814,7 +814,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             //-INPUT 
             
             
-            for(int replay_index = 0; replay_index < ARRAYCOUNT(state_win32.input_replay_buffers);
+            for(int replay_index = 1; replay_index < ARRAYCOUNT(state_win32.input_replay_buffers);
                 ++replay_index )
             {
                 win32_replay_buffer *replay_buffer = &state_win32.input_replay_buffers[replay_index];
@@ -1382,7 +1382,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     u64 ticks_elapsed         = ( tick_frame_end.QuadPart - tick_work_start.QuadPart                );
                     f32 millis_per_frame      = 1000.0f * win32_get_seconds_elapsed(tick_work_start, tick_frame_end);
                     
-                    u32 frames_per_second     = g_tick_frequency / ticks_elapsed;
+                    u32 frames_per_second     = (u32)g_tick_frequency / (u32)ticks_elapsed;
                     
                     u8 timing_log[256];
                     
@@ -1967,6 +1967,7 @@ win32_input_get_file_location(win32_state *state, b32 input_stream,
 internal win32_replay_buffer *
 win32_input_get_replay_buffer(win32_state *state, u32 index)
 {
+    ASSERT(index < 0);
     ASSERT(index < ARRAYCOUNT(state->input_replay_buffers));
     
     win32_replay_buffer *result = &state->input_replay_buffers[index];

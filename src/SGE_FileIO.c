@@ -77,7 +77,7 @@ u32
 StringMatchKMP(readonly u8 *Text, readonly u32 BytesToRead, readonly u8 *SearchTerm)
 {
     // NOTE(MIGUEL): This implemenation only returns the first match!!
-    readonly u32 SearchTermLength = strlen(SearchTerm);
+    readonly u32 SearchTermLength = (u32)strlen(SearchTerm);
     u32 result = 0;
     u32 i = 0;
     u32 j = 0;

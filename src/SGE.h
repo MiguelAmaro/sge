@@ -8,6 +8,9 @@
 #define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
 #define PI_32BIT 3.14159265359
 
+#define WORLD_CHUNK_SHIFT (8)
+#define WORLD_CHUNK_MASK  ((1 << 8) - 1)
+
 inline u32
 safe_truncate_u64(u64 value)
 {
@@ -20,54 +23,50 @@ safe_truncate_u64(u64 value)
 
 typedef struct
 {
-    s32 player_tilemap_x;
-    s32 player_tilemap_y;
-    f32 player_x;
-    f32 player_y;
+    u32 *tiles;
+    
+} tile_chunk;
+
+typedef struct
+{
+    u32 tile_chunk_x;
+    u32 tile_chunk_y;
+    
+    u32 tile_rel_x;
+    u32 tile_rel_y;
+} tile_chunk_position;
+
+typedef struct
+{
+    u32 tile_abs_x;
+    u32 tile_abs_y;
+    
+    f32 tile_rel_x;
+    f32 tile_rel_y;
+} world_position;
+
+typedef struct
+{
+    f32 tile_side_in_meters;
+    s32 tile_side_in_pixels;
+    f32 meters_to_pixels;
+    
+    u32 chunk_dimensions;
+    
+    s32 tilechunk_count_x;
+    s32 tilechunk_count_y;
+    
+    tile_chunk *tilechunks;
+} world;
+
+
+typedef struct
+{
+    world_position player_pos;
     
     f32 accelx;
     f32 accely;
 } game_state;
-
-typedef struct
-{
-    u32 *tiles;
-    
-} tile_map;
-
-typedef struct
-{
-    u32 count_x;
-    u32 count_y;
-    
-    f32 upper_left_x;
-    f32 upper_left_y;
-    f32 tile_height ;
-    f32 tile_width  ;
-    
-    u32 tilemap_count_x;
-    u32 tilemap_count_y;
-    tile_map *tilemaps;
-} world;
-
-typedef struct
-{
-    s32 tilemap_x;
-    s32 tilemap_y;
-    s32 tile_x;
-    s32 tile_y;
-    f32 x;
-    f32 y;
-} canonical_position;
-
-typedef struct
-{
-    s32 tilemap_x;
-    s32 tilemap_y;
-    f32 x;
-    f32 y;
-} raw_position;
-
 
 //~ FUNCTION DECLERATIONS
 

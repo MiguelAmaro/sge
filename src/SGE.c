@@ -1,5 +1,6 @@
 #include "sge.h"
-
+#include "sge_intrinsics.h"
+#include "stdio.h"
 
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
@@ -40,108 +41,113 @@ SGE_INIT(SGEInit)
     return;
 }
 
-//~ TILEMAP INTERFACE
+//~ TILECHUNK INTERFACE
 
 inline u32
-tilemap_get_tile_value_unchecked(world *the_world, tile_map *tilemap, s32 tile_x, s32 tile_y)
+tilechunk_get_tile_value_unchecked(world *the_world, tile_chunk *tilechunk, u32 tile_x, u32 tile_y)
 {
-    ASSERT(tilemap);
-    ASSERT((tile_x >= 0) && (tile_x < the_world->count_x) &&
-           (tile_y >= 0) && (tile_y < the_world->count_y));
+    ASSERT(tilechunk);
+    ASSERT(tile_x < the_world->chunk_dimensions);
+    ASSERT(tile_y < the_world->chunk_dimensions);
     
-    u32 tilemap_value = tilemap->tiles[tile_y * the_world->count_x + tile_x];
+    u32 tilemap_value = tilechunk->tiles[tile_y * the_world->chunk_dimensions + tile_x];
     
     return(tilemap_value);
 }
 
 internal b32
-tilemap_is_point_occupied(world *the_world, tile_map *tilemap, f32 test_x, f32 test_y)
+tilechunk_get_tile_value(world *the_world, tile_chunk *tilechunk, u32 test_x, u32 test_y)
 {
-    b32 is_occupied = 1;
+    u32 tilechunk_value = 0;
     
-    if(tilemap)
+    if(tilechunk)
     {
-        if((test_x >= 0) && (test_x < the_world->count_x) &&
-           (test_y >= 0) && (test_y < the_world->count_y))
-        {
-            u32 tilemap_value = tilemap_get_tile_value_unchecked(the_world, tilemap, test_x, test_y);
-            is_occupied = (tilemap_value == 1);
-        }
+        tilechunk_value = tilechunk_get_tile_value_unchecked(the_world, tilechunk, test_x, test_y);
     }
     
-    return is_occupied;
+    return tilechunk_value;
 }
-
 
 //~ WORLD INTERFACE
 
-inline tile_map * 
-world_get_tilemap(world *the_world, s32 tilemap_x, s32 tilemap_y)
+inline tile_chunk * 
+world_get_tile_chunk(world *the_world, s32 tilechunk_x, s32 tilechunk_y)
 {
-    tile_map *tilemap = NULLPTR;
+    tile_chunk *tilechunk = NULLPTR;
     
-    if((tilemap_x >= 0) && (tilemap_x < the_world->tilemap_count_x) &&
-       (tilemap_y >= 0) && (tilemap_y < the_world->tilemap_count_y))
+    if((tilechunk_x >= 0) && (tilechunk_x < the_world->tilechunk_count_x) &&
+       (tilechunk_y >= 0) && (tilechunk_y < the_world->tilechunk_count_y))
     {
-        tilemap = &the_world->tilemaps[tilemap_y * the_world->tilemap_count_x + tilemap_x];
+        tilechunk = &the_world->tilechunks[tilechunk_y * the_world->tilechunk_count_x + tilechunk_x];
     }
     
-    return tilemap;
+    return tilechunk;
 }
 
-inline canonical_position
-world_get_canonical_position(world *the_world, raw_position pos)
+inline void
+world_recanonicalize_coord(world *the_world, s32 *tile, f32 *tile_rel)
 {
-    canonical_position result;
+    //offset = displacement, where units are tiles
+    s32 offset = floor_f32_to_s32(*tile_rel / the_world->tile_side_in_meters );
+    *tile += offset;
+    *tile_rel -= offset * the_world->tile_side_in_meters;
     
-    result.tilemap_x = pos.tilemap_x;
-    result.tilemap_y = pos.tilemap_y;
+    // TODO(MIGUEL): fix floating point math
+    ASSERT(*tile_rel >= 0);
+    ASSERT(*tile_rel <= the_world->tile_side_in_meters);
     
-    f32 x = pos.x - the_world->upper_left_x; 
-    f32 y = pos.y - the_world->upper_left_y;
-    result.tile_x = floor_f32_to_s32((x) / the_world->tile_width );
-    result.tile_y = floor_f32_to_s32((y) / the_world->tile_height);
+    return;
+}
+
+inline world_position
+world_recanonicalize_position(world *the_world, world_position pos)
+{
+    world_position result = pos;
     
-    result.x = x - result.tile_x * the_world->tile_width;
-    result.y = y - result.tile_y * the_world->tile_height;
-    
-    ASSERT(result.x >= 0);
-    ASSERT(result.y >= 0);
-    ASSERT(result.x < the_world->tile_width);
-    ASSERT(result.y < the_world->tile_height);
-    
-    if(result.tile_x < 0)
-    {
-        result.tile_x = the_world->count_x + result.tile_x;
-        --result.tilemap_x;
-    }
-    if(result.tile_y < 0)
-    { 
-        result.tile_y = the_world->count_x + result.tile_y;
-        --result.tilemap_y;
-    }
-    if(result.tile_x >= the_world->count_x)
-    {
-        result.tile_x = result.tile_x - the_world->count_x;
-        ++result.tilemap_x;
-    }
-    if(result.tile_y >= the_world->count_y)
-    {
-        result.tile_y = result.tile_y - the_world->count_y;
-        ++result.tilemap_y;
-    }
+    world_recanonicalize_coord(the_world, &result.tile_abs_x, &result.tile_rel_x);
+    world_recanonicalize_coord(the_world, &result.tile_abs_y, &result.tile_rel_y);
     
     return result;
 }
 
+inline tile_chunk_position
+world_get_tile_chunk_position(world *the_world, u32 tile_abs_x, u32 tile_abs_y)
+{
+    tile_chunk_position result;
+    
+    result.tile_chunk_x = tile_abs_x >> WORLD_CHUNK_SHIFT;
+    result.tile_chunk_y = tile_abs_y >> WORLD_CHUNK_SHIFT;
+    
+    result.tile_rel_x   = tile_abs_x  & WORLD_CHUNK_MASK;
+    result.tile_rel_y   = tile_abs_y  & WORLD_CHUNK_MASK;
+    
+    return result;
+}
+
+
+internal u32
+world_get_tile_value(world *the_world, u32 tile_abs_x, u32 tile_abs_y)
+{
+    tile_chunk_position chunk_pos = world_get_tile_chunk_position(the_world, tile_abs_x, tile_abs_y);
+    tile_chunk         *tilechunk = world_get_tile_chunk(the_world, chunk_pos.tile_chunk_x, chunk_pos.tile_chunk_y);
+    //tile_chunk         *tilechunk = world_get_tile_chunk(the_world, 0, 0);
+    u32           tilechunk_value = tilechunk_get_tile_value(the_world,
+                                                             tilechunk,
+                                                             chunk_pos.tile_rel_x,
+                                                             chunk_pos.tile_rel_y);
+    
+    
+    return tilechunk_value;
+}
+
 internal b32
-world_is_point_empty(world *the_world, raw_position test_pos)
+world_is_point_empty(world *the_world, world_position can_pos)
 {
     b32 is_empty = 0;
     
-    canonical_position can_pos = world_get_canonical_position(the_world, test_pos); 
-    tile_map *tilemap = world_get_tilemap(the_world, can_pos.tilemap_x, can_pos.tilemap_y);
-    is_empty = !tilemap_is_point_occupied(the_world, tilemap, can_pos.tile_x, can_pos.tile_y);
+    // NOTE(MIGUEL): tile system query when rendering to screen
+    u32 tilechunk_value = world_get_tile_value(the_world, can_pos.tile_abs_x, can_pos.tile_abs_y);
+    is_empty = (tilechunk_value == 0);
     
     return is_empty;
 }
@@ -155,98 +161,83 @@ SGE_UPDATE(SGEUpdate)
     
     
     
-#define TILE_MAP_COUNT_X (17)
-#define TILE_MAP_COUNT_Y ( 9)
+#define TILE_MAP_COUNT_X (256)
+#define TILE_MAP_COUNT_Y (256)
     // NOTE(MIGUEL): numbers reference their x & y positions
-    u32 tiles_00[TILE_MAP_COUNT_Y][TILE_MAP_COUNT_X] =
+    u32 temp_tiles[TILE_MAP_COUNT_Y][TILE_MAP_COUNT_X] =
     {
-        { 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1 },
-        { 1, 1, 0, 0,  0, 1, 0, 0,  0, 0, 0, 0,  0, 1, 0, 0, 1 },
-        { 1, 1, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 1, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 1, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0, 0 },
-        { 1, 1, 0, 0,  0, 1, 0, 0,  1, 0, 0, 0,  0, 1, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 1, 0, 0,  1, 0, 0, 1,  0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 1, 0, 0, 1 },
-        { 1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1 },
+        {1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1},
+        {1, 1, 0, 0,  0, 1, 0, 0,  0, 0, 0, 0,  0, 1, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 1, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 1, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 1, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 1, 0, 0,  0, 1, 0, 0,  1, 0, 0, 0,  0, 1, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 1, 0, 0,  1, 0, 0, 0,  1, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 1, 1, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 1, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1},
+        {1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1},
+        {1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1}
     };
-    
-    u32 tiles_01[TILE_MAP_COUNT_Y][TILE_MAP_COUNT_X] =
-    {
-        { 1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 2, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 0 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1 },
-    };
-    
-    
-    u32 tiles_10[TILE_MAP_COUNT_Y][TILE_MAP_COUNT_X] =
-    {
-        { 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 2, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1 },
-    };
-    
-    
-    u32 tiles_11[TILE_MAP_COUNT_Y][TILE_MAP_COUNT_X] =
-    {
-        { 1, 1, 1, 1,  1, 1, 1, 1,  0, 1, 1, 1,  1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 2, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 1 },
-    };
-    
-    tile_map tilemaps[2][2];
     
     world the_world;
-    the_world.tilemap_count_x   = 2;
-    the_world.tilemap_count_y   = 2;
-    the_world.tilemaps = (tile_map *)tilemaps;
+    the_world.chunk_dimensions = 256;
     
-    the_world.count_x      =  TILE_MAP_COUNT_X;
-    the_world.count_y      =  TILE_MAP_COUNT_Y;
-    the_world.upper_left_x =  -30.0f;
-    the_world.upper_left_y =    0.0f;
-    the_world.tile_width   =   60.0f;
-    the_world.tile_height  =   60.0f;
+    the_world.tilechunk_count_x = 1;
+    the_world.tilechunk_count_y = 1;
     
-    tilemaps[0][0].tiles = (u32 *)tiles_00;
-    tilemaps[0][1].tiles = (u32 *)tiles_10;
-    tilemaps[1][0].tiles = (u32 *)tiles_01;
-    tilemaps[1][1].tiles = (u32 *)tiles_11;
+    tile_chunk tilechunk;
+    tilechunk.tiles = (u32 *)temp_tiles;
+    the_world.tilechunks = &tilechunk;
+    the_world.tile_side_in_pixels   =  60;
     
+    the_world.tile_side_in_meters   =   1.4f;
+    the_world.meters_to_pixels      =  ((f32)the_world.tile_side_in_pixels / (f32)the_world.tile_side_in_meters);
     
-    f32 player_width  = 0.75f * the_world.tile_width; 
-    f32 player_height = 1.00f * the_world.tile_height;
+    f32 player_height = 1.4f;
+    f32 player_width  = 0.75f * player_height; 
+    
+    f32 lower_left_x = -(f32)the_world.tile_side_in_pixels / (f32)2;
+    f32 lower_left_y =  (f32)back_buffer->height;
     
     game_state *sge_state = (game_state *)sge_memory->permanent_storage;
     if(!sge_memory->is_initialized)
     {   
-        sge_state->player_x = 150;
-        sge_state->player_y = 150;
+        // NOTE(MIGUEL): testing
         
+        sge_state->player_pos.tile_abs_x = 10;
+        sge_state->player_pos.tile_abs_y = 10;
+        sge_state->player_pos.tile_rel_x = 5.0f;
+        sge_state->player_pos.tile_rel_y = 5.0f;
+        
+        FILE *f = fopen("../res/memdata.txt", "w");
+        u32 *tiles = tilechunk.tiles;
+        if(f)
+        {
+            
+#if 0
+#endif
+            for(u32 i = 0; i < the_world.chunk_dimensions; i++)
+            {
+                for(u32 j = 0; j < the_world.chunk_dimensions; j++)
+                {
+                    char out;
+                    if(*tiles++ == 0) out = '0';
+                    else                        out = '1';
+                    
+                    fputc(out, f);
+                }
+                fputc('\n', f);
+            }
+        }
         sge_memory->is_initialized = 1;
     }
-    
-    
-    tile_map *tilemap = world_get_tilemap(&the_world, sge_state->player_tilemap_x, sge_state->player_tilemap_y);
-    ASSERT(tilemap);
     
     // ************************************************
     // INPUT RESPONSE
@@ -268,13 +259,13 @@ SGE_UPDATE(SGEUpdate)
             if(controller->button_y.ended_down)
             {
                 // upa
-                delta_player_y = -1.0f;
+                delta_player_y = 1.0f;
+                
             }
-            
             if(controller->button_a.ended_down)
             {
                 // down
-                delta_player_y = 1.0f;
+                delta_player_y = -1.0f;
             }
             
             if(controller->button_x.ended_down)
@@ -289,37 +280,29 @@ SGE_UPDATE(SGEUpdate)
                 delta_player_x = 1.0f;
             }
             
-            delta_player_x *= 100.0;
-            delta_player_y *= 100.0;
+            delta_player_x *= 10.0;
+            delta_player_y *= 10.0;
             
-            f32 new_player_x = sge_state->player_x + delta_player_x * input->delta_t;
-            f32 new_player_y = sge_state->player_y + delta_player_y * input->delta_t;
+            /// get prev positon from state. add input to it. test new pos. updete pos in state if valid
+            world_position new_player_pos  = sge_state->player_pos;
+            new_player_pos.tile_rel_x     += delta_player_x * input->delta_t;
+            new_player_pos.tile_rel_y     += delta_player_y * input->delta_t;
+            new_player_pos                 = world_recanonicalize_position(&the_world, new_player_pos);
             
-            raw_position player_pos = 
-            {
-                sge_state->player_tilemap_x,
-                sge_state->player_tilemap_y,
-                new_player_x,
-                new_player_y,
-            };
+            world_position player_left = new_player_pos;
+            player_left.tile_rel_x -= 0.5f * player_width;
+            player_left = world_recanonicalize_position(&the_world, player_left);
             
-            raw_position player_left = player_pos;
-            player_left.x -= 0.5f * player_width;
-            
-            raw_position player_right = player_pos;
-            player_right.x += 0.5f * player_width;
+            world_position player_right = new_player_pos ;
+            player_right.tile_rel_x += 0.5f * player_width;
+            player_right = world_recanonicalize_position(&the_world, player_right);
             
             if(world_is_point_empty(&the_world, player_left ) &&
                world_is_point_empty(&the_world, player_right) &&
-               world_is_point_empty(&the_world, player_pos))
+               world_is_point_empty(&the_world, new_player_pos))
             {
-                canonical_position can_pos = world_get_canonical_position(&the_world, player_pos);
+                sge_state->player_pos = new_player_pos;
                 
-                sge_state->player_tilemap_x = can_pos.tilemap_x;
-                sge_state->player_tilemap_y = can_pos.tilemap_y;
-                
-                sge_state->player_x = the_world.upper_left_x + the_world.tile_width * can_pos.tile_x + can_pos.x;
-                sge_state->player_y = the_world.upper_left_y + the_world.tile_height * can_pos.tile_y + can_pos.y;
             }
         }
     } /// END OF INPUT LOOP
@@ -328,44 +311,71 @@ SGE_UPDATE(SGEUpdate)
     game_draw_rectangle(back_buffer,
                         0.0f, (f32)back_buffer->width,
                         0.0f, (f32)back_buffer->height,
-                        0.1, 0.0, 1.0);
+                        0.1f, 0.0f, 1.0f);
     
+    f32 center_x = 0.5f * (f32)back_buffer->width;
+    f32 center_y = 0.5f * (f32)back_buffer->height;
     
-    for(u32 row = 0; row < the_world.count_y; row++)
+    for(s32 rel_row = -10; rel_row < 10; rel_row++)
     {
-        for(u32 column = 0; column < the_world.count_x; column++)
+        for(s32 rel_column = -20; rel_column < 20; rel_column++)
         {
+            u32 column = sge_state->player_pos.tile_abs_x + rel_column;
+            u32 row    = sge_state->player_pos.tile_abs_y + rel_row;
             
-            u32 tileid = tilemap_get_tile_value_unchecked(&the_world, tilemap, column, row);
+            u32 tileid = world_get_tile_value(&the_world, column, row);
             
-            f32 gray = 0.5f; 
+            f32 gray = 0.5f;
+            //circle drawing shinanegans
+            f32 r = 20.0f; // * sinf(input->delta_t);
+            f32 h = 4.0f;
+            f32 k = 3.0f;
             
-            if(tileid == 1)
+            if(((s32)column == ceiling_f32_to_s32(((-sqrtf(r * 2 - powf(row - h, 2))) + k))) ||
+               ((s32)column == ceiling_f32_to_s32(  (sqrtf(r * 2 - powf(row - h, 2)) + k))))
+            {
+                gray = 0.4f;
+            }
+            
+            if(tileid == 1) 
             {
                 gray = 1.0f;
             }
             
-            f32 min_x = the_world.upper_left_x + ((f32)column * the_world.tile_width);
-            f32 min_y = the_world.upper_left_y + ((f32)row    * the_world.tile_height);	
+            //debug
+            if((column == sge_state->player_pos.tile_abs_x) &&
+               (row    == sge_state->player_pos.tile_abs_y))
+            {
+                gray = 0.0f;
+            }
             
-            f32 max_x = min_x + the_world.tile_width ;
-            f32 max_y = min_y + the_world.tile_height;
+            f32 min_x = center_x + ((f32)rel_column * the_world.tile_side_in_pixels);
+            f32 min_y = center_y - ((f32)rel_row    * the_world.tile_side_in_pixels);	
+            
+            f32 max_x = min_x + the_world.tile_side_in_pixels;
+            f32 max_y = min_y - the_world.tile_side_in_pixels;
             
             game_draw_rectangle(back_buffer,
                                 min_x, max_x,
-                                min_y, max_y,
-                                gray + 0.3, gray, gray);
+                                max_y, min_y,
+                                gray + 0.3f, gray, gray);
         }
     }
     
+    //DRAW PLAYER
+    f32 player_left = (center_x +
+                       the_world.meters_to_pixels    * sge_state->player_pos.tile_rel_x - 
+                       (0.5f * the_world.meters_to_pixels  * player_width ));
     
-    f32 player_left = sge_state->player_x - (0.5f * player_width );
-    f32 player_top  = sge_state->player_y - (1.0f * player_height);
+    
+    f32 player_top  = (center_y -
+                       the_world.meters_to_pixels    * sge_state->player_pos.tile_rel_y -
+                       (1.0f * the_world.meters_to_pixels * player_height));
     
     game_draw_rectangle(back_buffer,
-                        player_left, player_left + player_width,
-                        player_top , player_top  + player_height,
-                        0.5, 0.9, 0.3);
+                        player_left, player_left + the_world.meters_to_pixels * player_width,
+                        player_top , player_top  + the_world.meters_to_pixels * player_height,
+                        0.5f, 0.9f, 0.3f);
     return;
 }
 
@@ -375,7 +385,7 @@ internal void game_update_sound_buffer(game_state *state, game_sound_output_buff
     local_persist f32 t_sin;
     
     u16 tone_volume = 100;
-    u16 wave_period = sound_buffer->samples_per_second / tone_hz;
+    u16 wave_period = (u16)(sound_buffer->samples_per_second / tone_hz);
     
     u16 *sample_out = sound_buffer->samples;
     
@@ -399,40 +409,6 @@ internal void game_update_sound_buffer(game_state *state, game_sound_output_buff
     return;
 }
 
-
-inline s32
-round_f32_to_s32(f32 value)
-{
-    s32 result = (s32)(value + 0.5f);
-    
-    return result;
-}
-
-inline u32
-round_f32_to_u32(f32 value)
-{
-    u32 result = (u32)(value + 0.5f);
-    
-    return result;
-}
-
-inline s32
-truncate_f32_to_s32(f32 value)
-{
-    s32 result = (s32)value;
-    
-    return result;
-}
-
-
-#include "math.h"
-inline s32
-floor_f32_to_s32(f32 value)
-{
-    s32 result = (s32)floorf(value);
-    
-    return result;
-}
 
 internal void
 game_draw_rectangle(game_back_buffer *buffer,
@@ -482,8 +458,19 @@ game_draw_rectangle(game_back_buffer *buffer,
         
         for(s32 x = min_x; x < max_x; x++)
         {
-            *pixel++ = color;
+            *pixel = color;
             
+            //debug
+            if(x > (max_x - 2))
+            {
+                *pixel = 0xAAaaaaaa;
+            }
+            if(y > (max_y - 2))
+            {
+                *pixel = 0xAAaaaaaa;
+            }
+            
+            pixel++;
         }
         
         line += buffer->pitch;
