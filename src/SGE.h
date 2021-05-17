@@ -27,6 +27,33 @@ typedef struct
 } memory_arena;
 
 
+
+//~ MEMORY INTERFACE
+
+internal void
+memory_arena_init(memory_arena *arena, memory_index size, u8 *base_ptr)
+{
+    arena->base_ptr = base_ptr;
+    arena->size     = size;
+    arena->used     = 0;
+    
+    return;
+}
+
+#define MEMORY_ARENA_PUSH_STRUCT(arena,        type) (type *)memory_arena_push_data_structure(arena, sizeof(type))
+#define MEMORY_ARENA_PUSH_ARRAY( arena, count, type) (type *)memory_arena_push_data_structure(arena, (count) * sizeof(type))
+internal void *
+memory_arena_push_data_structure(memory_arena *arena, memory_index size)
+{
+    ASSERT((arena->used + size) <= arena->size);
+    
+    void *new_arena_partition_adress  = arena->base_ptr + arena->used;
+    arena->used  += size;
+    
+    return new_arena_partition_adress;
+}
+
+
 #include "sge_intrinsics.h"
 #include "sge_tile.h"
 #include "sge_tile.c"

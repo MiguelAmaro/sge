@@ -17,6 +17,7 @@ typedef struct
 {
     u32 tile_chunk_x;
     u32 tile_chunk_y;
+    u32 tile_chunk_z;
     
     u32 tile_rel_x;
     u32 tile_rel_y;
@@ -26,6 +27,7 @@ typedef struct
 {
     u32 tile_abs_x;
     u32 tile_abs_y;
+    u32 tile_abs_z;
     
     f32 tile_rel_x;
     f32 tile_rel_y;
@@ -33,16 +35,15 @@ typedef struct
 
 typedef struct
 {
-    f32 tile_side_in_meters;
-    s32 tile_side_in_pixels;
-    f32 meters_to_pixels;
-    
     u32 chunk_dimensions;
     u32 chunk_shift;
     u32 chunk_mask;
     
     u32 tilechunk_count_x;
     u32 tilechunk_count_y;
+    u32 tilechunk_count_z;
+    
+    f32 tile_side_in_meters;
     
     tile_chunk *tilechunks;
 } tile_map;
