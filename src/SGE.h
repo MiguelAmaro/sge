@@ -63,6 +63,42 @@ typedef struct
     tile_map *tilemap;
 } world;
 
+
+#pragma pack(push, 1)
+typedef struct
+{
+    u16 file_type;
+    u32 file_size;
+    u16 reserved_1;
+    u16 reserved_2;
+    u32 bitmap_offset;
+    u32 size;
+    s32 width;
+    s32 height;
+    u16 planes;
+    u16 bits_per_pixel;
+    u32 compression;
+    u32 sizeofbitmap;
+    s32 horz_resolution;
+    s32 vert_resolution;
+    u32 colors_used;
+    u32 colors_important;
+    
+    u32 red_mask;
+    u32 green_mask;
+    u32 blue_mask;
+} bitmap_header;
+#pragma pack(pop)
+
+typedef struct
+{
+    s32  width;
+    s32  height;
+    u32 *pixels;
+} bitmap_data;
+
+
+
 typedef struct
 {
     memory_arena the_world_arena;
@@ -70,25 +106,34 @@ typedef struct
     
     tile_map_position player_pos;
     
+    bitmap_data  back_drop;
+    bitmap_data  player_head;
+    bitmap_data  player_torso;
+    bitmap_data  player_cape;
+    bitmap_data  debug_bmp;
+    
+    // NOTE(MIGUEL): temp shit
+    u32 *pixel_ptr;
+    
     f32 accelx; //my extra stuff
     f32 accely;
 } game_state;
 
 //~ FUNCTION DECLERATIONS
 
-#define SGE_INIT(    name) void name(game_memory *sge_memory)
+#define SGE_INIT(    name) void name(thread_context *thread, game_memory *sge_memory)
 typedef SGE_INIT(SGE_Init);
 SGE_INIT(SGEInitStub)
 { return; } 
 // NOTE(MIGUEL): what should the return value be??? Any value that matches the function signiture. The stub is just a place holder/ fallback if we cant load the real thing
 
-#define SGE_UPDATE( name) void name(game_memory *sge_memory, game_input *input, game_back_buffer *back_buffer)
+#define SGE_UPDATE( name) void name(thread_context *thread, game_memory *sge_memory, game_input *input, game_back_buffer *back_buffer)
 typedef SGE_UPDATE(SGE_Update);
 SGE_UPDATE(SGEUpdateStub)
 { return; }
 
 // NOTE(MIGUEL): game_memroy doesnt exist
-#define SGE_GET_SOUND_SAMPLES(name) void name(game_memory *sge_memory, game_sound_output_buffer *sound_buffer)
+#define SGE_GET_SOUND_SAMPLES(name) void name(thread_context *thread, game_memory *sge_memory, game_sound_output_buffer *sound_buffer)
 typedef SGE_GET_SOUND_SAMPLES(SGE_GetSoundSamples);
 // NOTE(MIGUEL): no stub cause game should crash if core fucntions are missing
 

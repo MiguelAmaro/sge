@@ -115,7 +115,7 @@ DEBUG_PLATFORM_READ_ENTIRE_FILE (debug_platform_read_entire_file )
                 else
                 {
                     // NOTE(MIGUEL): Failed file read!!!
-                    debug_platform_free_file_memory(result.contents);
+                    debug_platform_free_file_memory(thread, result.contents);
                     result.contents = 0;
                 }
             }
@@ -773,8 +773,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                                                         game_code_dll_full_path_temp  );
             win32_xinput_load_functions();
             
-            
-            Game.init(&sge_memory);
+            // NOTE(MIGUEL): may remove
+            //Game.init(&sge_memory);
             
             //~ DIRECT SOUND INIT
             
@@ -1107,6 +1107,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     //~ GRAPHICS - SOFTWARE
                     
                     //win32_back_buffer_resize(&g_main_window_back_buffer, g_window_width, g_window_height);
+                    thread_context thread = {0};
                     
                     game_back_buffer back_buffer = { 0 };
                     back_buffer.width           = g_main_window_back_buffer.width ;
@@ -1116,7 +1117,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     back_buffer.bytes_per_pixel = g_main_window_back_buffer.bytes_per_pixel;
                     
                     // NOTE(MIGUEL): What shoud the func name be? see line 86
-                    Game.update(&sge_memory, input_new, &back_buffer);
+                    Game.update(&thread, &sge_memory, input_new, &back_buffer);
                     
                     
                     //~ AUDIO - DIRECTSOUND
@@ -1187,7 +1188,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                         sound_buffer.sample_count       = bytes_to_write / sound_output.bytes_per_sample;
                         sound_buffer.samples            =  samples;
                         
-                        Game.get_sound_samples(&sge_memory, &sound_buffer);
+                        Game.get_sound_samples(&thread, &sge_memory, &sound_buffer);
                         
                         
                         /*************************************************************************/

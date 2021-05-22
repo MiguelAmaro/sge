@@ -103,6 +103,8 @@ REM path=F:\Dev\SimpleGameEngine\build;%path%
 
 PUSHD build
 
+del *.pdb > NUL 2> NUL
+
 IF %PLATFORM%==--win (CALL :WINDOWS)
 IF %PLATFORM%==--lin (CALL :LINUX  )
 IF %PLATFORM%==--mac (CALL :MAC    )

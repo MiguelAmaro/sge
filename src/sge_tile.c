@@ -79,6 +79,13 @@ tile_get_tile_value(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_
     return tilechunk_value;
 }
 
+internal u32
+tile_get_tile_value_tilemap_pos(tile_map *tilemap, tile_map_position pos)
+{
+    u32 tilechunk_value = tile_get_tile_value(tilemap, pos.tile_abs_x, pos.tile_abs_y, pos.tile_abs_z);
+    
+    return tilechunk_value;
+}
 
 //~ SET ACCESSORS
 inline void
@@ -146,7 +153,9 @@ tile_is_point_empty(tile_map *tilemap, tile_map_position can_pos)
     
     // NOTE(MIGUEL): tile system query when rendering to screen
     u32 tilechunk_value = tile_get_tile_value(tilemap, can_pos.tile_abs_x, can_pos.tile_abs_y, can_pos.tile_abs_z);
-    is_empty = (tilechunk_value == 1);
+    is_empty = ((tilechunk_value == 1) ||
+                (tilechunk_value == 3) ||
+                (tilechunk_value == 4));
     
     return is_empty;
 }
@@ -173,6 +182,16 @@ tile_recanonicalize_position(tile_map *tilemap, tile_map_position pos)
     
     tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel_x);
     tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel_y);
+    
+    return result;
+}
+
+inline b32
+tile_is_on_same_tile(tile_map_position *a, tile_map_position *b)
+{
+    b32 result = ((a->tile_abs_x == b->tile_abs_x) &&
+                  (a->tile_abs_y == b->tile_abs_y) &&
+                  (a->tile_abs_z == b->tile_abs_z));
     
     return result;
 }

@@ -5,6 +5,30 @@
 
 #include "LAL.h"
 
+#ifndef COMPILER_MSVC
+#define COMPILER_MSVC 0
+#endif
+
+#ifndef COMPILER_LLVM
+#define COMPILER_LLVM 0
+#endif
+
+#if !COMPILER_MSVC && !COMPILER_LLVM
+#if _MSC_VER
+#undef  COMPILER_MSVC
+#define COMPILER_MSVC 1
+
+#else
+#undef  COMPILER_LLVM
+#define COMPILER_LLVM 1
+#endif
+#endif
+
+#if COMPILER_MSVC
+#include <intrin.h>
+#pragma intrinsic(_BitScanForward)
+#endif
+
 typedef struct
 {
     s32 place_holder;
@@ -21,13 +45,13 @@ typedef struct
 } debug_read_file_result;
 
 
-#define DEBUG_PLATFORM_FREE_FILE_MEMORY(name) void name(void *memory)
+#define DEBUG_PLATFORM_FREE_FILE_MEMORY(name) void name(thread_context *thread, void *memory)
 typedef DEBUG_PLATFORM_FREE_FILE_MEMORY(DEBUG_PlatformFreeFileMemory);
 
-#define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result name(u8 *file_name)
+#define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result name(thread_context *thread, u8 *file_name)
 typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(DEBUG_PlatformReadEntireFile);
 
-#define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) b32 name(u8 *file_name, u32 memory_size, void *memory)
+#define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) b32 name(thread_context *thread, u8 *file_name, u32 memory_size, void *memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(DEBUG_PlatformWriteEntireFile);
 
 #endif
