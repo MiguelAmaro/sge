@@ -97,7 +97,21 @@ typedef struct
     u32 *pixels;
 } bitmap_data;
 
+typedef struct
+{
+    f32 dx;
+    f32 dy;
+    f32 dz;
+} tile_map_difference;
 
+typedef struct
+{
+    u32 align_x;
+    u32 align_y;
+    bitmap_data head;
+    bitmap_data cape;
+    bitmap_data torso;
+} player_bitmaps;
 
 typedef struct
 {
@@ -105,12 +119,16 @@ typedef struct
     world       *the_world      ;
     
     tile_map_position player_pos;
+    tile_map_position camera_pos;
     
     bitmap_data  back_drop;
     bitmap_data  player_head;
     bitmap_data  player_torso;
     bitmap_data  player_cape;
     bitmap_data  debug_bmp;
+    
+    u32 facing_direction;
+    player_bitmaps playerbitmaps[4];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;

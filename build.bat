@@ -1,46 +1,47 @@
-@ECHO OFF
-IF NOT EXIST build MKDIR build
+@echo off
+
+if not exist "build" mkdir "build"
 
 
-REM REFERENCES:https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-alphabetically?view=vs-2019
+rem REFERENCES:https://docs.microsoft.com/en-us/cpp/build/reference/compiler-options-listed-alphabetically?view=vs-2019
 
-REM ************************************************************
-REM ************************************************************
-REM **                                                        **
-REM **                       DEFINITIONS                      **
-REM **                                                        **
-REM ************************************************************
-REM ************************************************************
+rem ************************************************************
+rem ************************************************************
+rem **                                                        **
+rem **                       DEFINITIONS                      **
+rem **                                                        **
+rem ************************************************************
+rem ************************************************************
 
-REM ==========              BUILD OPTIONS             ==========     
-REM ============================================================
-SET PLATFORM=%1
-SET OUTPUT=%2
+rem ==========              BUILD OPTIONS             ==========     
+rem ============================================================
+set PLATFORM=%1
+set OUTPUT=%2
 
 
-REM ==========              PROJECT/FILES             ==========     
-REM ============================================================
-SET PROJECT_NAME=SGE
-SET SOURCES=^
+rem ==========              PROJECT/FILES             ==========     
+rem ============================================================
+set PROJECT_NAME=SGE
+set SOURCES=^
 ..\src\Win32_%PROJECT_NAME%.c ^
 ..\src\Win32_OpenGL.c ^
 ..\src\SGE_FileIO.c ^
 ..\src\SGE_Helpers.c ^
 ..\lib\glad\src\glad.c
 
-SET BUILD_MODES=^
+set BUILD_MODES=^
 -DSGE_WIN32=1 ^
 -DSGE_SLOW=1 ^
 -DSGE_INTERNAL=1 ^
 -DRION=0
 
-REM ==========              COMPILER(MSVC)            ==========     
-REM ============================================================
-SET MSVC_COMMON=^
+rem ==========              COMPILER(MSVC)            ==========     
+rem ============================================================
+set MSVC_COMMON=^
 -nologo
 
-REM TODO(MIGUEL): ENABLE WARNINGS ONE BY ONE AND RESOLVE
-SET MSVC_WARNINGS= ^
+rem TODO(MIGUEL): ENABLE WARNINGS ONE BY ONE AND RESOLVE
+set MSVC_WARNINGS= ^
 -wd4057 ^
 -wd4013 ^
 -wd4057 ^
@@ -56,9 +57,9 @@ SET MSVC_WARNINGS= ^
 -wd4706 ^
 -wd4996
 
-REM NOTE(MIGUEL):-MD is using Dynamic CRT Lib which is what is supporting the console
-REM TODO(MIGUEL): Figure out a way to get a console that doesnt need to use the MD flag
-SET MSVC_FLAGS=^
+rem NOTE(MIGUEL):-MD is using Dynamic CRT Lib which is what is supporting the console
+rem TODO(MIGUEL): Figure out a way to get a console that doesnt need to use the MD flag
+set MSVC_FLAGS=^
 %MSVC_COMMON% ^
 -MD ^
 -GR ^
@@ -71,16 +72,16 @@ SET MSVC_FLAGS=^
 -permissive ^
 %MSVC_WARNINGS%
 
-SET INCLUDE_PATHS=^
+set INCLUDE_PATHS=^
 -I ..\lib\
 
-REM ==========             LINKER(MSVC)               ==========     
-REM ============================================================
-SET LINKER_FLAGS=^
+rem ==========             LINKER(MSVC)               ==========     
+rem ============================================================
+set LINKER_FLAGS=^
 -incremental:no ^
 -opt:ref
 
-SET LIBRARIES=^
+set LIBRARIES=^
 User32.lib ^
 Gdi32.lib ^
 Dinput8.lib ^
@@ -92,50 +93,51 @@ winmm.lib ^
 Shell32.lib
 
 
-REM ************************************************************
-REM ************************************************************
-REM **                                                        **
-REM **                       START BUILD                      **
-REM **                                                        **
-REM ************************************************************
-REM ************************************************************
-REM path=F:\Dev\SimpleGameEngine\build;%path%
+rem ************************************************************
+rem ************************************************************
+rem **                                                        **
+rem **                       START BUILD                      **
+rem **                                                        **
+rem ************************************************************
+rem ************************************************************
+rem path=F:\Dev\SimpleGameEngine\build;%path%
 
-PUSHD build
+pushd "build"
 
-del *.pdb > NUL 2> NUL
 
-IF %PLATFORM%==--win (CALL :WINDOWS)
-IF %PLATFORM%==--lin (CALL :LINUX  )
-IF %PLATFORM%==--mac (CALL :MAC    )
+if %PLATFORM% equ --win (call :WINDOWS)
+if %PLATFORM% equ --lin (call :LINUX  )
+if %PLATFORM% equ --mac (call :MAC    )
 
-POPD
-EXIT /B 0
+popd
+exit /B 0
 
 
 :WINDOWS
 
-IF %OUTPUT%==--exe       (CALL :COMPILE_WIN_EXE)
+if %OUTPUT% equ --exe (call :COMPILE_WIN_EXE)
+if %OUTPUT% equ --dll (call :COMPILE_WIN_DLL)
 
-IF %OUTPUT%==--dll       (CALL :COMPILE_WIN_DLL)
-
-EXIT
+exit
 
 
-ECHO ==========                  E X E                 ==========     
-ECHO ============================================================
+echo ==========                  E X E                 ==========     
+echo ============================================================
 :COMPILE_WIN_EXE
 
-CALL cl -std:c17 %BUILD_MODES% %MSVC_FLAGS% %INCLUDE_PATHS% %SOURCES% /link %LIBRARIES%
+cl -std:c17 %BUILD_MODES% %MSVC_FLAGS% %INCLUDE_PATHS% %SOURCES% /link %LIBRARIES%
 
-EXIT
+exit
 
 
-ECHO ==========                  D L L                 ==========     
-ECHO ============================================================
+echo ==========                  D L L                 ==========     
+echo ============================================================
 :COMPILE_WIN_DLL
 
-CALL cl ^
+del *.pdb > NUL 2> NUL
+echo WAITING FOR PDB > lock.tmp
+
+cl ^
 -std:c17 ^
 %MSVC_FLAGS% ^
 %BUILD_MODES% ^
@@ -147,8 +149,10 @@ glad.obj Win32_OpenGL.obj ^
 -DLL ^
 -EXPORT:SGEInit ^
 -EXPORT:SGEUpdate ^
--EXPORT:SGEGetSoundSamples ^
+-EXPORT:SGEGetSoundSamples
 
-EXIT
+del lock.tmp
 
-POPD
+exit
+
+

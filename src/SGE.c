@@ -130,8 +130,12 @@ game_draw_mini_map(game_state *state,
 }
 
 internal void
-game_draw_bitmap(game_back_buffer *buffer, bitmap_data *bitmap, f32 real_x, f32 real_y)
+game_draw_bitmap(game_back_buffer *buffer, bitmap_data *bitmap, f32 real_x, f32 real_y,
+                 s32 align_x, s32 align_y)
 {
+    real_x -= align_x;
+    real_y -= align_y;
+    
     /// rounding / ruling
     s32 min_x = round_f32_to_s32(real_x);
     s32 min_y = round_f32_to_s32(real_y);
@@ -141,12 +145,16 @@ game_draw_bitmap(game_back_buffer *buffer, bitmap_data *bitmap, f32 real_x, f32 
     
     /// clipping
     // NOTE(MIGUEL): will right to but not including the final row 
+    s32 src_offset_x = 0;
     if(min_x < 0)
     {
+        src_offset_x = -min_x;
         min_x = 0;
     }
+    s32 src_offset_y = 0;
     if(min_y < 0)
     {
+        src_offset_y = -min_y;
         min_y = 0;
     }
     if(max_x > buffer->width)
@@ -160,6 +168,9 @@ game_draw_bitmap(game_back_buffer *buffer, bitmap_data *bitmap, f32 real_x, f32 
     
     // NOTE(MIGUEL): why is it supposed to be pixel_height - 1
     u32 *src_row  = bitmap->pixels + (bitmap->width * (bitmap->height - 1));
+    
+    src_row += -bitmap->width * src_offset_y + src_offset_x;
+    
     u8  *dest_row = ((u8 *)  (buffer->data)            + 
                      (min_x * buffer->bytes_per_pixel) +
                      (min_y * buffer->pitch));
@@ -200,6 +211,24 @@ game_draw_bitmap(game_back_buffer *buffer, bitmap_data *bitmap, f32 real_x, f32 
     
     return;
 }
+
+
+inline tile_map_difference
+substract(tile_map *tile_map, tile_map_position *a, tile_map_position *b)
+{
+    tile_map_difference result;
+    
+    f32 dtilex = (f32)a->tile_abs_x - (f32)b->tile_abs_x;
+    f32 dtiley = (f32)a->tile_abs_y - (f32)b->tile_abs_y;
+    f32 dtilez = (f32)a->tile_abs_z - (f32)b->tile_abs_z;
+    
+    result.dx = tile_map->tile_side_in_meters * dtilex + (a->tile_rel_x - b->tile_rel_x);
+    result.dy = tile_map->tile_side_in_meters * dtiley + (a->tile_rel_y - b->tile_rel_y);
+    result.dz = tile_map->tile_side_in_meters * dtilez;
+    
+    return result;
+}
+
 
 internal bitmap_data
 debug_load_bmp(thread_context *thread, DEBUG_PlatformReadEntireFile *read_entire_file, u8 *file_name)
@@ -276,23 +305,48 @@ SGE_UPDATE(SGEUpdate)
         sge_state->player_pos.tile_abs_y = 3;
         sge_state->player_pos.tile_rel_x = 5.0f;
         sge_state->player_pos.tile_rel_y = 5.0f;
+        sge_state->camera_pos.tile_abs_x = 17 / 2;
+        sge_state->camera_pos.tile_abs_y =  9 / 2;
         
         //~ BITMAP LOADING
         sge_state->back_drop    = debug_load_bmp(thread,
                                                  sge_memory->debug_platform_read_entire_file,
                                                  "../res/images/test_background.bmp");
-        sge_state->player_head  = debug_load_bmp(thread,
-                                                 sge_memory->debug_platform_read_entire_file,
-                                                 "../res/images/shadow_front_head.bmp");
-        sge_state->player_torso = debug_load_bmp(thread,
-                                                 sge_memory->debug_platform_read_entire_file,
-                                                 "../res/images/test_hero_front_torso.bmp");
-        sge_state->player_cape  = debug_load_bmp(thread,
-                                                 sge_memory->debug_platform_read_entire_file,
-                                                 "../res/images/test_hero_front_cape.bmp");
-        sge_state->debug_bmp    = debug_load_bmp(thread,
-                                                 sge_memory->debug_platform_read_entire_file,
-                                                 "../res/images/structuredart.bmp");
+        
+        DEBUG_PlatformReadEntireFile *read_file_callback = sge_memory->debug_platform_read_entire_file;
+        player_bitmaps               *bitmap             = sge_state->playerbitmaps;
+        
+        //RIGHT
+        bitmap->head  = debug_load_bmp(thread, read_file_callback, "../res/images/shadow_right_head.bmp");
+        bitmap->torso = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_right_torso.bmp");
+        bitmap->cape  = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_right_cape.bmp");
+        bitmap->align_x =  72;
+        bitmap->align_y = 182;
+        bitmap++;
+        
+        //BACK
+        bitmap->head  = debug_load_bmp(thread, read_file_callback, "../res/images/shadow_front_head.bmp");
+        bitmap->torso = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_back_torso.bmp");
+        bitmap->cape  = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_back_cape.bmp");
+        bitmap->align_x =  72;
+        bitmap->align_y = 182;
+        bitmap++;
+        
+        //LEFT
+        bitmap->head  = debug_load_bmp(thread, read_file_callback, "../res/images/shadow_left_head.bmp");
+        bitmap->torso = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_left_torso.bmp");
+        bitmap->cape  = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_left_cape.bmp");
+        bitmap->align_x =  72;
+        bitmap->align_y = 182;
+        bitmap++;
+        
+        //FRONT
+        bitmap->head  = debug_load_bmp(thread, read_file_callback, "../res/images/shadow_front_head.bmp");
+        bitmap->torso = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_front_torso.bmp");
+        bitmap->cape  = debug_load_bmp(thread, read_file_callback, "../res/images/test_hero_front_cape.bmp");
+        bitmap->align_x =  72;
+        bitmap->align_y = 182;
+        
         
         
         //~ WORLD GENERATION
@@ -496,26 +550,29 @@ SGE_UPDATE(SGEUpdate)
             
             if(controller->button_y.ended_down)
             {
-                // upa
+                // up
                 delta_player_y = 1.0f;
-                
+                sge_state->facing_direction = 1;
             }
             if(controller->button_a.ended_down)
             {
                 // down
                 delta_player_y = -1.0f;
+                sge_state->facing_direction = 3;
             }
             
             if(controller->button_x.ended_down)
             {
                 // left
                 delta_player_x = -1.0f;
+                sge_state->facing_direction = 2;
             }
             
             if(controller->button_b.ended_down)
             {
                 // right
                 delta_player_x = 1.0f;
+                sge_state->facing_direction = 0;
             }
             
             
@@ -562,8 +619,31 @@ SGE_UPDATE(SGEUpdate)
                     }
                 }
                 sge_state->player_pos = new_player_pos;
-                
             }
+            sge_state->camera_pos.tile_abs_z = sge_state->player_pos.tile_abs_z;
+            
+            tile_map_difference diff = substract(tilemap,
+                                                 &sge_state->player_pos,
+                                                 &sge_state->camera_pos);
+            
+            
+            if(diff.dx > (9.0f * tilemap->tile_side_in_meters))
+            {
+                sge_state->camera_pos.tile_abs_x += 17; 
+            }
+            if(diff.dx < -(9.0f * tilemap->tile_side_in_meters))
+            {
+                sge_state->camera_pos.tile_abs_x -= 17; 
+            }
+            if(diff.dy > (5.0f * tilemap->tile_side_in_meters))
+            {
+                sge_state->camera_pos.tile_abs_y += 9; 
+            }
+            if(diff.dy < -(5.0f * tilemap->tile_side_in_meters))
+            {
+                sge_state->camera_pos.tile_abs_y -= 9; 
+            }
+            
         }
     } /// END OF INPUT LOOP
     
@@ -574,7 +654,7 @@ SGE_UPDATE(SGEUpdate)
                         0.4f, 0.8f, 1.0f);
     
     
-    game_draw_bitmap(back_buffer, &sge_state->back_drop, 100.0f, 100.0f);
+    game_draw_bitmap(back_buffer, &sge_state->back_drop, 0.0f, 0.0f, 0, 0);
     
     
     f32 screen_center_x = 0.5f * (f32)back_buffer->width;
@@ -586,10 +666,10 @@ SGE_UPDATE(SGEUpdate)
     {
         for(s32 rel_column = -camera_range_y; rel_column < camera_range_y; rel_column++)
         {
-            u32 column = sge_state->player_pos.tile_abs_x + rel_column;
-            u32 row    = sge_state->player_pos.tile_abs_y + rel_row;
+            u32 column = sge_state->camera_pos.tile_abs_x + rel_column;
+            u32 row    = sge_state->camera_pos.tile_abs_y + rel_row;
             
-            u32 tileid = tile_get_tile_value(tilemap, column, row, sge_state->player_pos.tile_abs_z );
+            u32 tileid = tile_get_tile_value(tilemap, column, row, sge_state->camera_pos.tile_abs_z );
             
             if(tileid > 0)
             {
@@ -601,10 +681,10 @@ SGE_UPDATE(SGEUpdate)
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * sge_state->player_pos.tile_rel_x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * sge_state->camera_pos.tile_rel_x) + ((f32)rel_column           * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
-                                (meters_to_pixels * sge_state->player_pos.tile_rel_y) -
+                                (meters_to_pixels * sge_state->camera_pos.tile_rel_y) -
                                 ((f32)rel_row     * tile_side_in_pixels));
                 
                 f32 min_x = center_x - 0.5f * tile_side_in_pixels;
@@ -675,20 +755,35 @@ SGE_UPDATE(SGEUpdate)
         }
     }
     
+    
     //DRAW PLAYER
+    tile_map_difference diff = substract(tilemap,
+                                         &sge_state->player_pos,
+                                         &sge_state->camera_pos);
+    
     f32 player_left = (screen_center_x - (0.5f * meters_to_pixels * player_width ));
     f32 player_top  = (screen_center_y - (1.0f * meters_to_pixels * player_height));
+    
+    f32 player_ground_point_x = screen_center_x + meters_to_pixels * diff.dx;
+    f32 player_ground_point_y = screen_center_y - meters_to_pixels * diff.dy;
     
     game_draw_rectangle(back_buffer,
                         player_left, player_left + meters_to_pixels * player_width,
                         player_top , player_top  + meters_to_pixels * player_height,
                         0.9f, 0.9f, 0.0f);
     
-    game_draw_bitmap(back_buffer, &sge_state->player_torso, player_left, player_top);
-    game_draw_bitmap(back_buffer, &sge_state->player_cape, player_left, player_top);
-    game_draw_bitmap(back_buffer, &sge_state->player_head, player_left, player_top);
-    game_draw_bitmap(back_buffer, &sge_state->debug_bmp, 1000.0, 1000.0);
+    player_bitmaps *playerbitmaps = &sge_state->playerbitmaps[sge_state->facing_direction];
+    game_draw_bitmap(back_buffer, &playerbitmaps->torso,
+                     player_ground_point_x, player_ground_point_y,
+                     playerbitmaps->align_x, playerbitmaps->align_y);
     
+    game_draw_bitmap(back_buffer, &playerbitmaps->cape ,
+                     player_ground_point_x, player_ground_point_y,
+                     playerbitmaps->align_x, playerbitmaps->align_y);
+    
+    game_draw_bitmap(back_buffer, &playerbitmaps->head,
+                     player_ground_point_x, player_ground_point_y,
+                     playerbitmaps->align_x, playerbitmaps->align_y);
     
     
 #if 1

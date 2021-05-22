@@ -135,7 +135,7 @@ win32_window_display(win32_back_buffer *buffer, HDC device_context, u32 window_w
 
 //~ LIVE CODE EDITING INTERFACE
 internal win32_game_code 
-win32_load_game_code          (u8 *source_dll_name, u8 *temp_dll_name);
+win32_load_game_code          (u8 *source_dll_name, u8 *temp_dll_name, u8 *lock_file_name);
 
 internal void 
 win32_unload_game_code        (win32_game_code *game);

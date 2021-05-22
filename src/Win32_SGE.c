@@ -692,7 +692,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
         
         HDC device_context = GetDC(window);
         
-        win32_back_buffer_set_size(&g_main_window_back_buffer, g_window_width, g_window_height);
+        win32_back_buffer_set_size(&g_main_window_back_buffer, 960, 540);
         
         //~ TIMING STUFF
 #define FRAMES_OF_AUDIO_LATENCY (3)
@@ -763,6 +763,10 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
         win32_build_exe_path_file_name(&state_win32, "SGE_temp.dll",
                                        sizeof(game_code_dll_full_path_temp), game_code_dll_full_path_temp);
         
+        u8 game_code_dll_full_path_lock  [WIN32_STATE_FILE_NAME_COUNT];
+        win32_build_exe_path_file_name(&state_win32, "lock.tmp",
+                                       sizeof(game_code_dll_full_path_lock), game_code_dll_full_path_lock);
+        
         
         if(window)
         {
@@ -770,7 +774,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
             
             /// LOAD DEPENDINCIES
             win32_game_code Game = win32_load_game_code(game_code_dll_full_path_source,
-                                                        game_code_dll_full_path_temp  );
+                                                        game_code_dll_full_path_temp,
+                                                        game_code_dll_full_path_lock);
             win32_xinput_load_functions();
             
             // NOTE(MIGUEL): may remove
@@ -904,7 +909,8 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                     {
                         win32_unload_game_code(&Game);
                         Game = win32_load_game_code(game_code_dll_full_path_source,
-                                                    game_code_dll_full_path_temp  );
+                                                    game_code_dll_full_path_temp,
+                                                    game_code_dll_full_path_lock);
                         load_counter = 0;
                     }
                 }
@@ -1784,27 +1790,28 @@ win32_get_last_write_time(u8 *file_name)
 }
 
 internal win32_game_code
-win32_load_game_code(u8 *source_dll_name, u8 *temp_dll_name)
+win32_load_game_code(u8 *source_dll_name, u8 *temp_dll_name, u8 *lock_file_name)
 {
     win32_game_code result = { 0 };
     
-    //u8 *source_dll_name = "SGE.dll"     ;
-    //u8 *  temp_dll_name = "SGE_temp.dll";
-    
-    result.dll_last_write_time = win32_get_last_write_time(source_dll_name);
-    
-    CopyFile(source_dll_name, temp_dll_name, FALSE);
-    result.SGE_DLL = LoadLibraryA(temp_dll_name);
-    
-    if(result.SGE_DLL)
+    WIN32_FILE_ATTRIBUTE_DATA ignored;
+    if(!GetFileAttributesEx(lock_file_name, GetFileExInfoStandard, &ignored))
     {
-        result.update            = (SGE_Update         *)GetProcAddress(result.SGE_DLL, "SGEUpdate"         );
-        result.init              = (SGE_Init           *)GetProcAddress(result.SGE_DLL, "SGEInit"           );
-        result.get_sound_samples = (SGE_GetSoundSamples*)GetProcAddress(result.SGE_DLL, "SGEGetSoundSamples");
+        result.dll_last_write_time = win32_get_last_write_time(source_dll_name);
         
-        result.is_valid = (result.update && 
-                           result.init   &&
-                           result.get_sound_samples);
+        CopyFile(source_dll_name, temp_dll_name, FALSE);
+        result.SGE_DLL = LoadLibraryA(temp_dll_name);
+        
+        if(result.SGE_DLL)
+        {
+            result.update            = (SGE_Update         *)GetProcAddress(result.SGE_DLL, "SGEUpdate"         );
+            result.init              = (SGE_Init           *)GetProcAddress(result.SGE_DLL, "SGEInit"           );
+            result.get_sound_samples = (SGE_GetSoundSamples*)GetProcAddress(result.SGE_DLL, "SGEGetSoundSamples");
+            
+            result.is_valid = (result.update && 
+                               result.init   &&
+                               result.get_sound_samples);
+        }
     }
     if(!(result.is_valid))
     {
