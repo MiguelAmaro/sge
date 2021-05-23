@@ -52,6 +52,8 @@ global win32_back_buffer g_main_window_back_buffer = { 0 }; // NOTE(MIGUEL): pla
 global u32 g_window_width  = 0; // NOTE(MIGUEL): Moving to app_state
 global u32 g_window_height = 0; // NOTE(MIGUEL): Moving to app_state
 global u64 g_tick_frequency = { 0 };
+global b32 g_DEBUG_show_cursor  = 0;
+global WINDOWPLACEMENT g_window_position = { sizeof(g_window_position) };
 
 global IDirectSoundBuffer *g_secondary_sound_buffer = (void *)0x00;
 
@@ -74,6 +76,48 @@ global x_input_set_state *XInputSetState_ = x_input_set_state_stub;
 
 #define DIRECT_SOUND_CREATE(name) HRESULT WINAPI name(LPCGUID pcGuidDevice, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
 typedef DIRECT_SOUND_CREATE(direct_sound_create);
+
+void win32_toggle_fullscreen(HWND window )
+{
+    // NOTE(MIGUEL): raymond cheng
+    DWORD style = GetWindowLong(window, GWL_STYLE);
+    
+    if (style & WS_OVERLAPPEDWINDOW)
+    {
+        MONITORINFO monitor_info = { sizeof(monitor_info) };
+        
+        if (GetWindowPlacement(window, &g_window_position) &&
+            GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
+        {
+            SetWindowLong(window, GWL_STYLE,
+                          style & ~WS_OVERLAPPEDWINDOW);
+            
+            SetWindowPos(window, HWND_TOP,
+                         monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.top ,
+                         monitor_info.rcMonitor.right  - monitor_info.rcMonitor.left,
+                         monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        }
+    }
+    else 
+    {
+        SetWindowLong(window, GWL_STYLE,
+                      style | WS_OVERLAPPEDWINDOW);
+        
+        SetWindowPlacement(window, &g_window_position);
+        
+        SetWindowPos(window, NULL,
+                     0, 0, 0, 0,
+                     SWP_NOMOVE        | 
+                     SWP_NOSIZE        |
+                     SWP_NOZORDER      |
+                     SWP_NOOWNERZORDER |
+                     SWP_FRAMECHANGED  );
+    }
+    
+    return;
+}
 
 
 //~ DEBUG FILE I/O
@@ -167,7 +211,8 @@ DEBUG_PLATFORM_FREE_FILE_MEMORY (debug_platform_free_file_memory )
 
 //~ DYANAMIC LOADING
 
-internal void win32_xinput_load_functions()
+internal void
+win32_xinput_load_functions()
 {
     HMODULE xinput_lib;
     
@@ -232,6 +277,7 @@ global int   BytesPerPixel = 4;
 /*
 */
 
+internal 
 void win32_print_last_sys_error(void)
 {
     LPTSTR error_msg;
@@ -656,7 +702,7 @@ inline f32 win32_get_seconds_elapsed(LARGE_INTEGER start_tick, LARGE_INTEGER end
 }
 
 int CALLBACK 
-WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowCode) 
+WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int show_code) 
 {
     /*************************************************************************/
     /*************************************************************************/
@@ -669,8 +715,9 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
     WNDCLASS WindowClass      = {0};
     WindowClass.style         = CS_HREDRAW | CS_VREDRAW;
     WindowClass.lpfnWndProc   = win32_Main_Window_Procedure;
-    WindowClass.hInstance     = Instance;
+    WindowClass.hInstance     = instance;
     //WindowClass.hIcon;
+    WindowClass.hCursor       = LoadCursor(0, IDC_ARROW);
     WindowClass.lpszClassName = "MyWindowClass";
     
     
@@ -685,7 +732,7 @@ WinMain(HINSTANCE Instance, HINSTANCE PrevInstance, LPSTR CommandLine, int ShowC
                                       WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                       20, 20,
                                       g_window_width, g_window_height,
-                                      0, 0, Instance, 0);
+                                      0, 0, instance, 0);
         
         
         //~ BACKBUFFER INTIT
@@ -1555,13 +1602,24 @@ win32_process_pending_messages(win32_state *state, game_controller_input *keyboa
                             }
                         }
                     }
+                    
 #endif
-                }
-                
-                b32 alt_key_was_down = ( message.lParam & (1 << 29));
-                if((vk_code == VK_F4) && alt_key_was_down)
-                {
-                    g_running = false;
+                    if(is_down)
+                    {
+                        
+                        b32 alt_key_was_down = ( message.lParam & (1 << 29));
+                        if((vk_code == VK_F4) && alt_key_was_down)
+                        {
+                            g_running = false;
+                        }
+                        if((vk_code == VK_RETURN) && alt_key_was_down)
+                        {
+                            if(message.hwnd)
+                            {
+                                win32_toggle_fullscreen(message.hwnd );
+                            }
+                        }
+                    }
                 }
             } break;
             
@@ -1585,6 +1643,20 @@ win32_Main_Window_Procedure(HWND window, UINT message , WPARAM w_param, LPARAM l
     {
         case WM_CLOSE:
         { g_running = false; }
+        break;
+        
+        case WM_SETCURSOR:
+        {
+            if(g_DEBUG_show_cursor)
+            {
+                LoadCursor(0, IDC_ARROW);
+            }
+            else
+            {
+                result = DefWindowProcA(window, message, w_param, l_param);
+            }
+            
+        }
         break;
         
         case WM_DESTROY:
@@ -1920,38 +1992,54 @@ win32_window_get_dimensions(HWND window)
 internal void
 win32_window_display(win32_back_buffer *buffer, HDC device_context, u32 window_width, u32 window_height)
 {
-    s32 offset_x = 10;
-    s32 offset_y = 10;
     
-    // NOTE(MIGUEL): clear extra window area to black
-    PatBlt(device_context,
-           (0)           , (0)       , 
-           (window_width), (offset_y),
-           BLACKNESS);
-    
-    PatBlt(device_context,
-           (0)           , (offset_y + buffer->height),
-           (window_width), (window_width),
-           BLACKNESS);
-    
-    PatBlt(device_context,
-           (0)       , (0)            ,
-           (offset_x), (window_height),
-           BLACKNESS);
-    
-    PatBlt(device_context,
-           (offset_x + buffer->width), (0)            ,
-           (window_width)            , (window_height),
-           BLACKNESS);
-    
-    
-    StretchDIBits(device_context,
-                  offset_x, offset_y,
-                  buffer->width, buffer->height,
-                  0, 0,
-                  buffer->width,   buffer->height,
-                  buffer->data , &(buffer->info),
-                  DIB_RGB_COLORS, SRCCOPY);
+    if((window_width  == buffer->width  * 2) &&
+       (window_height == buffer->height * 2))
+    {
+        
+        StretchDIBits(device_context,
+                      0, 0,
+                      buffer->width * 2, buffer->height * 2,
+                      0, 0,
+                      buffer->width,   buffer->height,
+                      buffer->data , &(buffer->info),
+                      DIB_RGB_COLORS, SRCCOPY);
+    }
+    else
+    {
+        s32 offset_x = 10;
+        s32 offset_y = 10;
+        
+        // NOTE(MIGUEL): clear extra window area to black
+        PatBlt(device_context,
+               (0)           , (0)       , 
+               (window_width), (offset_y),
+               BLACKNESS);
+        
+        PatBlt(device_context,
+               (0)           , (offset_y + buffer->height),
+               (window_width), (window_width),
+               BLACKNESS);
+        
+        PatBlt(device_context,
+               (0)       , (0)            ,
+               (offset_x), (window_height),
+               BLACKNESS);
+        
+        PatBlt(device_context,
+               (offset_x + buffer->width), (0)            ,
+               (window_width)            , (window_height),
+               BLACKNESS);
+        
+        
+        StretchDIBits(device_context,
+                      offset_x, offset_y,
+                      buffer->width, buffer->height,
+                      0, 0,
+                      buffer->width,   buffer->height,
+                      buffer->data , &(buffer->info),
+                      DIB_RGB_COLORS, SRCCOPY);
+    }
     
     return;
 }
