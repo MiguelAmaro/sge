@@ -134,8 +134,8 @@ echo ==========                  D L L                 ==========
 echo ============================================================
 :COMPILE_WIN_DLL
 
-del *.pdb > NUL 2> NUL
-echo WAITING FOR PDB > lock.tmp
+rem del *.pdb > NUL 2> NUL
+rem echo WAITING FOR PDB > lock.tmp
 
 cl ^
 -std:c17 ^
@@ -151,7 +151,7 @@ glad.obj Win32_OpenGL.obj ^
 -EXPORT:SGEUpdate ^
 -EXPORT:SGEGetSoundSamples
 
-del lock.tmp
+rem del lock.tmp
 
 exit
 

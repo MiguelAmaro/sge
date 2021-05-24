@@ -1,5 +1,6 @@
 #include "sge.h"
 #include "sge_random.h"
+#include "sge_math.h"
 #include "stdio.h" // for debug tilemap out to file
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
@@ -62,10 +63,10 @@ game_draw_mini_map(game_state *state,
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * state->player_pos.tile_rel_x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * state->player_pos.tile_rel.x) + ((f32)rel_column           * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
-                                (meters_to_pixels * state->player_pos.tile_rel_y) -
+                                (meters_to_pixels * state->player_pos.tile_rel.y) -
                                 ((f32)rel_row     * tile_side_in_pixels));
                 
                 f32 min_x = x + center_x - 0.5f * tile_side_in_pixels;
@@ -222,8 +223,8 @@ substract(tile_map *tile_map, tile_map_position *a, tile_map_position *b)
     f32 dtiley = (f32)a->tile_abs_y - (f32)b->tile_abs_y;
     f32 dtilez = (f32)a->tile_abs_z - (f32)b->tile_abs_z;
     
-    result.dx = tile_map->tile_side_in_meters * dtilex + (a->tile_rel_x - b->tile_rel_x);
-    result.dy = tile_map->tile_side_in_meters * dtiley + (a->tile_rel_y - b->tile_rel_y);
+    result.dxy.x = tile_map->tile_side_in_meters * dtilex + (a->tile_rel.x - b->tile_rel.x);
+    result.dxy.y = tile_map->tile_side_in_meters * dtiley + (a->tile_rel.y - b->tile_rel.y);
     result.dz = tile_map->tile_side_in_meters * dtilez;
     
     return result;
@@ -303,8 +304,8 @@ SGE_UPDATE(SGEUpdate)
     {   
         sge_state->player_pos.tile_abs_x = 1;
         sge_state->player_pos.tile_abs_y = 3;
-        sge_state->player_pos.tile_rel_x = 5.0f;
-        sge_state->player_pos.tile_rel_y = 5.0f;
+        sge_state->player_pos.tile_rel.x = 5.0f;
+        sge_state->player_pos.tile_rel.y = 5.0f;
         sge_state->camera_pos.tile_abs_x = 17 / 2;
         sge_state->camera_pos.tile_abs_y =  9 / 2;
         
@@ -545,59 +546,73 @@ SGE_UPDATE(SGEUpdate)
         else
         {
             // NOTE(MIGUEL): use digital mov tunning
-            f32 delta_player_x = 0.0;
-            f32 delta_player_y = 0.0;
+            v2 player_pos_accel = { 0.0f };
             
             if(controller->button_y.ended_down)
             {
                 // up
-                delta_player_y = 1.0f;
+                player_pos_accel.y = 1.0f;
                 sge_state->facing_direction = 1;
             }
             if(controller->button_a.ended_down)
             {
                 // down
-                delta_player_y = -1.0f;
+                player_pos_accel.y = -1.0f;
                 sge_state->facing_direction = 3;
             }
             
             if(controller->button_x.ended_down)
             {
                 // left
-                delta_player_x = -1.0f;
+                player_pos_accel.x = -1.0f;
                 sge_state->facing_direction = 2;
             }
             
             if(controller->button_b.ended_down)
             {
                 // right
-                delta_player_x = 1.0f;
+                player_pos_accel.x = 1.0f;
                 sge_state->facing_direction = 0;
             }
             
-            
-            f32 player_speed = 2.0f;
+            // accel
+            f32 player_speed = 5.0f; // m/s^2
             if(controller->action_up.ended_down)
             {
                 // arrow up
-                player_speed = 10.0f;
+                player_speed = 10.0f; // m/s^2
             }
             
-            delta_player_x *= player_speed;
-            delta_player_y *= player_speed;
+            if((player_pos_accel.x != 0.0f) && (player_pos_accel.y != 0.0f))
+            {
+                f32 diagnal_comp = 0.707106781187f;
+                player_pos_accel = vec_scale_v2(player_pos_accel, diagnal_comp);
+            }
+            
+            player_pos_accel = vec_scale_v2(player_pos_accel, player_speed);
+            
+            player_pos_accel = vec_add_v2(vec_scale_v2(sge_state->d_player_pos, -1.0f),
+                                          player_pos_accel);
             
             /// get prev positon from state. add input to it. test new pos. updete pos in state if valid
             tile_map_position new_player_pos  = sge_state->player_pos;
-            new_player_pos.tile_rel_x     += delta_player_x * input->delta_t;
-            new_player_pos.tile_rel_y     += delta_player_y * input->delta_t;
-            new_player_pos                 = tile_recanonicalize_position(tilemap, new_player_pos);
+            
+            new_player_pos.tile_rel =
+                vec_add_v2(vec_add_v2(vec_scale_v2(vec_scale_v2(player_pos_accel, square(input->delta_t)), 0.5f),
+                                      vec_scale_v2(sge_state->d_player_pos, input->delta_t)),
+                           new_player_pos.tile_rel);
+            
+            sge_state->d_player_pos = vec_add_v2(vec_scale_v2(player_pos_accel, input->delta_t),
+                                                 sge_state->d_player_pos);
+            
+            new_player_pos = tile_recanonicalize_position(tilemap, new_player_pos);
             
             tile_map_position player_left = new_player_pos;
-            player_left.tile_rel_x -= 0.5f * player_width;
+            player_left.tile_rel.x -= 0.5f * player_width; 
             player_left = tile_recanonicalize_position(tilemap, player_left);
             
             tile_map_position player_right = new_player_pos ;
-            player_right.tile_rel_x += 0.5f * player_width;
+            player_right.tile_rel.x += 0.5f * player_width;
             player_right = tile_recanonicalize_position(tilemap, player_right);
             
             if(tile_is_point_empty(tilemap, player_left ) &&
@@ -627,19 +642,19 @@ SGE_UPDATE(SGEUpdate)
                                                  &sge_state->camera_pos);
             
             
-            if(diff.dx > (9.0f * tilemap->tile_side_in_meters))
+            if(diff.dxy.x > (9.0f * tilemap->tile_side_in_meters))
             {
                 sge_state->camera_pos.tile_abs_x += 17; 
             }
-            if(diff.dx < -(9.0f * tilemap->tile_side_in_meters))
+            if(diff.dxy.x < -(9.0f * tilemap->tile_side_in_meters))
             {
                 sge_state->camera_pos.tile_abs_x -= 17; 
             }
-            if(diff.dy > (5.0f * tilemap->tile_side_in_meters))
+            if(diff.dxy.y > (5.0f * tilemap->tile_side_in_meters))
             {
                 sge_state->camera_pos.tile_abs_y += 9; 
             }
-            if(diff.dy < -(5.0f * tilemap->tile_side_in_meters))
+            if(diff.dxy.y < -(5.0f * tilemap->tile_side_in_meters))
             {
                 sge_state->camera_pos.tile_abs_y -= 9; 
             }
@@ -681,10 +696,10 @@ SGE_UPDATE(SGEUpdate)
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * sge_state->camera_pos.tile_rel_x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * sge_state->camera_pos.tile_rel.x) + ((f32)rel_column           * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
-                                (meters_to_pixels * sge_state->camera_pos.tile_rel_y) -
+                                (meters_to_pixels * sge_state->camera_pos.tile_rel.y) -
                                 ((f32)rel_row     * tile_side_in_pixels));
                 
                 f32 min_x = center_x - 0.5f * tile_side_in_pixels;
@@ -764,8 +779,8 @@ SGE_UPDATE(SGEUpdate)
     f32 player_left = (screen_center_x - (0.5f * meters_to_pixels * player_width ));
     f32 player_top  = (screen_center_y - (1.0f * meters_to_pixels * player_height));
     
-    f32 player_ground_point_x = screen_center_x + meters_to_pixels * diff.dx;
-    f32 player_ground_point_y = screen_center_y - meters_to_pixels * diff.dy;
+    f32 player_ground_point_x = screen_center_x + meters_to_pixels * diff.dxy.x;
+    f32 player_ground_point_y = screen_center_y - meters_to_pixels * diff.dxy.y;
     
     game_draw_rectangle(back_buffer,
                         player_left, player_left + meters_to_pixels * player_width,

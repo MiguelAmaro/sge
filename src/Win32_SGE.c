@@ -2063,7 +2063,7 @@ win32_input_get_file_location(win32_state *state, b32 input_stream,
 internal win32_replay_buffer *
 win32_input_get_replay_buffer(win32_state *state, u32 index)
 {
-    ASSERT(index < 0);
+    ASSERT(index > 0);
     ASSERT(index < ARRAYCOUNT(state->input_replay_buffers));
     
     win32_replay_buffer *result = &state->input_replay_buffers[index];

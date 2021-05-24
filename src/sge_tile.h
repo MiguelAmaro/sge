@@ -3,6 +3,8 @@
 #ifndef SGE_TILE_H
 #define SGE_TILE_H
 
+#include "sge_math.h"
+
 
 #define TILE_DEFAULT_CHUNK_SHIFT (8)
 #define TILE_DEFAULT_CHUNK_MASK  ((1 << 8) - 1)
@@ -12,6 +14,12 @@ typedef struct
     u32 *tiles;
     
 } tile_chunk;
+
+typedef struct
+{
+    v2  dxy;
+    f32 dz;
+} tile_map_difference;
 
 typedef struct
 {
@@ -29,8 +37,9 @@ typedef struct
     u32 tile_abs_y;
     u32 tile_abs_z;
     
-    f32 tile_rel_x;
-    f32 tile_rel_y;
+    //f32 tile_rel_x;
+    //f32 tile_rel_y;
+    v2  tile_rel;
 } tile_map_position;
 
 typedef struct

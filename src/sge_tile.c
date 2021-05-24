@@ -26,8 +26,8 @@ tile_get_tile_chunk_position(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, 
     result.tile_chunk_y = tile_abs_y >> tilemap->chunk_shift;
     result.tile_chunk_z = tile_abs_z;
     
-    result.tile_rel_x   = tile_abs_x  & tilemap->chunk_mask;
-    result.tile_rel_y   = tile_abs_y  & tilemap->chunk_mask;
+    result.tile_rel_x   = (tile_abs_x  & tilemap->chunk_mask);
+    result.tile_rel_y   = (tile_abs_y  & tilemap->chunk_mask);
     
     return result;
 }
@@ -180,8 +180,8 @@ tile_recanonicalize_position(tile_map *tilemap, tile_map_position pos)
 {
     tile_map_position result = pos;
     
-    tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel_x);
-    tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel_y);
+    tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel.x);
+    tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel.y);
     
     return result;
 }

@@ -99,13 +99,6 @@ typedef struct
 
 typedef struct
 {
-    f32 dx;
-    f32 dy;
-    f32 dz;
-} tile_map_difference;
-
-typedef struct
-{
     u32 align_x;
     u32 align_y;
     bitmap_data head;
@@ -133,7 +126,7 @@ typedef struct
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;
     
-    f32 accelx; //my extra stuff
+    v2 d_player_pos; //velocity
     f32 accely;
 } game_state;
 
