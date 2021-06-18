@@ -18,16 +18,6 @@
 //#include "SGE_SerialPort.h"
 //#include "SGE_OpenGL.h"
 
-// NOTE(MIGUEL): HMH Plan & Track
-// TODO(MIGUEL): HMH 014(gamememory - if its very different than ryans)
-// TODO(MIGUEL): HMH 018
-// TODO(MIGUEL): HMH 019
-// TODO(MIGUEL): HMH 020
-// TODO(MIGUEL): HMH 023
-// TODO(MIGUEL): HMH 024
-// TODO(MIGUEL): HMH 028
-// TODO(MIGUEL): HMH ...
-
 //DONE!!! TODO(MIGUEL): Make a fucntion tx hat can read one file with vertex and fragment shader code
 // TODO(MIGUEL): Make a cube using the wiki opengl tutorial
 // TODO(MIGUEL): Create a movable object
@@ -1563,11 +1553,11 @@ win32_process_pending_messages(win32_state *state, game_controller_input *keyboa
                     }
                     else if(vk_code == VK_ESCAPE)
                     {
-                        win32_process_keyboard_message(&keyboard_controller->button_start, is_down);
+                        win32_process_keyboard_message(&keyboard_controller->button_back, is_down);
                     }
                     else if(vk_code == VK_SPACE) 
                     {
-                        win32_process_keyboard_message(&keyboard_controller->button_back, is_down);
+                        win32_process_keyboard_message(&keyboard_controller->button_start, is_down);
                     }
                     
 #if SGE_INTERNAL

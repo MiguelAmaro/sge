@@ -5,6 +5,14 @@
 
 #include "math.h"
 
+inline f32
+absolute_value(f32 value)
+{
+    f32 result = fabsf(value);
+    
+    return result;
+}
+
 inline s32
 round_f32_to_s32(f32 value)
 {

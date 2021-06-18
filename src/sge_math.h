@@ -5,7 +5,8 @@
 
 #include "LAL.h"
 
-typedef union
+typedef union v2 v2;
+union v2
 {
     struct
     {
@@ -14,7 +15,7 @@ typedef union
     };
     f32 e[2];
     
-} v2;
+};
 
 inline v2
 vec_negate_v2(v2 a)
@@ -27,15 +28,15 @@ vec_negate_v2(v2 a)
     return result;
 }
 
-inline v2
-vec_scale_v2(v2 a, f32 scalar)
+inline void
+vec_scale_v2(f32 scalar, v2 *dest)
 {
-    v2 result;
+    v2 *result = dest;
     
-    result.x = a.x * scalar;
-    result.y = a.y * scalar;
+    result->x = dest->x * scalar;
+    result->y = dest->y * scalar;
     
-    return result;
+    return;
 }
 
 inline v2
@@ -49,13 +50,29 @@ vec_sub_v2(v2 a, v2 b)
     return result;
 }
 
-inline v2
-vec_add_v2(v2 a, v2 b)
+inline void
+vec_add_v2(v2 a, v2 b, v2 *dest)
 {
-    v2 result;
+    v2 *result = dest;
     
-    result.x = a.x + b.x;
-    result.y = a.y + b.y;
+    result->x = a.x + b.x;
+    result->y = a.y + b.y;
+    
+    return;
+}
+
+inline f32
+vec_dot_v2(v2 a, v2 b)
+{
+    f32 result = (a.x * b.x) + (a.y * b.y);
+    
+    return result;
+}
+
+inline f32
+vec_length_sq_v2(v2 a)
+{
+    f32 result = vec_dot_v2(a, a);
     
     return result;
 }
@@ -67,6 +84,7 @@ square(f32 a)
     
     return result;
 }
+
 
 
 #endif //SGE_MATH_H

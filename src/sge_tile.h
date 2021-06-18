@@ -9,19 +9,23 @@
 #define TILE_DEFAULT_CHUNK_SHIFT (8)
 #define TILE_DEFAULT_CHUNK_MASK  ((1 << 8) - 1)
 
-typedef struct
+typedef struct TileChunk TileChunk;
+struct TileChunk
 {
     u32 *tiles;
     
-} tile_chunk;
+};
 
-typedef struct
+
+typedef struct TilemapDifference TilemapDifference;
+struct TilemapDifference
 {
     v2  dxy;
     f32 dz;
-} tile_map_difference;
+};
 
-typedef struct
+typedef struct TileChunkPosition TileChunkPosition;
+struct TileChunkPosition
 {
     u32 tile_chunk_x;
     u32 tile_chunk_y;
@@ -29,9 +33,11 @@ typedef struct
     
     u32 tile_rel_x;
     u32 tile_rel_y;
-} tile_chunk_position;
+};
 
-typedef struct
+
+typedef struct TilemapPosition TilemapPosition;
+struct TilemapPosition
 {
     u32 tile_abs_x;
     u32 tile_abs_y;
@@ -40,10 +46,12 @@ typedef struct
     //f32 tile_rel_x;
     //f32 tile_rel_y;
     v2  tile_rel;
-} tile_map_position;
+};
 
-typedef struct
+typedef struct Tilemap Tilemap;
+struct Tilemap
 {
+    TileChunk *tilechunks;
     u32 chunk_dimensions;
     u32 chunk_shift;
     u32 chunk_mask;
@@ -53,9 +61,8 @@ typedef struct
     u32 tilechunk_count_z;
     
     f32 tile_side_in_meters;
-    
-    tile_chunk *tilechunks;
-} tile_map;
+    u32 padding;
+};
 
 
 #endif //SGE_TILE_H

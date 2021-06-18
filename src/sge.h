@@ -19,19 +19,20 @@ safe_truncate_u64(u64 value)
 }
 
 
-typedef struct
+typedef struct MemoryArena MemoryArena;
+struct MemoryArena
 {
     memory_index size;
     memory_index used;
     u8 *base_ptr;
-} memory_arena;
+};
 
 
 
 //~ MEMORY INTERFACE
 
 internal void
-memory_arena_init(memory_arena *arena, memory_index size, u8 *base_ptr)
+MemoryArena_init(MemoryArena *arena, memory_index size, u8 *base_ptr)
 {
     arena->base_ptr = base_ptr;
     arena->size     = size;
@@ -40,10 +41,10 @@ memory_arena_init(memory_arena *arena, memory_index size, u8 *base_ptr)
     return;
 }
 
-#define MEMORY_ARENA_PUSH_STRUCT(arena,        type) (type *)memory_arena_push_data_structure(arena, sizeof(type))
-#define MEMORY_ARENA_PUSH_ARRAY( arena, count, type) (type *)memory_arena_push_data_structure(arena, (count) * sizeof(type))
+#define MEMORY_ARENA_PUSH_STRUCT(arena,        type) (type *)MemoryArena_push_data_structure(arena, sizeof(type))
+#define MEMORY_ARENA_PUSH_ARRAY( arena, count, type) (type *)MemoryArena_push_data_structure(arena, (count) * sizeof(type))
 internal void *
-memory_arena_push_data_structure(memory_arena *arena, memory_index size)
+MemoryArena_push_data_structure(MemoryArena *arena, memory_index size)
 {
     ASSERT((arena->used + size) <= arena->size);
     
@@ -58,14 +59,16 @@ memory_arena_push_data_structure(memory_arena *arena, memory_index size)
 #include "sge_tile.h"
 #include "sge_tile.c"
 
-typedef struct
+typedef struct World World;
+struct World
 {
-    tile_map *tilemap;
-} world;
+    Tilemap *tilemap;
+};
 
 
 #pragma pack(push, 1)
-typedef struct
+typedef struct BitmapHeader BitmapHeader;
+struct BitmapHeader
 {
     u16 file_type;
     u32 file_size;
@@ -87,48 +90,63 @@ typedef struct
     u32 red_mask;
     u32 green_mask;
     u32 blue_mask;
-} bitmap_header;
+};
 #pragma pack(pop)
 
-typedef struct
+typedef struct BitmapData BitmapData;
+struct BitmapData
 {
     s32  width;
     s32  height;
     u32 *pixels;
-} bitmap_data;
+};
+
+typedef struct Entity Entity;
+struct Entity
+{
+    b32               exists;
+    TilemapPosition pos;
+    v2                velocity;
+    u32 facing_direction;
+    f32 width;
+    f32 height;
+};
 
 typedef struct
 {
     u32 align_x;
     u32 align_y;
-    bitmap_data head;
-    bitmap_data cape;
-    bitmap_data torso;
+    BitmapData head;
+    BitmapData cape;
+    BitmapData torso;
 } player_bitmaps;
 
-typedef struct
+typedef struct GameState GameState;
+struct GameState 
 {
-    memory_arena the_world_arena;
-    world       *the_world      ;
+    MemoryArena world_arena;
+    World       *world      ;
     
-    tile_map_position player_pos;
-    tile_map_position camera_pos;
+    u32 camera_following_entity_index;
+    TilemapPosition camera_pos;
     
-    bitmap_data  back_drop;
-    bitmap_data  player_head;
-    bitmap_data  player_torso;
-    bitmap_data  player_cape;
-    bitmap_data  debug_bmp;
+    BitmapData  back_drop;
+    BitmapData  player_head;
+    BitmapData  player_torso;
+    BitmapData  player_cape;
+    BitmapData  debug_bmp;
     
-    u32 facing_direction;
     player_bitmaps playerbitmaps[4];
+    
+    u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
+    u32 entity_count;   //256
+    Entity entities[256];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;
     
-    v2 d_player_pos; //velocity
     f32 accely;
-} game_state;
+};
 
 //~ FUNCTION DECLERATIONS
 
@@ -157,7 +175,7 @@ internal void game_draw_rectangle(game_back_buffer *buffer,
                                   f32 r, f32 g, f32 b);
 
 
-internal void game_update_sound_buffer  (game_state *state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
+internal void game_update_sound_buffer  (GameState *state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
 
 inline game_controller_input *get_controller(game_input *input, u32 controller_index)
 {

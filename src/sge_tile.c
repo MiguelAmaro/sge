@@ -1,7 +1,7 @@
-inline tile_chunk * 
-tile_get_tile_chunk(tile_map *tilemap, u32 tilechunk_x, u32 tilechunk_y, u32 tilechunk_z)
+inline TileChunk *
+tile_get_TileChunk(Tilemap *tilemap, u32 tilechunk_x, u32 tilechunk_y, u32 tilechunk_z)
 {
-    tile_chunk *tilechunk = NULLPTR;
+    TileChunk *tilechunk = NULLPTR;
     
     if((tilechunk_x >= 0) && (tilechunk_x < tilemap->tilechunk_count_x) &&
        (tilechunk_y >= 0) && (tilechunk_y < tilemap->tilechunk_count_y) &&
@@ -17,10 +17,10 @@ tile_get_tile_chunk(tile_map *tilemap, u32 tilechunk_x, u32 tilechunk_y, u32 til
 
 
 //~ GET ACCESSORS
-inline tile_chunk_position
-tile_get_tile_chunk_position(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
+inline TileChunkPosition
+tile_get_TileChunkPosition(Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
 {
-    tile_chunk_position result;
+    TileChunkPosition result;
     
     result.tile_chunk_x = tile_abs_x >> tilemap->chunk_shift;
     result.tile_chunk_y = tile_abs_y >> tilemap->chunk_shift;
@@ -33,7 +33,7 @@ tile_get_tile_chunk_position(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, 
 }
 
 inline u32
-tile_get_tile_value_unchecked(tile_map *tilemap, tile_chunk *tilechunk, u32 tile_x, u32 tile_y)
+tile_get_tile_value_unchecked(Tilemap *tilemap, TileChunk *tilechunk, u32 tile_x, u32 tile_y)
 {
     ASSERT(tilechunk);
     ASSERT(tile_x < tilemap->chunk_dimensions);
@@ -45,7 +45,7 @@ tile_get_tile_value_unchecked(tile_map *tilemap, tile_chunk *tilechunk, u32 tile
 }
 
 internal u32
-tile_get_tile_value_if_valid_chunk(tile_map *tilemap, tile_chunk *tilechunk, u32 test_x, u32 test_y)
+tile_get_tile_value_if_valid_chunk(Tilemap *tilemap, TileChunk *tilechunk, u32 test_x, u32 test_y)
 {
     u32 tilechunk_value = 0;
     
@@ -58,17 +58,17 @@ tile_get_tile_value_if_valid_chunk(tile_map *tilemap, tile_chunk *tilechunk, u32
 }
 
 internal u32
-tile_get_tile_value(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
+tile_get_tile_value(Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
 {
-    tile_chunk_position chunk_pos = tile_get_tile_chunk_position(tilemap,
-                                                                 tile_abs_x,
-                                                                 tile_abs_y,
-                                                                 tile_abs_z);
+    TileChunkPosition chunk_pos = tile_get_TileChunkPosition(tilemap,
+                                                             tile_abs_x,
+                                                             tile_abs_y,
+                                                             tile_abs_z);
     
-    tile_chunk         *tilechunk = tile_get_tile_chunk(tilemap,
-                                                        chunk_pos.tile_chunk_x,
-                                                        chunk_pos.tile_chunk_y,
-                                                        chunk_pos.tile_chunk_z);
+    TileChunk         *tilechunk = tile_get_TileChunk(tilemap,
+                                                      chunk_pos.tile_chunk_x,
+                                                      chunk_pos.tile_chunk_y,
+                                                      chunk_pos.tile_chunk_z);
     
     u32           tilechunk_value = tile_get_tile_value_if_valid_chunk(tilemap,
                                                                        tilechunk,
@@ -80,7 +80,7 @@ tile_get_tile_value(tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_
 }
 
 internal u32
-tile_get_tile_value_tilemap_pos(tile_map *tilemap, tile_map_position pos)
+tile_get_tile_value_tilemap_pos(Tilemap *tilemap, TilemapPosition pos)
 {
     u32 tilechunk_value = tile_get_tile_value(tilemap, pos.tile_abs_x, pos.tile_abs_y, pos.tile_abs_z);
     
@@ -89,7 +89,7 @@ tile_get_tile_value_tilemap_pos(tile_map *tilemap, tile_map_position pos)
 
 //~ SET ACCESSORS
 inline void
-tile_set_tile_value_unchecked(tile_map *tilemap, tile_chunk *tilechunk, u32 tile_x, u32 tile_y, u32 tile_value)
+tile_set_tile_value_unchecked(Tilemap *tilemap, TileChunk *tilechunk, u32 tile_x, u32 tile_y, u32 tile_value)
 {
     ASSERT(tilechunk);
     ASSERT(tile_x < tilemap->chunk_dimensions);
@@ -101,7 +101,7 @@ tile_set_tile_value_unchecked(tile_map *tilemap, tile_chunk *tilechunk, u32 tile
 }
 
 internal void
-tile_set_tile_value_if_valid_chunk(tile_map *tilemap, tile_chunk *tilechunk, u32 test_x, u32 test_y, u32 tile_value)
+tile_set_tile_value_if_valid_chunk(Tilemap *tilemap, TileChunk *tilechunk, u32 test_x, u32 test_y, u32 tile_value)
 {
     if(tilechunk && tilechunk->tiles)
     {
@@ -112,17 +112,17 @@ tile_set_tile_value_if_valid_chunk(tile_map *tilemap, tile_chunk *tilechunk, u32
 }
 
 internal void
-tile_set_tile_value(memory_arena *arena, tile_map *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z, u32 tile_value)
+tile_set_tile_value(MemoryArena *arena, Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z, u32 tile_value)
 {
-    tile_chunk_position chunk_pos = tile_get_tile_chunk_position(tilemap,
-                                                                 tile_abs_x,
-                                                                 tile_abs_y,
-                                                                 tile_abs_z)
+    TileChunkPosition chunk_pos = tile_get_TileChunkPosition(tilemap,
+                                                             tile_abs_x,
+                                                             tile_abs_y,
+                                                             tile_abs_z)
         ;
-    tile_chunk         *tilechunk = tile_get_tile_chunk(tilemap,
-                                                        chunk_pos.tile_chunk_x,
-                                                        chunk_pos.tile_chunk_y,
-                                                        chunk_pos.tile_chunk_z);
+    TileChunk         *tilechunk = tile_get_TileChunk(tilemap,
+                                                      chunk_pos.tile_chunk_x,
+                                                      chunk_pos.tile_chunk_y,
+                                                      chunk_pos.tile_chunk_z);
     
     ASSERT(tilechunk);
     
@@ -146,22 +146,31 @@ tile_set_tile_value(memory_arena *arena, tile_map *tilemap, u32 tile_abs_x, u32 
     return;
 }
 
+
+inline b32
+tile_is_tile_value_empty(u32 tile_value)
+{
+    b32 is_empty = ((tile_value == 1) ||
+                    (tile_value == 3) ||
+                    (tile_value == 4));
+    
+    return is_empty;
+}
+
 internal b32
-tile_is_point_empty(tile_map *tilemap, tile_map_position can_pos)
+tile_is_point_empty(Tilemap *tilemap, TilemapPosition can_pos)
 {
     b32 is_empty = 1;
     
     // NOTE(MIGUEL): tile system query when rendering to screen
     u32 tilechunk_value = tile_get_tile_value(tilemap, can_pos.tile_abs_x, can_pos.tile_abs_y, can_pos.tile_abs_z);
-    is_empty = ((tilechunk_value == 1) ||
-                (tilechunk_value == 3) ||
-                (tilechunk_value == 4));
+    is_empty = tile_is_tile_value_empty(tilechunk_value);
     
     return is_empty;
 }
 
 inline void
-tile_recanonicalize_coord(tile_map *tilemap, s32 *tile, f32 *tile_rel)
+tile_recanonicalize_coord(Tilemap *tilemap, s32 *tile, f32 *tile_rel)
 {
     //offset = displacement, where units are tiles
     s32 offset = round_f32_to_s32(*tile_rel / tilemap->tile_side_in_meters );
@@ -175,10 +184,10 @@ tile_recanonicalize_coord(tile_map *tilemap, s32 *tile, f32 *tile_rel)
     return;
 }
 
-inline tile_map_position
-tile_recanonicalize_position(tile_map *tilemap, tile_map_position pos)
+inline TilemapPosition
+tile_recanonicalize_position(Tilemap *tilemap, TilemapPosition pos)
 {
-    tile_map_position result = pos;
+    TilemapPosition result = pos;
     
     tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel.x);
     tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel.y);
@@ -187,11 +196,24 @@ tile_recanonicalize_position(tile_map *tilemap, tile_map_position pos)
 }
 
 inline b32
-tile_is_on_same_tile(tile_map_position *a, tile_map_position *b)
+tile_is_on_same_tile(TilemapPosition *a, TilemapPosition *b)
 {
     b32 result = ((a->tile_abs_x == b->tile_abs_x) &&
                   (a->tile_abs_y == b->tile_abs_y) &&
                   (a->tile_abs_z == b->tile_abs_z));
+    
+    return result;
+}
+
+
+inline TilemapPosition
+tile_centered_tile_point(u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
+{
+    TilemapPosition result = { 0 };
+    
+    result.tile_abs_x = tile_abs_x;
+    result.tile_abs_y = tile_abs_y;
+    result.tile_abs_z = tile_abs_z;
     
     return result;
 }

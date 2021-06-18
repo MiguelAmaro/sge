@@ -3,7 +3,6 @@
 #ifndef SGE_RENDERER_H
 #define SGE_RENDERER_H
 
-#include "SGE_Entity.h"
 #include "SGE_Platform.h"
 #include "LAL.h"
 
