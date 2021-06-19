@@ -6,7 +6,10 @@
 
 //#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
 #define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
-#define PI_32BIT 3.14159265359
+#define PI_32BIT 3.14159265359f
+
+#define MINIMUM(a, b) ((a < b) ? (a) : (b))
+#define MAXIMUM(a, b) ((a > b) ? (a) : (b))
 
 inline u32
 safe_truncate_u64(u64 value)
@@ -170,9 +173,7 @@ internal void game_render_weird_gradient(game_back_buffer *buffer, s32 x_offset,
 
 
 internal void game_draw_rectangle(game_back_buffer *buffer,
-                                  f32 real_min_x, f32 real_max_x,
-                                  f32 real_min_y, f32 real_max_y,
-                                  f32 r, f32 g, f32 b);
+                                  v2 min, v2 max, f32 r, f32 g, f32 b);
 
 
 internal void game_update_sound_buffer  (GameState *state, game_sound_output_buffer *sound_buffer, u32 tone_hz);

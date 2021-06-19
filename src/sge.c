@@ -88,8 +88,8 @@ game_draw_mini_map(GameState *state,
                 {
                     // FLOOR
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray + 0.1f, gray + 0.5f, gray);
                     
                 }
@@ -99,8 +99,8 @@ game_draw_mini_map(GameState *state,
                     gray = 0.8f;
                     
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray, gray, gray);
                 }
                 else if(tileid == 3)
@@ -109,8 +109,8 @@ game_draw_mini_map(GameState *state,
                     gray = 0.0f;
                     
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray, gray, gray);
                 }
                 
@@ -127,8 +127,8 @@ game_draw_mini_map(GameState *state,
                         
                         // SHADOW
                         game_draw_rectangle(back_buffer,
-                                            min_x, max_x,
-                                            min_y, max_y,
+                                            (v2){min_x,min_y},
+                                            (v2){max_x,max_y},
                                             gray + 0.1f, gray + 0.5f, gray);
                     }
                 }
@@ -303,10 +303,11 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
 {
     Tilemap *tilemap = state->world->tilemap;
     
-    if((acceleration.x != 0.0f) && (acceleration.y != 0.0f))
+    f32 accel_magnitude = vec_dot_v2(acceleration, acceleration);
+    
+    if(accel_magnitude > 1.0f)
     {
-        f32 diagnal_comp = 0.707106781187f;
-        vec_scale_v2(diagnal_comp, &acceleration);
+        vec_scale_v2(1.0f / square_root(accel_magnitude), &acceleration);
     }
     
     TilemapPosition old_pos = entity->pos;
@@ -336,7 +337,7 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
     // Store velocity equation for next iteration
     a = acceleration;
     v = entity->velocity;
-    vec_scale_v2(speed, &a); // Tune the accleration with speed
+    vec_scale_v2(speed, &a);    // Tune the accleration with speed
     vec_scale_v2(friction, &v); // Apply friction to acceleration
     vec_add_v2(a, v, &a);
     vec_scale_v2(0.5f , &a);
@@ -410,16 +411,17 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
         entity->pos = new_pos;
     }
 #else
+    u32 min_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
+    u32 min_tile_y = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
+    u32 one_past_max_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x) + 1;
+    u32 one_past_max_tile_y = MAXIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y) + 1;
+    
     u32 tile_abs_z = state->entity_pos.tile_abs_z;
-    u32 min_tile_x = 0;
-    u32 min_tile_y = 0;
-    u32 one_past_max_tile_x = 0;
-    u32 one_past_max_tile_y = 0;
-    TilemapPosition best_entity_pos = state->entity_pos;
+    f32 t_min = 1.0f;
     
-    f32 best_distance = vec_length_sq_v2(player_delta);
-    
-    for(u32 tile_abs_y = min_tile_y; tile_abs_y != one_past_max_tile_y; tile_abs_y++)
+    f32 best_distance = vec_length_sq_v2(player_delta);d
+        
+        for(u32 tile_abs_y = min_tile_y; tile_abs_y != one_past_max_tile_y; tile_abs_y++)
     {
         for(u32 tile_abs_x = min_tile_x; tile_abs_x != one_past_max_tile_x; tile_abs_x++)
         {
@@ -432,12 +434,18 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
                 v2 min_corner = { 0.5f / tilemap->tile_side_in_meters, -0.5f * tilemap->tile_side_in_meters };
                 v2 max_corner = { 0.5f / tilemap->tile_side_in_meters,  0.5f * tilemap->tile_side_in_meters };
                 
-                
                 tile_map_difference rel_new_pos = substract(tilemap,
                                                             &test_tile_pos,
                                                             &new_pos);
                 
                 v2 test_pos = closest_point_in_rect(min_corner, max_corner, rel_new_pos);
+                
+                v2 rel = rel_new_pos.dxy;
+                position_delta;
+                
+                t_result = (wall_x - rel_new_pos.x) / position_delta.x;
+                test_wall(min_corner.x, max_corner.y, min_corner.y, rel_new_pos.x);
+                
             }
         }
     }
@@ -874,12 +882,12 @@ SGE_UPDATE(SGEUpdate)
     
     /// debug purp background clear
     game_draw_rectangle(back_buffer,
-                        0.0f, (f32)back_buffer->width,
-                        0.0f, (f32)back_buffer->height,
+                        (v2){0.0f, 0.0f} ,
+                        (v2){(f32)back_buffer->width,(f32)back_buffer->height},
                         0.4f, 0.8f, 1.0f);
     
     
-    //game_draw_bitmap(back_buffer, &game_state->back_drop, 0.0f, 0.0f, 0, 0);
+    game_draw_bitmap(back_buffer, &game_state->back_drop, 0.0f, 0.0f, 0, 0);
     
     
     f32 screen_center_x = 0.5f * (f32)back_buffer->width;
@@ -927,7 +935,7 @@ SGE_UPDATE(SGEUpdate)
                 if(tileid == 1)
                 {
                     // FLOOR
-#if 1
+#if 0
                     game_draw_rectangle(back_buffer,
                                         min_x, max_x,
                                         min_y, max_y,
@@ -940,8 +948,8 @@ SGE_UPDATE(SGEUpdate)
                     gray = 0.8f;
                     
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray, gray, gray);
                 }
                 else if(tileid == 3)
@@ -950,8 +958,8 @@ SGE_UPDATE(SGEUpdate)
                     gray = 0.85f;
                     
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray, gray + 0.09f, gray + 0.1f);
                 }
                 else if(tileid == 4)
@@ -960,8 +968,8 @@ SGE_UPDATE(SGEUpdate)
                     gray = 0.15f;
                     
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray, gray, gray);
                 }
                 
@@ -972,8 +980,8 @@ SGE_UPDATE(SGEUpdate)
                     gray = 0.0f;
                     // SHADOW
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray + 0.1f, gray + 0.5f, gray);
                 }
             }
@@ -1000,9 +1008,20 @@ SGE_UPDATE(SGEUpdate)
             f32 player_ground_point_x = screen_center_x + meters_to_pixels * diff.dxy.x;
             f32 player_ground_point_y = screen_center_y - meters_to_pixels * diff.dxy.y;
             
+            v2 player_dimensions = { entity->width, entity->height };
+            v2 player_bottom_right = { 0 };
+            v2 player_top_left = 
+            {
+                player_ground_point_x - 0.5f * meters_to_pixels * entity->width, 
+                player_ground_point_y - meters_to_pixels * entity->height
+            };
+            
+            vec_scale_v2(meters_to_pixels, &player_dimensions);
+            vec_add_v2(player_top_left, player_dimensions, &player_bottom_right);
+            
             game_draw_rectangle(back_buffer,
-                                player_left, player_left + meters_to_pixels * entity->width,
-                                player_top , player_top  + meters_to_pixels * entity->height,
+                                player_top_left,
+                                player_bottom_right,
                                 0.9f, 0.9f, 0.0f);
             
             player_bitmaps *playerbitmaps = &game_state->playerbitmaps[entity->facing_direction];
@@ -1064,16 +1083,14 @@ internal void game_update_sound_buffer(GameState *state, game_sound_output_buffe
 
 internal void
 game_draw_rectangle(game_back_buffer *buffer,
-                    f32 real_min_x, f32 real_max_x,
-                    f32 real_min_y, f32 real_max_y,
-                    f32 r, f32 g, f32 b)
+                    v2 min, v2 max, f32 r, f32 g, f32 b)
 {
     /// rounding / ruling
-    s32 min_x = round_f32_to_s32(real_min_x);
-    s32 min_y = round_f32_to_s32(real_min_y);
+    s32 min_x = round_f32_to_s32(min.x);
+    s32 min_y = round_f32_to_s32(min.y);
     
-    s32 max_x = round_f32_to_s32(real_max_x);
-    s32 max_y = round_f32_to_s32(real_max_y);
+    s32 max_x = round_f32_to_s32(max.x);
+    s32 max_y = round_f32_to_s32(max.y);
     
     /// clipping
     // NOTE(MIGUEL): will right to but not including the final row 

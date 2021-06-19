@@ -61,6 +61,7 @@ vec_add_v2(v2 a, v2 b, v2 *dest)
     return;
 }
 
+// aka inner product
 inline f32
 vec_dot_v2(v2 a, v2 b)
 {
@@ -85,6 +86,12 @@ square(f32 a)
     return result;
 }
 
-
+inline f32
+square_root(f32 a)
+{
+    f32 result = sqrtf(a);
+    
+    return result;
+}
 
 #endif //SGE_MATH_H
