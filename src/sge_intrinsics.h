@@ -5,6 +5,15 @@
 
 #include "math.h"
 
+
+inline s32
+sign_of(s32 value)
+{
+    s32 result =  (value >= 0) ? 1 : -1;
+    
+    return result;
+}
+
 inline f32
 absolute_value(f32 value)
 {

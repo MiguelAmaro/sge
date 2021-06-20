@@ -18,7 +18,7 @@ union v2
 };
 
 inline v2
-vec_negate_v2(v2 a)
+v2_negate(v2 a)
 {
     v2 result;
     
@@ -29,7 +29,7 @@ vec_negate_v2(v2 a)
 }
 
 inline void
-vec_scale_v2(f32 scalar, v2 *dest)
+v2_scale(f32 scalar, v2 *dest)
 {
     v2 *result = dest;
     
@@ -40,7 +40,7 @@ vec_scale_v2(f32 scalar, v2 *dest)
 }
 
 inline v2
-vec_sub_v2(v2 a, v2 b)
+v2_sub(v2 a, v2 b)
 {
     v2 result;
     
@@ -51,7 +51,7 @@ vec_sub_v2(v2 a, v2 b)
 }
 
 inline void
-vec_add_v2(v2 a, v2 b, v2 *dest)
+v2_add(v2 a, v2 b, v2 *dest)
 {
     v2 *result = dest;
     
@@ -63,7 +63,7 @@ vec_add_v2(v2 a, v2 b, v2 *dest)
 
 // aka inner product
 inline f32
-vec_dot_v2(v2 a, v2 b)
+v2_dot(v2 a, v2 b)
 {
     f32 result = (a.x * b.x) + (a.y * b.y);
     
@@ -71,9 +71,9 @@ vec_dot_v2(v2 a, v2 b)
 }
 
 inline f32
-vec_length_sq_v2(v2 a)
+v2_length_sq(v2 a)
 {
-    f32 result = vec_dot_v2(a, a);
+    f32 result = v2_dot(a, a);
     
     return result;
 }

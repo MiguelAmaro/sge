@@ -16,7 +16,6 @@ struct TileChunk
     
 };
 
-
 typedef struct TilemapDifference TilemapDifference;
 struct TilemapDifference
 {
@@ -43,9 +42,7 @@ struct TilemapPosition
     u32 tile_abs_y;
     u32 tile_abs_z;
     
-    //f32 tile_rel_x;
-    //f32 tile_rel_y;
-    v2  tile_rel;
+    v2  tile_rel_;
 };
 
 typedef struct Tilemap Tilemap;

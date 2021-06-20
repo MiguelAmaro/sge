@@ -107,9 +107,9 @@ struct BitmapData
 typedef struct Entity Entity;
 struct Entity
 {
-    b32               exists;
+    b32             exists;
     TilemapPosition pos;
-    v2                velocity;
+    v2              velocity;
     u32 facing_direction;
     f32 width;
     f32 height;

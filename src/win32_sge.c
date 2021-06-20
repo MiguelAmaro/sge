@@ -31,8 +31,6 @@
 
 #define RENDER_OPENGL (0)
 
-#define PI_32BIT 3.14159265359
-
 
 //~ GLOBALS
 global b32 g_running = true ;

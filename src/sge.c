@@ -54,7 +54,7 @@ game_draw_mini_map(GameState *state,
             u32 column = entity->pos.tile_abs_x + rel_column;
             u32 row    = entity->pos.tile_abs_y + rel_row;
             
-            u32 tileid = tile_get_tile_value(tilemap, column, row, entity->pos.tile_abs_z );
+            u32 tileid = Tile_get_tile_value(tilemap, column, row, entity->pos.tile_abs_z );
             
             if(tileid > 0)
             {
@@ -66,10 +66,11 @@ game_draw_mini_map(GameState *state,
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * entity->pos.tile_rel.x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * entity->pos.tile_rel_.x) +
+                                ((f32)rel_column * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
-                                (meters_to_pixels * entity->pos.tile_rel.y) -
+                                (meters_to_pixels * entity->pos.tile_rel_.y) -
                                 ((f32)rel_row     * tile_side_in_pixels));
                 
                 f32 min_x = x + center_x - 0.5f * tile_side_in_pixels;
@@ -223,24 +224,6 @@ game_draw_bitmap(game_back_buffer *buffer, BitmapData *bitmap, f32 real_x, f32 r
     return;
 }
 
-
-inline TilemapDifference
-substract(Tilemap *tilemap, TilemapPosition *a, TilemapPosition *b)
-{
-    TilemapDifference result;
-    
-    f32 dtilex = (f32)a->tile_abs_x - (f32)b->tile_abs_x;
-    f32 dtiley = (f32)a->tile_abs_y - (f32)b->tile_abs_y;
-    f32 dtilez = (f32)a->tile_abs_z - (f32)b->tile_abs_z;
-    
-    result.dxy.x = tilemap->tile_side_in_meters * dtilex + (a->tile_rel.x - b->tile_rel.x);
-    result.dxy.y = tilemap->tile_side_in_meters * dtiley + (a->tile_rel.y - b->tile_rel.y);
-    result.dz = tilemap->tile_side_in_meters * dtilez;
-    
-    return result;
-}
-
-
 internal BitmapData
 debug_load_bmp(thread_context *thread, DEBUG_PlatformReadEntireFile *read_entire_file, u8 *file_name)
 {
@@ -297,79 +280,97 @@ debug_load_bmp(thread_context *thread, DEBUG_PlatformReadEntireFile *read_entire
     return result;
 }
 
-#if 1
+internal void
+testwall(f32 wall_x, f32 rel_x, f32 rel_y, f32 position_delta_x, f32 position_delta_y, f32 min_y, f32 max_y, f32 *t_min)
+{
+    f32 t_epsilon = 0.0001f; // floating point tolerance
+    
+    if(position_delta_y != 0.0f)
+    {
+        f32 t_result = (wall_x - rel_x) / position_delta_x;
+        f32 y        = rel_y + t_result * position_delta_y;
+        
+        if((t_result >= 0) && (*t_min > t_result))
+        {
+            if((y >= min_y) && (y <= max_y))
+            {
+                *t_min = MAXIMUM(0.0f, t_result - t_epsilon);
+            }
+        }
+    }
+    
+    return;
+}
+
 internal void
 player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
 {
     Tilemap *tilemap = state->world->tilemap;
     
-    f32 accel_magnitude = vec_dot_v2(acceleration, acceleration);
+    f32 accel_magnitude = v2_dot(acceleration, acceleration);
     
     if(accel_magnitude > 1.0f)
     {
-        vec_scale_v2(1.0f / square_root(accel_magnitude), &acceleration);
+        v2_scale(1.0f / square_root(accel_magnitude), &acceleration);
     }
     
+    v2 v = entity->velocity;
+    v2 a = acceleration;
     TilemapPosition old_pos = entity->pos;
-    TilemapPosition new_pos = old_pos;
+    //TilemapPosition new_pos = old_pos;
     f32 speed    = 100.0f; // m/s^2
     f32 friction = -12.0f;
     
-    // Create acceleration component
+    v2_scale(speed, &acceleration); // Tune the accleration with speed
+    v2_scale(friction, &v); // Apply friction to acceleration
+    v2_add  (acceleration, v, &acceleration);
+    
     v2 position_delta = { 0 };
-    v2 a = acceleration;
-    v2 v = entity->velocity;
-    
-    // Create acceleration component
-    vec_scale_v2(speed   , &a); // Tune the accleration with speed
-    vec_scale_v2(friction, &v); // Apply friction to acceleration
-    vec_add_v2(a, v, &a);
-    vec_scale_v2(0.5f , &a);
-    vec_scale_v2(square(delta_t), &a);
-    v = entity->velocity; // restore v
-    // Create velocity component
-    vec_scale_v2(delta_t , &v);
-    // Join acceleration and velocity
-    vec_add_v2  (a, v, &position_delta);
-    // Joint acceleration and velocity with old position for Updated position
-    vec_add_v2(position_delta, new_pos.tile_rel, &new_pos.tile_rel);
-    
-    // Store velocity equation for next iteration
     a = acceleration;
     v = entity->velocity;
-    vec_scale_v2(speed, &a);    // Tune the accleration with speed
-    vec_scale_v2(friction, &v); // Apply friction to acceleration
-    vec_add_v2(a, v, &a);
-    vec_scale_v2(0.5f , &a);
-    vec_scale_v2(delta_t, &a);
-    vec_add_v2  (a, entity->velocity, &entity->velocity);
+    // ACCELRATION COMPONENT
+    v2_scale(0.5f , &a);
+    v2_scale(square(delta_t), &a);
+    // VELOCITY COMPONENT
+    v2_scale(delta_t , &v);
+    v2_add  (a, v, &position_delta); // NOTE(MIGUEL): do not alter value! used a bit lower in the function
     
-    new_pos = tile_recanonicalize_position(tilemap, new_pos);
+    // STORE VELOCITY EQUATION
+    a = acceleration;
+    v = entity->velocity;
+    v2_add(a, v, &a);
+    v2_scale(0.5f , &a);
+    v2_scale(delta_t, &a);
+    v2_add  (a, entity->velocity, &entity->velocity);
     
-#if 1
+    TilemapPosition new_pos = Tile_offset(tilemap, old_pos, position_delta);
+    // UPDATED PLAYER POSITION
+    new_pos = Tile_recanonicalize_position(tilemap, new_pos);
+    
+#if 0 
+    
     TilemapPosition new_pos_left = new_pos;
-    
     new_pos_left.tile_rel.x -= 0.5f * entity->width; 
-    new_pos_left = tile_recanonicalize_position(tilemap, new_pos_left);
+    new_pos_left = Tile_recanonicalize_position(tilemap, new_pos_left);
     
     TilemapPosition new_pos_right = new_pos ;
     new_pos_right.tile_rel.x += 0.5f * entity->width;
-    new_pos_right = tile_recanonicalize_position(tilemap, new_pos_right);
+    new_pos_right = Tile_recanonicalize_position(tilemap, new_pos_right);
     
     b32 collided = 0;
     
     TilemapPosition collided_pos = { 0 };
-    if(!tile_is_point_empty(tilemap, new_pos) )
+    if(!Tile_is_point_empty(tilemap, new_pos) )
     {
         collided_pos = new_pos;
         collided = 1;
     }
-    if(!tile_is_point_empty(tilemap, new_pos_left) )
+    if(!Tile_is_point_empty(tilemap, new_pos_left) )
     {
         collided_pos = new_pos_left;
         collided = 1;
     }
-    if(!tile_is_point_empty(tilemap, new_pos_right) )
+    if(!Tile_is_point_empty(tilemap, new_pos_right) )
     {
         collided_pos = new_pos_right;
         collided = 1;
@@ -402,58 +403,119 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
             normal.y = -1;
         }
         
-        vec_scale_v2(vec_dot_v2(*player_vel, normal), &normal);
-        vec_scale_v2(1.0f, &normal);
-        *player_vel = vec_sub_v2  (*player_vel, normal);
+        v2_scale(v2_dot(*player_vel, normal), &normal);
+        v2_scale(1.0f, &normal);
+        *player_vel = v2_sub(*player_vel, normal);
     }
     else
     {
         entity->pos = new_pos;
     }
 #else
-    u32 min_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
-    u32 min_tile_y = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
-    u32 one_past_max_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x) + 1;
+    // NOTE(MIGUEL): FAILS MOVING LEFT ON PLAYER INIT AND OTHER CASES
+    // NOTE(MIGUEL): HACK: MOVE RIGHT THEN DOWN ACTIVATES COLLISION DETECTION
+#if 0
+    u32 min_tile_x          = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
+    u32 min_tile_y          = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
+    u32 one_past_max_tile_x = MAXIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x) + 1;
     u32 one_past_max_tile_y = MAXIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y) + 1;
+#else
+    u32 start_tile_x = old_pos.tile_abs_x;
+    u32 start_tile_y = old_pos.tile_abs_y;
+    u32 end_tile_x   = new_pos.tile_abs_x;
+    u32 end_tile_y   = new_pos.tile_abs_y;
     
-    u32 tile_abs_z = state->entity_pos.tile_abs_z;
-    f32 t_min = 1.0f;
-    
-    f32 best_distance = vec_length_sq_v2(player_delta);d
-        
-        for(u32 tile_abs_y = min_tile_y; tile_abs_y != one_past_max_tile_y; tile_abs_y++)
-    {
-        for(u32 tile_abs_x = min_tile_x; tile_abs_x != one_past_max_tile_x; tile_abs_x++)
-        {
-            TilemapPosition test_tile_pos = tile_centered_tile_point(tile_abs_x, tile_abs_y, tile_abs_z );
-            
-            u32 tile_value = tile_get_tile_value(tilemap, tile_abs_x, tile_abs_y, tile_abs_z);
-            
-            if(tile_is_tile_value_empty(tile_value))
-            {
-                v2 min_corner = { 0.5f / tilemap->tile_side_in_meters, -0.5f * tilemap->tile_side_in_meters };
-                v2 max_corner = { 0.5f / tilemap->tile_side_in_meters,  0.5f * tilemap->tile_side_in_meters };
-                
-                tile_map_difference rel_new_pos = substract(tilemap,
-                                                            &test_tile_pos,
-                                                            &new_pos);
-                
-                v2 test_pos = closest_point_in_rect(min_corner, max_corner, rel_new_pos);
-                
-                v2 rel = rel_new_pos.dxy;
-                position_delta;
-                
-                t_result = (wall_x - rel_new_pos.x) / position_delta.x;
-                test_wall(min_corner.x, max_corner.y, min_corner.y, rel_new_pos.x);
-                
-            }
-        }
-    }
+    s32 delta_x = sign_of(end_tile_x - start_tile_x);
+    s32 delta_y = sign_of(end_tile_y - start_tile_y);
 #endif
     
-    if(!tile_is_on_same_tile(&old_pos, &entity->pos))
+    u32 tile_abs_z = entity->pos.tile_abs_z;
+    f32 t_min = 1.0f;
+    
+    u32 tile_abs_y = start_tile_y; 
+    for(;;)
     {
-        u32 new_tile_value =  tile_get_tile_value_tilemap_pos(tilemap, entity->pos);
+        u32 tile_abs_x = start_tile_x; 
+        for(;;)
+        {
+            TilemapPosition test_tile_pos = Tile_centered_tile_point(tile_abs_x, tile_abs_y, tile_abs_z );
+            u32             tile_value    = Tile_get_tile_value(tilemap,
+                                                                test_tile_pos.tile_abs_x,
+                                                                test_tile_pos.tile_abs_y,
+                                                                test_tile_pos.tile_abs_z);
+            
+            if(!Tile_is_tile_value_empty(tile_value))
+            {
+                v2 min_corner = { tilemap->tile_side_in_meters, tilemap->tile_side_in_meters };
+                v2 max_corner = { tilemap->tile_side_in_meters, tilemap->tile_side_in_meters };
+                v2_scale(-0.5f, &min_corner);
+                v2_scale( 0.5f, &max_corner);
+                
+                // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
+                TilemapDifference rel_old_pos = Tile_subtract(tilemap,
+                                                              &old_pos,
+                                                              &test_tile_pos);
+                
+                v2 rel = rel_old_pos.dxy;
+                
+                testwall(min_corner.x,
+                         rel.x, rel.y,
+                         position_delta.x, position_delta.y,
+                         min_corner.y, max_corner.y,
+                         &t_min);
+                
+                testwall(max_corner.x,
+                         rel.x, rel.y,
+                         position_delta.x, position_delta.y,
+                         min_corner.y, max_corner.y,
+                         &t_min);
+                
+                testwall(min_corner.y,
+                         rel.y, rel.x,
+                         position_delta.y, position_delta.x,
+                         min_corner.x, max_corner.x,
+                         &t_min);
+                
+                testwall(max_corner.y,
+                         rel.y, rel.x,
+                         position_delta.y, position_delta.x,
+                         min_corner.x, max_corner.x,
+                         &t_min);
+            }
+            
+            if(tile_abs_x == end_tile_x )
+            {
+                break;
+            }
+            else
+            {
+                tile_abs_x += delta_x;
+            }
+        }
+        
+        if(tile_abs_y == end_tile_y)
+        {
+            break;
+        }
+        else
+        {
+            tile_abs_y += delta_y;
+        }
+    }
+    
+    
+    new_pos = old_pos;
+    // UPDATED PLAYER POSITION
+    v2_scale(t_min, &position_delta);
+    new_pos = Tile_offset(tilemap, new_pos, position_delta);
+    // STORE NEW PLAYER POSITION
+    entity->pos = new_pos;
+    
+#endif
+    
+    if(!Tile_is_on_same_tile(&old_pos, &entity->pos))
+    {
+        u32 new_tile_value =  Tile_get_tile_value_tilemap_pos(tilemap, entity->pos);
         
         if(new_tile_value == 3)
         {
@@ -496,7 +558,6 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
     
     return;
 }
-#endif
 
 
 inline Entity *
@@ -521,8 +582,8 @@ player_init(GameState *state, u32 entity_index)
     entity->exists = 1;
     entity->pos.tile_abs_x = 1;
     entity->pos.tile_abs_y = 3;
-    entity->pos.tile_rel.x = 5.0f;
-    entity->pos.tile_rel.y = 5.0f;
+    entity->pos.tile_rel_.x = 0.0f; //acceptable range: -0.7 : 0.7
+    entity->pos.tile_rel_.y = 0.0f; //acceptable range: -0.7 : 0.7
     entity->height         = 1.4f;
     entity->width          = 0.75f * entity->height; 
     
@@ -643,8 +704,14 @@ SGE_UPDATE(SGEUpdate)
         u32 tiles_per_chunk_height =  9;
         
         u32 random_number_index = 0;
+#if 0
+        u32 screenx = (u32)0xFFFFFFFF / 2;
+        u32 screeny = (u32)0xFFFFFFFF / 2;
+#else
         u32 screenx = 0;
         u32 screeny = 0;
+#endif
+        
         u32 tile_abs_z = 0;
         
         b32 door_left   = 0;
@@ -732,7 +799,11 @@ SGE_UPDATE(SGEUpdate)
                             tile_value = 4;
                         }
                     }
-                    tile_set_tile_value(&game_state->world_arena,
+                    
+                    //debug
+                    //tile_value = 1;
+                    
+                    Tile_set_tile_value(&game_state->world_arena,
                                         the_world->tilemap,
                                         tile_abs_x, tile_abs_y, tile_abs_z,
                                         tile_value);
@@ -856,9 +927,9 @@ SGE_UPDATE(SGEUpdate)
         
         game_state->camera_pos.tile_abs_z = camera_following_entity->pos.tile_abs_z;
         
-        TilemapDifference diff = substract(tilemap,
-                                           &camera_following_entity->pos,
-                                           &game_state->camera_pos);
+        TilemapDifference diff = Tile_subtract(tilemap,
+                                               &camera_following_entity->pos,
+                                               &game_state->camera_pos);
         
         
         if(diff.dxy.x > (9.0f * tilemap->tile_side_in_meters))
@@ -887,7 +958,7 @@ SGE_UPDATE(SGEUpdate)
                         0.4f, 0.8f, 1.0f);
     
     
-    game_draw_bitmap(back_buffer, &game_state->back_drop, 0.0f, 0.0f, 0, 0);
+    //game_draw_bitmap(back_buffer, &game_state->back_drop, 0.0f, 0.0f, 0, 0);
     
     
     f32 screen_center_x = 0.5f * (f32)back_buffer->width;
@@ -902,7 +973,7 @@ SGE_UPDATE(SGEUpdate)
             u32 column = game_state->camera_pos.tile_abs_x + rel_column;
             u32 row    = game_state->camera_pos.tile_abs_y + rel_row;
             
-            u32 tileid = tile_get_tile_value(tilemap, column, row, game_state->camera_pos.tile_abs_z );
+            u32 tileid = Tile_get_tile_value(tilemap, column, row, game_state->camera_pos.tile_abs_z );
             
             if(tileid > 0)
             {
@@ -914,10 +985,10 @@ SGE_UPDATE(SGEUpdate)
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * game_state->camera_pos.tile_rel.x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * game_state->camera_pos.tile_rel_.x) + ((f32)rel_column           * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
-                                (meters_to_pixels * game_state->camera_pos.tile_rel.y) -
+                                (meters_to_pixels * game_state->camera_pos.tile_rel_.y) -
                                 ((f32)rel_row     * tile_side_in_pixels));
                 
                 f32 min_x = center_x - 0.5f * tile_side_in_pixels;
@@ -935,10 +1006,10 @@ SGE_UPDATE(SGEUpdate)
                 if(tileid == 1)
                 {
                     // FLOOR
-#if 0
+#if 1
                     game_draw_rectangle(back_buffer,
-                                        min_x, max_x,
-                                        min_y, max_y,
+                                        (v2){min_x,min_y},
+                                        (v2){max_x,max_y},
                                         gray + 0.1f, gray + 0.5f, gray);
 #endif
                 }
@@ -973,16 +1044,26 @@ SGE_UPDATE(SGEUpdate)
                                         gray, gray, gray);
                 }
                 
-                //DEBUG - PLAYERS CURRENT TILE
-                if((column == game_state->camera_pos.tile_abs_x) &&
-                   (row    == game_state->camera_pos.tile_abs_y))
+                
+                Entity *entity = &game_state->entities[1];
+                
+                for(u32 entity_index = 0;
+                    entity_index < game_state->entity_count; entity_index++, entity++)
                 {
-                    gray = 0.0f;
-                    // SHADOW
-                    game_draw_rectangle(back_buffer,
-                                        (v2){min_x,min_y},
-                                        (v2){max_x,max_y},
-                                        gray + 0.1f, gray + 0.5f, gray);
+                    if(entity->exists &&
+                       (entity->pos.tile_abs_z == game_state->camera_pos.tile_abs_z) &&
+                       (entity->pos.tile_abs_x == column) && 
+                       (entity->pos.tile_abs_y == row))
+                    {
+                        //DEBUG - PLAYERS CURRENT TILE
+                        f32 gray = 0.0f;
+                        
+                        // SHADOW
+                        game_draw_rectangle(back_buffer,
+                                            (v2){min_x,min_y},
+                                            (v2){max_x,max_y},
+                                            gray + 0.1f, gray + 0.5f, gray);
+                    }
                 }
             }
         }
@@ -998,9 +1079,9 @@ SGE_UPDATE(SGEUpdate)
     {
         if(entity->exists && (entity->pos.tile_abs_z == game_state->camera_pos.tile_abs_z))
         {
-            TilemapDifference diff = substract(tilemap,
-                                               &entity->pos,
-                                               &game_state->camera_pos);
+            TilemapDifference diff = Tile_subtract(tilemap,
+                                                   &entity->pos,
+                                                   &game_state->camera_pos);
             
             f32 player_left = (screen_center_x - (0.5f * meters_to_pixels * entity->width ));
             f32 player_top  = (screen_center_y - (1.0f * meters_to_pixels * entity->height));
@@ -1016,8 +1097,9 @@ SGE_UPDATE(SGEUpdate)
                 player_ground_point_y - meters_to_pixels * entity->height
             };
             
-            vec_scale_v2(meters_to_pixels, &player_dimensions);
-            vec_add_v2(player_top_left, player_dimensions, &player_bottom_right);
+            v2_scale(meters_to_pixels, &player_dimensions);
+            v2_add(player_top_left, player_dimensions, &player_bottom_right);
+            
             
             game_draw_rectangle(back_buffer,
                                 player_top_left,
