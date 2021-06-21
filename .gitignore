@@ -1,0 +1,11 @@
+# Files
+
+# File Types
+*.pdf
+*.psd
+*.png
+*.jpg
+
+# Folders
+build/
+debug/
