@@ -280,26 +280,39 @@ debug_load_bmp(thread_context *thread, DEBUG_PlatformReadEntireFile *read_entire
     return result;
 }
 
-internal void
-testwall(f32 wall_x, f32 rel_x, f32 rel_y, f32 position_delta_x, f32 position_delta_y, f32 min_y, f32 max_y, f32 *t_min)
+internal b32
+get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_collision,
+                                 f32 wall_a,
+                                 f32 rel_a, f32 rel_b,
+                                 f32 position_delta_a, f32 position_delta_b,
+                                 f32 min_b, f32 max_b)
 {
+    // NOTE(MIGUEL): a & b = generic coord components
+    // NOTE(MIGUEL): t_min = time at closet collision
+    // NOTE(MIGUEL): rel a & b = position of the plaber relative to the tile being tested
+    // NOTE(MIGUEL): position_delta a & b = vector representing the plaber's direciton of travel
+    // NOTE(MIGUEL): min_b and maa_b = ????
+    
+    b32 hit = 0;
     f32 t_epsilon = 0.0001f; // floating point tolerance
     
-    if(position_delta_y != 0.0f)
+    if(position_delta_a != 0.0f)
     {
-        f32 t_result = (wall_x - rel_x) / position_delta_x;
-        f32 y        = rel_y + t_result * position_delta_y;
+        f32 time_at_collision = (wall_a - rel_a) / position_delta_a;
+        f32 b        = rel_b + time_at_collision * position_delta_b;
         
-        if((t_result >= 0) && (*t_min > t_result))
+        //time_at_collision will be normalized if valid
+        if((time_at_collision >= 0.0f) && (*normalized_time_at_closest_possible_collision > time_at_collision))
         {
-            if((y >= min_y) && (y <= max_y))
+            if((b >= min_b) && (b <= max_b))
             {
-                *t_min = MAXIMUM(0.0f, t_result - t_epsilon);
+                *normalized_time_at_closest_possible_collision = MAXIMUM(0.0f, time_at_collision - t_epsilon);
+                hit = 1;
             }
         }
     }
     
-    return;
+    return hit;
 }
 
 internal void
@@ -333,6 +346,7 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
     v2_scale(square(delta_t), &a);
     // VELOCITY COMPONENT
     v2_scale(delta_t , &v);
+    // JOIN ACCEL & VELOCITY COMPONENT
     v2_add  (a, v, &position_delta); // NOTE(MIGUEL): do not alter value! used a bit lower in the function
     
     // STORE VELOCITY EQUATION
@@ -343,11 +357,10 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
     v2_scale(delta_t, &a);
     v2_add  (a, entity->velocity, &entity->velocity);
     
-    TilemapPosition new_pos = Tile_offset(tilemap, old_pos, position_delta);
     // UPDATED PLAYER POSITION
-    new_pos = Tile_recanonicalize_position(tilemap, new_pos);
+    TilemapPosition new_pos = Tile_offset(tilemap, old_pos, position_delta);
     
-#if 0 
+#if 0
     
     TilemapPosition new_pos_left = new_pos;
     new_pos_left.tile_rel.x -= 0.5f * entity->width; 
@@ -414,103 +427,137 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
 #else
     // NOTE(MIGUEL): FAILS MOVING LEFT ON PLAYER INIT AND OTHER CASES
     // NOTE(MIGUEL): HACK: MOVE RIGHT THEN DOWN ACTIVATES COLLISION DETECTION
-#if 0
-    u32 min_tile_x          = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
-    u32 min_tile_y          = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
-    u32 one_past_max_tile_x = MAXIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x) + 1;
-    u32 one_past_max_tile_y = MAXIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y) + 1;
-#else
-    u32 start_tile_x = old_pos.tile_abs_x;
-    u32 start_tile_y = old_pos.tile_abs_y;
-    u32 end_tile_x   = new_pos.tile_abs_x;
-    u32 end_tile_y   = new_pos.tile_abs_y;
+    u32 min_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
+    u32 min_tile_y = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
+    u32 max_tile_x = MAXIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
+    u32 max_tile_y = MAXIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
     
-    s32 delta_x = sign_of(end_tile_x - start_tile_x);
-    s32 delta_y = sign_of(end_tile_y - start_tile_y);
-#endif
+    u32 entity_tile_width  = ceiling_f32_to_s32(entity->width  / tilemap->tile_side_in_meters);
+    u32 entity_tile_height = ceiling_f32_to_s32(entity->height / tilemap->tile_side_in_meters);
     
-    u32 tile_abs_z = entity->pos.tile_abs_z;
-    f32 t_min = 1.0f;
+    min_tile_x -= entity_tile_width;
+    min_tile_y -= entity_tile_height;
+    max_tile_x += entity_tile_width;
+    max_tile_y += entity_tile_height;
     
-    u32 tile_abs_y = start_tile_y; 
-    for(;;)
+    // NOTE(MIGUEL): IF COLLISION IS FUKED LOOK AT THIS SHIT. JUST HACKED THIS IN
+    if((min_tile_y == 0xFFFFFFFF) ||
+       (min_tile_x == 0xFFFFFFFF))
     {
-        u32 tile_abs_x = start_tile_x; 
-        for(;;)
-        {
-            TilemapPosition test_tile_pos = Tile_centered_tile_point(tile_abs_x, tile_abs_y, tile_abs_z );
-            u32             tile_value    = Tile_get_tile_value(tilemap,
-                                                                test_tile_pos.tile_abs_x,
-                                                                test_tile_pos.tile_abs_y,
-                                                                test_tile_pos.tile_abs_z);
-            
-            if(!Tile_is_tile_value_empty(tile_value))
-            {
-                v2 min_corner = { tilemap->tile_side_in_meters, tilemap->tile_side_in_meters };
-                v2 max_corner = { tilemap->tile_side_in_meters, tilemap->tile_side_in_meters };
-                v2_scale(-0.5f, &min_corner);
-                v2_scale( 0.5f, &max_corner);
-                
-                // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
-                TilemapDifference rel_old_pos = Tile_subtract(tilemap,
-                                                              &old_pos,
-                                                              &test_tile_pos);
-                
-                v2 rel = rel_old_pos.dxy;
-                
-                testwall(min_corner.x,
-                         rel.x, rel.y,
-                         position_delta.x, position_delta.y,
-                         min_corner.y, max_corner.y,
-                         &t_min);
-                
-                testwall(max_corner.x,
-                         rel.x, rel.y,
-                         position_delta.x, position_delta.y,
-                         min_corner.y, max_corner.y,
-                         &t_min);
-                
-                testwall(min_corner.y,
-                         rel.y, rel.x,
-                         position_delta.y, position_delta.x,
-                         min_corner.x, max_corner.x,
-                         &t_min);
-                
-                testwall(max_corner.y,
-                         rel.y, rel.x,
-                         position_delta.y, position_delta.x,
-                         min_corner.x, max_corner.x,
-                         &t_min);
-            }
-            
-            if(tile_abs_x == end_tile_x )
-            {
-                break;
-            }
-            else
-            {
-                tile_abs_x += delta_x;
-            }
-        }
-        
-        if(tile_abs_y == end_tile_y)
-        {
-            break;
-        }
-        else
-        {
-            tile_abs_y += delta_y;
-        }
+        // NOTE(MIGUEL): IF SPEED IS GREATER THAN 50.0F(LIKE IN HMH) THEN THIS IS NEEDE ASSERT BELOW ARE GOOD ENOUGH
+        min_tile_x = 0;
+        min_tile_y = 0; 
     }
     
     
-    new_pos = old_pos;
-    // UPDATED PLAYER POSITION
-    v2_scale(t_min, &position_delta);
-    new_pos = Tile_offset(tilemap, new_pos, position_delta);
-    // STORE NEW PLAYER POSITION
-    entity->pos = new_pos;
+    u32 tile_abs_z = entity->pos.tile_abs_z;
     
+    f32 t_remaining = 1.0f;
+    
+    for(u32 collision_resolve_attempt = 0; 
+        (collision_resolve_attempt < 4) && (t_remaining > 0); collision_resolve_attempt++)
+    {
+        v2 wall_normal = { 0 };
+        f32 normalized_time_of_pos_delta = t_remaining; // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
+        
+        ASSERT((max_tile_x - min_tile_x) < 32);
+        ASSERT((max_tile_y - min_tile_y) < 32); // NOTE(MIGUEL): WHEN MIN TILE y == UINT32MAX THIS EXPRESSION EVALUTATES TO 3 AND PASSES
+        
+        
+        for(u32 tile_abs_y = min_tile_y; tile_abs_y <= max_tile_y; tile_abs_y++)
+        {
+            for(u32 tile_abs_x = min_tile_x; tile_abs_x <= max_tile_x; tile_abs_x++)
+            {
+                TilemapPosition test_tile_pos = Tile_centered_tile_point(tile_abs_x, tile_abs_y, tile_abs_z );
+                u32             tile_value    = Tile_get_tile_value(tilemap,
+                                                                    test_tile_pos.tile_abs_x,
+                                                                    test_tile_pos.tile_abs_y,
+                                                                    test_tile_pos.tile_abs_z);
+                
+                if(!Tile_is_tile_value_empty(tile_value))
+                {  
+                    // NOTE(MIGUEL): Minkowski sum
+                    f32 diameter_w = tilemap->tile_side_in_meters + entity->width;
+                    f32 diameter_h = tilemap->tile_side_in_meters + entity->height;
+                    v2 min_corner = { diameter_w, diameter_h };
+                    v2 max_corner = { diameter_w, diameter_h };
+                    
+                    // NOTE(MIGUEL): distancs away from tile center
+                    v2_scale(-0.5f, &min_corner);
+                    v2_scale( 0.5f, &max_corner);
+                    
+                    // NOTE(MIGUEL): old pos's Distance away from test tile in meters in x & y respectively
+                    // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
+                    TilemapDifference rel_old_pos = Tile_subtract(tilemap,
+                                                                  &old_pos,
+                                                                  &test_tile_pos);
+                    
+                    v2 rel = rel_old_pos.dxy;
+                    
+                    f32 MinCowSkied_wall_left_x   = min_corner.x;
+                    f32 MinCowSkied_wall_right_x  = max_corner.x;
+                    f32 MinCowSkied_wall_top_y    = max_corner.y;
+                    f32 MinCowSkied_wall_bottom_y = min_corner.y;
+                    
+                    // VERTICAL WALL RIGHT FACE
+                    if(get_normalized_time_at_collision(&normalized_time_of_pos_delta,
+                                                        MinCowSkied_wall_right_x,
+                                                        rel.x, rel.y,
+                                                        position_delta.x, position_delta.y,
+                                                        min_corner.y, max_corner.y))
+                    {
+                        wall_normal = (v2){1.0, 0.0};
+                    }
+                    
+                    // VERTICAL WALL LEFT FACE
+                    if(get_normalized_time_at_collision(&normalized_time_of_pos_delta,
+                                                        MinCowSkied_wall_left_x,
+                                                        rel.x, rel.y,
+                                                        position_delta.x, position_delta.y,
+                                                        min_corner.y, max_corner.y))
+                    {
+                        wall_normal = (v2){-1.0, 0.0};
+                    }
+                    
+                    // HORIZONTAL BOTTOM WALL
+                    if(get_normalized_time_at_collision(&normalized_time_of_pos_delta,
+                                                        MinCowSkied_wall_bottom_y,
+                                                        rel.y, rel.x,
+                                                        position_delta.y, position_delta.x,
+                                                        min_corner.x, max_corner.x))
+                    {
+                        wall_normal = (v2){0.0, -1.0};
+                    }
+                    
+                    // HORIZONTAL TOP WALL
+                    if(get_normalized_time_at_collision(&normalized_time_of_pos_delta,
+                                                        MinCowSkied_wall_top_y,
+                                                        rel.y, rel.x,
+                                                        position_delta.y, position_delta.x,
+                                                        min_corner.x, max_corner.x))
+                    {
+                        wall_normal = (v2){0.0, 1.0};
+                    }
+                    
+                    ASSERT((normalized_time_of_pos_delta <= 1.0f) && (normalized_time_of_pos_delta >= 0.0f));
+                }
+            }
+        } 
+        // TODO(MIGUEL): HMH DAT 50 - 53:46 (06/ 24/2021)
+        // UPDATE VELOCITY
+        v2_scale(v2_dot(entity->velocity, wall_normal), &wall_normal);
+        v2_scale(1.0f, &wall_normal);
+        entity->velocity = v2_sub(entity->velocity, wall_normal);
+        
+        new_pos = old_pos;
+        // UPDATED PLAYER POSITION
+        v2_scale(normalized_time_of_pos_delta, &position_delta);
+        new_pos = Tile_offset(tilemap, new_pos, position_delta);
+        // STORE NEW PLAYER POSITION
+        entity->pos = new_pos;
+        
+        t_remaining -= (1.0f - normalized_time_of_pos_delta);
+    }
 #endif
     
     if(!Tile_is_on_same_tile(&old_pos, &entity->pos))
@@ -580,12 +627,12 @@ player_init(GameState *state, u32 entity_index)
     Entity *entity = entity_get(state, entity_index);
     
     entity->exists = 1;
-    entity->pos.tile_abs_x = 1;
+    entity->pos.tile_abs_x = 3;
     entity->pos.tile_abs_y = 3;
     entity->pos.tile_rel_.x = 0.0f; //acceptable range: -0.7 : 0.7
     entity->pos.tile_rel_.y = 0.0f; //acceptable range: -0.7 : 0.7
-    entity->height         = 1.4f;
-    entity->width          = 0.75f * entity->height; 
+    entity->height         = 0.5f;  //units???
+    entity->width          = 1.0f;  //
     
     if(!entity_get(state, state->camera_following_entity_index))
     {
@@ -1094,7 +1141,7 @@ SGE_UPDATE(SGEUpdate)
             v2 player_top_left = 
             {
                 player_ground_point_x - 0.5f * meters_to_pixels * entity->width, 
-                player_ground_point_y - meters_to_pixels * entity->height
+                player_ground_point_y - 0.5f * meters_to_pixels * entity->height
             };
             
             v2_scale(meters_to_pixels, &player_dimensions);

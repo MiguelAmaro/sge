@@ -1,4 +1,4 @@
-version(0);
+version(2);
 project_name = "Simple Game Engine";
 
 patterns = 
@@ -16,68 +16,54 @@ blacklist_patterns =
     ".build",
 };
 
-load_paths_custom = 
-{
-    { "src", .recursive = false, .relative = true  }, 
-    { "."  , .recursive = false, .relative = true  },
+load_paths = {
+    .win = {
+        { .path =   ".", .recursive = false, .relative = true, },
+        { .path = "src", .recursive = false, .relative = true, },
+    },
 };
 
-load_paths = 
+commands =
 {
-    { load_paths_custom, .os = "win" }
-};
-
-command_list =
-{
+    .build =
     {
-        .name             = "build",
+        .win              = "build.bat --win --exe",
         .out              = "*compilation*",
         .footer_panel     = true,
         .save_dirty_files = true,
         .cursor_at_end    = false,
-        .cmd              = 
-        { 
-            { "build.bat --win --exe", .os = "win"  }
-        },
     },
     
+    .build_dll =
     {
-        .name             = "build-dll",
+        .win              = "build.bat --win --dll",
         .out              = "*compilation*",
         .footer_panel     = true,
         .save_dirty_files = true,
         .cursor_at_end    = false,
-        .cmd              = 
-        { 
-            { "build.bat --win --dll", .os = "win"  }
-        },
     },
     
+    .run =
     {
-        .name             = "run",
+        .win              = "run.bat",
         .footer_panel     = false,
         .save_dirty_files = false,
         .cursor_at_end    = false,
-        .cmd              = 
-        {
-            { "run.bat", .os = "win" }
-        },
     },
     
+    .debug =
     {
-        .name             = "debug",
+        .win              = "debug.bat",
         .footer_panel     = false,
         .save_dirty_files = false,
-        .cursor_at_end    = false,
-        .cmd              = 
-        {
-            { "debug.bat", .os = "win" }
-        }
+        .cursor_at_end    = true,
     },
 };
 
-fkey_command[ 1] = "build";
-fkey_command[ 2] = "build-dll";
-fkey_command[12] = "run"  ;
-fkey_command[11] = "debug";
-
+fkey_command =
+{
+    .F1  = "build",
+    .F2  = "build_dll",
+    .F12 = "run",
+    .F11 = "debug",
+};
