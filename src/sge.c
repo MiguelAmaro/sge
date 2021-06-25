@@ -294,7 +294,7 @@ get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_collis
     // NOTE(MIGUEL): min_b and maa_b = ????
     
     b32 hit = 0;
-    f32 t_epsilon = 0.0001f; // floating point tolerance
+    f32 t_epsilon = 0.00001f; // floating point tolerance
     
     if(position_delta_a != 0.0f)
     {
@@ -425,8 +425,6 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
         entity->pos = new_pos;
     }
 #else
-    // NOTE(MIGUEL): FAILS MOVING LEFT ON PLAYER INIT AND OTHER CASES
-    // NOTE(MIGUEL): HACK: MOVE RIGHT THEN DOWN ACTIVATES COLLISION DETECTION
     u32 min_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
     u32 min_tile_y = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
     u32 max_tile_x = MAXIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
@@ -458,7 +456,7 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
         (collision_resolve_attempt < 4) && (t_remaining > 0); collision_resolve_attempt++)
     {
         v2 wall_normal = { 0 };
-        f32 normalized_time_of_pos_delta = t_remaining; // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
+        f32 normalized_time_of_pos_delta = 1.0f; // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
         
         ASSERT((max_tile_x - min_tile_x) < 32);
         ASSERT((max_tile_y - min_tile_y) < 32); // NOTE(MIGUEL): WHEN MIN TILE y == UINT32MAX THIS EXPRESSION EVALUTATES TO 3 AND PASSES
@@ -489,7 +487,7 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
                     // NOTE(MIGUEL): old pos's Distance away from test tile in meters in x & y respectively
                     // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
                     TilemapDifference rel_old_pos = Tile_subtract(tilemap,
-                                                                  &old_pos,
+                                                                  &entity->pos,
                                                                   &test_tile_pos);
                     
                     v2 rel = rel_old_pos.dxy;
@@ -544,19 +542,25 @@ player_move(GameState *state,  Entity *entity, f32 delta_t, v2 acceleration)
             }
         } 
         // TODO(MIGUEL): HMH DAT 50 - 53:46 (06/ 24/2021)
-        // UPDATE VELOCITY
-        v2_scale(v2_dot(entity->velocity, wall_normal), &wall_normal);
-        v2_scale(1.0f, &wall_normal);
-        entity->velocity = v2_sub(entity->velocity, wall_normal);
+        // UPDATED PLAYER POSITION & STORE NEW PLAYER POSITION
+        v2 scratch_position_delta = position_delta;
+        v2_scale(normalized_time_of_pos_delta, &scratch_position_delta);
+        entity->pos = Tile_offset(tilemap, entity->pos, scratch_position_delta);
         
-        new_pos = old_pos;
-        // UPDATED PLAYER POSITION
-        v2_scale(normalized_time_of_pos_delta, &position_delta);
-        new_pos = Tile_offset(tilemap, new_pos, position_delta);
-        // STORE NEW PLAYER POSITION
-        entity->pos = new_pos;
+        v2 scratch_wall_normal = wall_normal;
+        // UPDATE VELOCITY VECTOR 
+        v2_scale(v2_dot(entity->velocity, scratch_wall_normal), &scratch_wall_normal);
+        v2_scale(1.0f, &scratch_wall_normal);
+        entity->velocity = v2_sub(entity->velocity, scratch_wall_normal);
         
-        t_remaining -= (1.0f - normalized_time_of_pos_delta);
+        scratch_wall_normal = wall_normal;
+        // UPDATE MOVEMENT VECTOR
+        v2_scale(v2_dot(position_delta, scratch_wall_normal), &scratch_wall_normal);
+        v2_scale(1.0f, &scratch_wall_normal);
+        position_delta = v2_sub(position_delta, scratch_wall_normal);
+        
+        
+        t_remaining -= (normalized_time_of_pos_delta * t_remaining);
     }
 #endif
     
