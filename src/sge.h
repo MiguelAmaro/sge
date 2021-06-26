@@ -104,15 +104,48 @@ struct BitmapData
     u32 *pixels;
 };
 
+
+typedef enum EntityResidence EntityResidence;
+enum EntityResidence
+{
+    EntityResidence_nonexistent,
+    EntityResidence_dormant,
+    EntityResidence_low,
+    EntityResidence_high,
+};
+
+typedef struct HighEntity HighEntity;
+struct HighEntity
+{
+    b32 exists;
+    v2  position; // NOTE(MIGUEL): relative to camera
+    v2  velocity;
+    u32 facing_direction;
+    s32 tile_abs_z;
+};
+
+typedef struct LowEntity LowEntity;
+struct LowEntity
+{
+    int placeholder;
+};
+
+typedef struct DormantEntity DormantEntity;
+struct DormantEntity
+{
+    f32 width, height;
+    TilemapPosition position;
+    b32 collides;
+    s32 delta_tile_abs_z;
+};
+
 typedef struct Entity Entity;
 struct Entity
 {
-    b32             exists;
-    TilemapPosition pos;
-    v2              velocity;
-    u32 facing_direction;
-    f32 width;
-    f32 height;
+    EntityResidence  residence;
+    HighEntity      *high;
+    LowEntity       *low;
+    DormantEntity   *dormant;
 };
 
 typedef struct
@@ -143,7 +176,11 @@ struct GameState
     
     u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
     u32 entity_count;   //256
-    Entity entities[256];
+    //Entity entities[256];
+    EntityResidence entity_residence [256];
+    HighEntity      high_entities    [256];
+    LowEntity       low_entities     [256];
+    DormantEntity   dormant_entities [256];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;

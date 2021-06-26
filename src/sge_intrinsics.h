@@ -22,6 +22,33 @@ absolute_value(f32 value)
     return result;
 }
 
+// TODO(MIGUEL): go to load bit map code and use this with color channel shifs
+inline u32
+rotate_left(u32 value, s32 amount)
+{
+#if COMPILER_MSVC
+    u32 result = _rotl(value, amount);
+#else
+    amount &= 31;
+    u32 result = ((value <<  amount) | (value >> (32 - amount)));
+#endif
+    
+    return result;
+}
+
+inline u32
+rotate_right(u32 value, s32 amount)
+{
+#if COMPILER_MSVC
+    u32 result = _rotr(value, amount);
+#else
+    amount &= 31;
+    u32 result = ((value >>  amount) | (value << (32 - amount))):
+#endif
+    
+    return result;
+}
+
 inline s32
 round_f32_to_s32(f32 value)
 {

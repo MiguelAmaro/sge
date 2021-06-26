@@ -185,9 +185,10 @@ Tile_recanonicalize_coord(Tilemap *tilemap, s32 *tile, f32 *tile_rel)
 }
 
 inline TilemapPosition
-Tile_recanonicalize_position(Tilemap *tilemap, TilemapPosition pos)
+Tile_map_to_tilespace(Tilemap *tilemap, TilemapPosition base_pos, v2 offset)
 {
-    TilemapPosition result = pos;
+    TilemapPosition result = base_pos;
+    v2_add(result.tile_rel_, offset, &result.tile_rel_);
     
     Tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel_.x);
     Tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel_.y);
@@ -240,7 +241,7 @@ Tile_offset(Tilemap *tilemap, TilemapPosition pos, v2 offset)
 {
     v2_add(pos.tile_rel_, offset, &pos.tile_rel_);
     
-    pos = Tile_recanonicalize_position(tilemap, pos);
+    //pos = Tile_recanonicalize_position(tilemap, pos);
     
     return pos;
 }
