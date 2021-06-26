@@ -80,7 +80,7 @@ Tile_get_tile_value(Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_a
 }
 
 internal u32
-Tile_get_tile_value_tilemap_pos(Tilemap *tilemap, TilemapPosition pos)
+Tile_get_tile_value_tilemap_pos(Tilemap *tilemap, TilemapCoord pos)
 {
     u32 tilechunk_value = Tile_get_tile_value(tilemap, pos.tile_abs_x, pos.tile_abs_y, pos.tile_abs_z);
     
@@ -158,7 +158,7 @@ Tile_is_tile_value_empty(u32 tile_value)
 }
 
 internal b32
-Tile_is_point_empty(Tilemap *tilemap, TilemapPosition can_pos)
+Tile_is_point_empty(Tilemap *tilemap, TilemapCoord can_pos)
 {
     b32 is_empty = 1;
     
@@ -184,11 +184,11 @@ Tile_recanonicalize_coord(Tilemap *tilemap, s32 *tile, f32 *tile_rel)
     return;
 }
 
-inline TilemapPosition
-Tile_map_to_tilespace(Tilemap *tilemap, TilemapPosition base_pos, v2 offset)
+inline TilemapCoord
+Tile_map_to_tilespace(Tilemap *tilemap, TilemapCoord base_pos, V2 offset)
 {
-    TilemapPosition result = base_pos;
-    v2_add(result.tile_rel_, offset, &result.tile_rel_);
+    TilemapCoord result = base_pos;
+    V2_add(result.tile_rel_, offset, &result.tile_rel_);
     
     Tile_recanonicalize_coord(tilemap, &result.tile_abs_x, &result.tile_rel_.x);
     Tile_recanonicalize_coord(tilemap, &result.tile_abs_y, &result.tile_rel_.y);
@@ -197,7 +197,7 @@ Tile_map_to_tilespace(Tilemap *tilemap, TilemapPosition base_pos, v2 offset)
 }
 
 inline b32
-Tile_is_on_same_tile(TilemapPosition *a, TilemapPosition *b)
+Tile_is_on_same_tile(TilemapCoord *a, TilemapCoord *b)
 {
     b32 result = ((a->tile_abs_x == b->tile_abs_x) &&
                   (a->tile_abs_y == b->tile_abs_y) &&
@@ -207,10 +207,10 @@ Tile_is_on_same_tile(TilemapPosition *a, TilemapPosition *b)
 }
 
 
-inline TilemapPosition
+inline TilemapCoord
 Tile_centered_tile_point(u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
 {
-    TilemapPosition result = { 0 };
+    TilemapCoord result = { 0 };
     
     result.tile_abs_x = tile_abs_x;
     result.tile_abs_y = tile_abs_y;
@@ -220,7 +220,7 @@ Tile_centered_tile_point(u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
 }
 
 inline TilemapDifference
-Tile_subtract(Tilemap *tilemap, TilemapPosition *a, TilemapPosition *b)
+Tile_subtract(Tilemap *tilemap, TilemapCoord *a, TilemapCoord *b)
 {
     TilemapDifference result;
     
@@ -236,10 +236,10 @@ Tile_subtract(Tilemap *tilemap, TilemapPosition *a, TilemapPosition *b)
     return result;
 }
 
-inline TilemapPosition
-Tile_offset(Tilemap *tilemap, TilemapPosition pos, v2 offset)
+inline TilemapCoord
+Tile_offset(Tilemap *tilemap, TilemapCoord pos, V2 offset)
 {
-    v2_add(pos.tile_rel_, offset, &pos.tile_rel_);
+    V2_add(pos.tile_rel_, offset, &pos.tile_rel_);
     
     //pos = Tile_recanonicalize_position(tilemap, pos);
     

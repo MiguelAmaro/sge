@@ -104,6 +104,14 @@ struct BitmapData
     u32 *pixels;
 };
 
+typedef struct
+{
+    u32 align_x;
+    u32 align_y;
+    BitmapData head;
+    BitmapData cape;
+    BitmapData torso;
+} player_bitmaps;
 
 typedef enum EntityResidence EntityResidence;
 enum EntityResidence
@@ -114,14 +122,28 @@ enum EntityResidence
     EntityResidence_high,
 };
 
+typedef enum EntityType EntityType;
+enum EntityType
+{
+    EntityType_null,
+    EntityType_player,
+    EntityType_wall,
+    EntityType_floor,
+    EntityType_ladder_up,
+    EntityType_ladder_down,
+};
+
 typedef struct HighEntity HighEntity;
 struct HighEntity
 {
     b32 exists;
-    v2  position; // NOTE(MIGUEL): relative to camera
-    v2  velocity;
+    V2  position; // NOTE(MIGUEL): relative to camera
+    V2  velocity;
     u32 facing_direction;
     s32 tile_abs_z;
+    
+    f32 z;
+    f32 delta_z;
 };
 
 typedef struct LowEntity LowEntity;
@@ -134,9 +156,10 @@ typedef struct DormantEntity DormantEntity;
 struct DormantEntity
 {
     f32 width, height;
-    TilemapPosition position;
+    TilemapCoord position;
     b32 collides;
     s32 delta_tile_abs_z;
+    EntityType type;
 };
 
 typedef struct Entity Entity;
@@ -148,15 +171,6 @@ struct Entity
     DormantEntity   *dormant;
 };
 
-typedef struct
-{
-    u32 align_x;
-    u32 align_y;
-    BitmapData head;
-    BitmapData cape;
-    BitmapData torso;
-} player_bitmaps;
-
 typedef struct GameState GameState;
 struct GameState 
 {
@@ -164,12 +178,13 @@ struct GameState
     World       *world      ;
     
     u32 camera_following_entity_index;
-    TilemapPosition camera_pos;
+    TilemapCoord camera_position;
     
     BitmapData  back_drop;
     BitmapData  player_head;
     BitmapData  player_torso;
     BitmapData  player_cape;
+    BitmapData  shadow;
     BitmapData  debug_bmp;
     
     player_bitmaps playerbitmaps[4];
@@ -177,10 +192,10 @@ struct GameState
     u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
     u32 entity_count;   //256
     //Entity entities[256];
-    EntityResidence entity_residence [256];
-    HighEntity      high_entities    [256];
-    LowEntity       low_entities     [256];
-    DormantEntity   dormant_entities [256];
+    EntityResidence entity_residence [256 * 4];
+    HighEntity      high_entities    [256 * 4];
+    LowEntity       low_entities     [256 * 4];
+    DormantEntity   dormant_entities [256 * 4];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;
@@ -210,7 +225,7 @@ internal void game_render_weird_gradient(game_back_buffer *buffer, s32 x_offset,
 
 
 internal void game_draw_rectangle(game_back_buffer *buffer,
-                                  v2 min, v2 max, f32 r, f32 g, f32 b);
+                                  V2 min, V2 max, f32 r, f32 g, f32 b);
 
 
 internal void game_update_sound_buffer  (GameState *state, game_sound_output_buffer *sound_buffer, u32 tone_hz);

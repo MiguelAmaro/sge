@@ -19,7 +19,7 @@ struct TileChunk
 typedef struct TilemapDifference TilemapDifference;
 struct TilemapDifference
 {
-    v2  dxy;
+    V2  dxy;
     f32 dz;
 };
 
@@ -35,14 +35,14 @@ struct TileChunkPosition
 };
 
 
-typedef struct TilemapPosition TilemapPosition;
-struct TilemapPosition
+typedef struct TilemapCoord TilemapCoord;
+struct TilemapCoord
 {
     u32 tile_abs_x;
     u32 tile_abs_y;
     u32 tile_abs_z;
     
-    v2  tile_rel_;
+    V2  tile_rel_;
 };
 
 typedef struct Tilemap Tilemap;
