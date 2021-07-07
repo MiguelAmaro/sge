@@ -21,12 +21,12 @@ set OUTPUT=%2
 
 rem ==========              PROJECT/FILES             ==========     
 rem ============================================================
-set PROJECT_NAME=SGE
+set PROJECT_NAME=sge
 set SOURCES=^
-..\src\Win32_%PROJECT_NAME%.c ^
-..\src\Win32_OpenGL.c ^
-..\src\SGE_FileIO.c ^
-..\src\SGE_Helpers.c ^
+..\src\win32_%PROJECT_NAME%.c ^
+..\src\win32_opengl.c ^
+..\src\%PROJECT_NAME%_fileio.c ^
+..\src\%PROJECT_NAME%_helpers.c ^
 ..\lib\glad\src\glad.c
 
 set BUILD_MODES=^
@@ -142,10 +142,10 @@ cl ^
 %MSVC_FLAGS% ^
 %BUILD_MODES% ^
 %INCLUDE_PATHS% ^
-F:\Dev\SimpleGameEngine\src\SGE.c ^
--FmWin32_SGE.map ^
-glad.obj Win32_OpenGL.obj ^
--LD /link -PDB:SGE_%random%.pdb ^
+F:\Dev\SimpleGameEngine\src\%PROJECT_NAME%.c ^
+-Fmwin32_%PROJECT_NAME%.map ^
+glad.obj win32_OpenGL.obj ^
+-LD /link -PDB:%PROJECT_NAME%_%random%.pdb ^
 -DLL ^
 -EXPORT:SGEInit ^
 -EXPORT:SGEUpdate ^

@@ -4,7 +4,6 @@
 #define SGE_RENDERER_H
 
 #include "SGE_Platform.h"
-#include "LAL.h"
 
 // NOTE(MIGUEL): Maybe jumping the gun with a struct
 // NOTE(MIGUEL): Shader also in Entity struct

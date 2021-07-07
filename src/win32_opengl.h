@@ -8,7 +8,6 @@
 #include "SGE_Platform.h"
 //#include <WGL/wglext.h>
 //#include <GL/gl.h> 
-#include "LAL.h"
 #include <cglm/cglm.h>
 #include <cglm/util.h>
 #include <cglm/vec4.h>

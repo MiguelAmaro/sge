@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "LAL.h"
 
 #define VERTSEC ("//~VERT SHADER")
 #define FRAGSEC ("//~FRAG SHADER")

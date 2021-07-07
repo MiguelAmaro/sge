@@ -3,7 +3,7 @@
 #ifndef SGE_MATH_H
 #define SGE_MATH_H
 
-#include "LAL.h"
+#include "sge_platform.h"
 
 typedef union V2 V2;
 union V2

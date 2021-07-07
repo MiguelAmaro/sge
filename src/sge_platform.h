@@ -3,7 +3,65 @@
 #ifndef SGE_PLATFORM_H
 #define SGE_PLATFORM_H
 
-#include "LAL.h"
+#include <stdint.h>
+
+//~ USEFUL CONSTANTS
+#define PI_32BIT 3.14159265359f
+
+
+//~ HELPER MACROS
+
+#define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
+
+#define MINIMUM(a, b) ((a < b) ? (a) : (b))
+#define MAXIMUM(a, b) ((a > b) ? (a) : (b))
+
+
+//~ DEBUGGING
+
+#if SGE_SLOW
+#define ASSERT(expression) if(!(expression)){ *(u32 *)0x00 = 0; }
+#else
+#define ASSERT(expression)
+#endif
+
+#define INVALID_CODE_PATH ASSERT(!"Invalid Code Path");
+
+//~ ARCH SPECIFIC
+
+#define NULLPTR       ((void *)0x00)
+#define readonly        const
+#define internal        static
+#define local_persist   static
+#define global          static
+
+#define KILOBYTES(size) (         (size) * 1024LL)
+#define MEGABYTES(size) (KILOBYTES(size) * 1024LL)
+#define GIGABYTES(size) (MEGABYTES(size) * 1024LL)
+#define TERABYTES(size) (GIGABYTES(size) * 1024LL)
+
+typedef size_t memory_index;
+
+typedef uint8_t  u8 ;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef  int8_t  s8 ;
+typedef  int16_t s16;
+typedef  int32_t s32;
+typedef  int64_t s64;
+
+typedef  int8_t  b8 ;
+typedef  int16_t b16;
+typedef  int32_t b32;
+typedef  int64_t b64;
+
+typedef float f32;
+typedef float f64;
+
+
+//~ COMPILER SPECIFIC
 
 #ifndef COMPILER_MSVC
 #define COMPILER_MSVC 0
@@ -28,6 +86,8 @@
 #include <intrin.h>
 #pragma intrinsic(_BitScanForward)
 #endif
+
+//~ ASYNC
 
 typedef struct
 {

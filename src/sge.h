@@ -4,13 +4,6 @@
 
 #include "sge_platform.h"
 
-//#define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
-#define ARRAYCOUNT(array) (sizeof(array) /  sizeof(array[0]))
-#define PI_32BIT 3.14159265359f
-
-#define MINIMUM(a, b) ((a < b) ? (a) : (b))
-#define MAXIMUM(a, b) ((a > b) ? (a) : (b))
-
 inline u32
 safe_truncate_u64(u64 value)
 {
@@ -21,6 +14,7 @@ safe_truncate_u64(u64 value)
     return result;
 }
 
+//~ MEMORY INTERFACE
 
 typedef struct MemoryArena MemoryArena;
 struct MemoryArena
@@ -29,10 +23,6 @@ struct MemoryArena
     memory_index used;
     u8 *base_ptr;
 };
-
-
-
-//~ MEMORY INTERFACE
 
 internal void
 MemoryArena_init(MemoryArena *arena, memory_index size, u8 *base_ptr)
@@ -113,15 +103,6 @@ typedef struct
     BitmapData torso;
 } player_bitmaps;
 
-typedef enum EntityResidence EntityResidence;
-enum EntityResidence
-{
-    EntityResidence_nonexistent,
-    EntityResidence_dormant,
-    EntityResidence_low,
-    EntityResidence_high,
-};
-
 typedef enum EntityType EntityType;
 enum EntityType
 {
@@ -144,38 +125,38 @@ struct HighEntity
     
     f32 z;
     f32 delta_z;
+    
+    u32 low_index;
 };
 
 typedef struct LowEntity LowEntity;
 struct LowEntity
 {
-    int placeholder;
-};
-
-typedef struct DormantEntity DormantEntity;
-struct DormantEntity
-{
+    EntityType type;
+    
     f32 width, height;
     TilemapCoord position;
-    b32 collides;
+    
+    // NOTE(MIGUEL): for stairs
     s32 delta_tile_abs_z;
-    EntityType type;
-};
+    b32 collides;
+    
+    u32 high_index;
+}; 
 
 typedef struct Entity Entity;
 struct Entity
 {
-    EntityResidence  residence;
-    HighEntity      *high;
-    LowEntity       *low;
-    DormantEntity   *dormant;
+    u32 low_index;
+    HighEntity *high;
+    LowEntity  *low;
 };
 
 typedef struct GameState GameState;
 struct GameState 
 {
     MemoryArena world_arena;
-    World       *world      ;
+    World       *world    ;
     
     u32 camera_following_entity_index;
     TilemapCoord camera_position;
@@ -189,18 +170,20 @@ struct GameState
     
     player_bitmaps playerbitmaps[4];
     
+    
     u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
-    u32 entity_count;   //256
-    //Entity entities[256];
-    EntityResidence entity_residence [256 * 4];
-    HighEntity      high_entities    [256 * 4];
-    LowEntity       low_entities     [256 * 4];
-    DormantEntity   dormant_entities [256 * 4];
+    //u32 entity_count;   //256
+    u32        high_entity_count;
+    HighEntity high_entities_    [256];
+    
+    u32       low_entity_count;
+    LowEntity low_entities     [4096];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;
     
     f32 accely;
+    f32 clock;
 };
 
 //~ FUNCTION DECLERATIONS
@@ -221,14 +204,14 @@ SGE_UPDATE(SGEUpdateStub)
 typedef SGE_GET_SOUND_SAMPLES(SGE_GetSoundSamples);
 // NOTE(MIGUEL): no stub cause game should crash if core fucntions are missing
 
-internal void game_render_weird_gradient(game_back_buffer *buffer, s32 x_offset, s32 y_offset, f32 *delta_t);
+internal void Game_render_weird_shit(game_back_buffer *buffer, s32 x_offset, s32 y_offset, f32 delta_t);
 
 
-internal void game_draw_rectangle(game_back_buffer *buffer,
+internal void Game_draw_rectangle(game_back_buffer *buffer,
                                   V2 min, V2 max, f32 r, f32 g, f32 b);
 
 
-internal void game_update_sound_buffer  (GameState *state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
+internal void Game_update_sound_buffer  (GameState *game_state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
 
 inline game_controller_input *get_controller(game_input *input, u32 controller_index)
 {

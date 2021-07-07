@@ -2,7 +2,7 @@
 #ifndef FLIGHTCONTROL_HELPERS_H
 #define FLIGHTCONTROL_HELPERS_H
 
-#include "LAL.h"
+#include "sge_platform.h"
 #include <cglm/mat4.h>
 
 void Helpers_Display_Matrix4(mat4 matrix, u8 *string);

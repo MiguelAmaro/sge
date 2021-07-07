@@ -3,7 +3,7 @@
 #ifndef FLIGHTCONTROL_FILEIO_H
 #define FLIGHTCONTROL_FILEIO_H
 
-#include "LAL.h"
+#include "sge_platform.h"
 
 u32 
 FileIO_GetFileSize(readonly u8 *path);
