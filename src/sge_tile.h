@@ -8,12 +8,18 @@
 
 #define TILE_DEFAULT_CHUNK_SHIFT (8)
 #define TILE_DEFAULT_CHUNK_MASK  ((1 << 8) - 1)
+#define TILE_SAFE_MARGIN (256)
 
 typedef struct TileChunk TileChunk;
 struct TileChunk
 {
+    u32 x;
+    u32 y;
+    u32 z;
+    
     u32 *tiles;
     
+    TileChunk *next;
 };
 
 typedef struct TilemapDifference TilemapDifference;
@@ -48,17 +54,13 @@ struct TilemapCoord
 typedef struct Tilemap Tilemap;
 struct Tilemap
 {
-    TileChunk *tilechunks;
-    u32 chunk_dimensions;
     u32 chunk_shift;
     u32 chunk_mask;
-    
-    u32 tilechunk_count_x;
-    u32 tilechunk_count_y;
-    u32 tilechunk_count_z;
+    u32 chunk_dimensions;
     
     f32 tile_side_in_meters;
-    u32 padding;
+    
+    TileChunk tilechunk_hash[4096];
 };
 
 

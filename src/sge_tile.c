@@ -1,22 +1,81 @@
-inline TileChunk *
-Tile_get_TileChunk(Tilemap *tilemap, u32 tilechunk_x, u32 tilechunk_y, u32 tilechunk_z)
+//~ INITIALIZERS
+internal void
+Tile_tilemap_init(Tilemap *tilemap, f32 tile_side_in_meters)
 {
-    TileChunk *tilechunk = NULLPTR;
+    tilemap->chunk_shift = 4;
+    tilemap->chunk_mask  = (1 << tilemap->chunk_shift) - 1;
+    tilemap->chunk_dimensions = (1 << tilemap->chunk_shift);
+    tilemap->tile_side_in_meters = tile_side_in_meters;
     
-    if((tilechunk_x >= 0) && (tilechunk_x < tilemap->tilechunk_count_x) &&
-       (tilechunk_y >= 0) && (tilechunk_y < tilemap->tilechunk_count_y) &&
-       (tilechunk_z >= 0) && (tilechunk_z < tilemap->tilechunk_count_z))
+    for(u32 tilechunk_index = 0;
+        tilechunk_index < ARRAYCOUNT(tilemap->tilechunk_hash); tilechunk_index++)
     {
-        tilechunk = &tilemap->tilechunks[tilechunk_z * (tilemap->tilechunk_count_x * tilemap->tilechunk_count_y) +
-                                         tilechunk_y * (tilemap->tilechunk_count_x) +
-                                         tilechunk_x];
+        tilemap->tilechunk_hash[tilechunk_index].x = 0;
     }
+    return;
+}
+
+//~ GET ACCESSORS
+internal TileChunk *
+Tile_get_TileChunk(Tilemap *tilemap, u32 tilechunk_x, u32 tilechunk_y, u32 tilechunk_z, MemoryArena *arena)
+{
+    ASSERT(tilechunk_x > TILE_SAFE_MARGIN);
+    ASSERT(tilechunk_y > TILE_SAFE_MARGIN);
+    ASSERT(tilechunk_z > TILE_SAFE_MARGIN);
     
-    return tilechunk;
+    ASSERT(tilechunk_x < (0xffffffffu - TILE_SAFE_MARGIN));
+    ASSERT(tilechunk_y < (0xffffffffu - TILE_SAFE_MARGIN));
+    ASSERT(tilechunk_z < (0xffffffffu - TILE_SAFE_MARGIN));
+    
+    // TODO(MIGUEL): BETTER HASH FUNCTION!!
+    u32 hash_value   = 19 * tilechunk_x + 7 * tilechunk_y + 3 * tilechunk_z;
+    u32 hash_slot    = hash_value & (ARRAYCOUNT(tilemap->tilechunk_hash) - 1);
+    ASSERT(hash_slot < ARRAYCOUNT(tilemap->tilechunk_hash));
+    
+    TileChunk *chunk = tilemap->tilechunk_hash + hash_slot;
+    do
+    {
+        if((tilechunk_x == chunk->x) &&
+           (tilechunk_y == chunk->y) &&
+           (tilechunk_z == chunk->z))
+        {
+            break;
+        }
+        
+        if(arena && (!chunk->next))
+        {
+            chunk->next = MEMORY_ARENA_PUSH_STRUCT(arena, TileChunk);
+            chunk->x = 0;
+            chunk = chunk->next;
+        }
+        
+        if(arena && (tilechunk_x == 0))
+        {
+            u32 tile_count = tilemap->chunk_dimensions * tilemap->chunk_dimensions;
+            
+            chunk->x = tilechunk_x;
+            chunk->y = tilechunk_y;
+            chunk->z = tilechunk_z;
+            
+            chunk->tiles     = MEMORY_ARENA_PUSH_ARRAY (arena, tile_count, u32);
+            
+            for(u32 tile_index  = 0; tile_index < tile_count; tile_index++)
+            {
+                chunk->tiles[tile_index] = 1;
+            }
+            
+            chunk->next = NULLPTR;
+            
+            break;
+        }
+        
+        chunk = chunk->next;
+    }while(chunk);
+    
+    return chunk;
 }
 
 
-//~ GET ACCESSORS
 inline TileChunkPosition
 Tile_get_TileChunkPosition(Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_abs_z)
 {
@@ -64,16 +123,17 @@ Tile_get_tile_value(Tilemap *tilemap, u32 tile_abs_x, u32 tile_abs_y, u32 tile_a
                                                              tile_abs_x,
                                                              tile_abs_y,
                                                              tile_abs_z);
+    // NOTE(MIGUEL): takes an arena now
+    TileChunk        *tilechunk = Tile_get_TileChunk(tilemap,
+                                                     chunk_pos.tile_chunk_x,
+                                                     chunk_pos.tile_chunk_y,
+                                                     chunk_pos.tile_chunk_z,
+                                                     NULLPTR);
     
-    TileChunk         *tilechunk = Tile_get_TileChunk(tilemap,
-                                                      chunk_pos.tile_chunk_x,
-                                                      chunk_pos.tile_chunk_y,
-                                                      chunk_pos.tile_chunk_z);
-    
-    u32           tilechunk_value = Tile_get_tile_value_if_valid_chunk(tilemap,
-                                                                       tilechunk,
-                                                                       chunk_pos.tile_rel_x,
-                                                                       chunk_pos.tile_rel_y);
+    u32         tilechunk_value = Tile_get_tile_value_if_valid_chunk(tilemap,
+                                                                     tilechunk,
+                                                                     chunk_pos.tile_rel_x,
+                                                                     chunk_pos.tile_rel_y);
     
     
     return tilechunk_value;
@@ -122,20 +182,8 @@ Tile_set_tile_value(MemoryArena *arena, Tilemap *tilemap, u32 tile_abs_x, u32 ti
     TileChunk         *tilechunk = Tile_get_TileChunk(tilemap,
                                                       chunk_pos.tile_chunk_x,
                                                       chunk_pos.tile_chunk_y,
-                                                      chunk_pos.tile_chunk_z);
-    
-    ASSERT(tilechunk);
-    
-    if(!tilechunk->tiles)
-    {
-        u32 tile_count = tilemap->chunk_dimensions * tilemap->chunk_dimensions;
-        tilechunk->tiles = MEMORY_ARENA_PUSH_ARRAY(arena, tile_count, u32);
-        
-        for(u32 tile_index  = 0; tile_index < tile_count; tile_index++)
-        {
-            tilechunk->tiles[tile_index] = 1;
-        }
-    }
+                                                      chunk_pos.tile_chunk_z,
+                                                      arena);
     
     Tile_set_tile_value_if_valid_chunk(tilemap,
                                        tilechunk,

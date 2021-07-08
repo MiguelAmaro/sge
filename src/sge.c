@@ -167,13 +167,14 @@ Entity_get_low_entity(GameState *game_state,  u32 low_index)
 }
 
 internal u32
-Game_add_player(GameState *game_state)
+Game_add_player(GameState *game_state, u32 player_number)
 {
     u32        entity_index = Entity_create_low_entity(game_state, EntityType_player);
     LowEntity *low_entity   = Entity_get_low_entity(game_state, entity_index);
     
-    low_entity->position.tile_abs_x = 3;
-    low_entity->position.tile_abs_y = 3;
+    low_entity->position = game_state->camera_position;
+    
+    low_entity->position.tile_abs_x += player_number; // NOTE(MIGUEL): this a quick temp hack
     low_entity->position.tile_rel_.x = 0.0f; //acceptable range: -0.7 : 0.7
     low_entity->position.tile_rel_.y = 0.0f; //acceptable range: -0.7 : 0.7
     low_entity->height         = 0.5f; //UNITS: meters
@@ -853,23 +854,14 @@ SGE_UPDATE(SGEUpdate)
         the_world->tilemap = MEMORY_ARENA_PUSH_STRUCT(&game_state->world_arena, Tilemap);
         int test = 2;
         test += 2;
+        
         Tilemap *tilemap  = the_world->tilemap;
+        Tile_tilemap_init(tilemap, 1.4f);
         
         
         tilemap->chunk_shift      = 4; //TILE_DEFAULT_CHUNK_SHIFT;
         tilemap->chunk_mask       = (1 << tilemap->chunk_shift) - 1; //TILE_DEFAULT_CHUNK_MASK ;
         tilemap->chunk_dimensions = (1 << tilemap->chunk_shift); //1 << TILE_DEFAULT_CHUNK_SHIFT; //256
-        
-        tilemap->tilechunk_count_x = 128;
-        tilemap->tilechunk_count_y = 128;
-        tilemap->tilechunk_count_z =   3;
-        
-        tilemap->tilechunks =
-            MEMORY_ARENA_PUSH_ARRAY(&game_state->world_arena,
-                                    tilemap->tilechunk_count_x *
-                                    tilemap->tilechunk_count_y *
-                                    tilemap->tilechunk_count_z,
-                                    TileChunk);
         
         tilemap->tile_side_in_meters   =   1.4f;
         
@@ -877,15 +869,15 @@ SGE_UPDATE(SGEUpdate)
         u32 tiles_per_chunk_height =  9;
         
         u32 random_number_index = 0;
-#if 0
-        u32 screenx = (u32)0xFFFFFFFF / 2;
-        u32 screeny = (u32)0xFFFFFFFF / 2;
-#else
-        u32 screenx = 0;
-        u32 screeny = 0;
-#endif
         
-        u32 tile_abs_z = 0;
+        u16 screen_base_x = (u16)(INT16_MAX / tiles_per_chunk_width) / 2;
+        u16 screen_base_y = (u16)(INT16_MAX / tiles_per_chunk_height) / 2;
+        u16 screen_base_z = (u16)(INT16_MAX / 2);
+        
+        
+        u32 screenx = screen_base_x;
+        u32 screeny = screen_base_y;
+        u32 screenz = screen_base_z;
         
         b32 door_left   = 0;
         b32 door_top    = 0;
@@ -911,7 +903,7 @@ SGE_UPDATE(SGEUpdate)
             if(random_choice == 2)
             {
                 created_z_door = 1;
-                if(tile_abs_z  == 0)
+                if(screenz  == 0)
                 {
                     door_up = 1;
                 }
@@ -977,13 +969,13 @@ SGE_UPDATE(SGEUpdate)
                     
                     Tile_set_tile_value(&game_state->world_arena,
                                         the_world->tilemap,
-                                        tile_abs_x, tile_abs_y, tile_abs_z,
+                                        tile_abs_x, tile_abs_y, screenz,
                                         tile_value);
                     
                     if(tile_value == 2) 
                     {
                         // WALL
-                        Game_add_wall(game_state, tile_abs_x, tile_abs_y, tile_abs_z);
+                        Game_add_wall(game_state, tile_abs_x, tile_abs_y, screenz);
                         
                     }
                 }
@@ -1009,13 +1001,13 @@ SGE_UPDATE(SGEUpdate)
             
             if(random_choice == 2)
             {
-                if(tile_abs_z == 0)
+                if(screenz == screen_base_z)
                 {
-                    tile_abs_z = 1;
+                    screenz = screen_base_z + 1;
                 }
                 else
                 {
-                    tile_abs_z = 0;
+                    screenz = screen_base_z;
                 }
             }
             else if(random_choice == 1)
@@ -1030,9 +1022,10 @@ SGE_UPDATE(SGEUpdate)
         
         
         TilemapCoord initial_camera_position = { 0 };
-        initial_camera_position.tile_abs_x = 17 / 2;
-        initial_camera_position.tile_abs_y =  9 / 2;
-        Game_set_camera(game_state, initial_camera_position);
+        initial_camera_position.tile_abs_x = screen_base_x * tiles_per_chunk_width + 17 / 2;
+        initial_camera_position.tile_abs_y = screen_base_y * tiles_per_chunk_height +  9 / 2;
+        initial_camera_position.tile_abs_z = screen_base_z;
+        Game_set_camera(game_state, initial_camera_position); 
         
         sge_memory->is_initialized = 1;
     }
@@ -1059,7 +1052,7 @@ SGE_UPDATE(SGEUpdate)
         {
             if(controller->button_start.ended_down)
             { 
-                u32 entity_index = Game_add_player(game_state);
+                u32 entity_index = Game_add_player(game_state, controller_index);
                 game_state->player_controller_entity_index[controller_index] = entity_index; 
             }
         }
