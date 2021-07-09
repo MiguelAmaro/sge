@@ -8,7 +8,8 @@
 
 #define TILE_CHUNK_DEFAULT_SHIFT (8)
 #define TILE_CHUNK_DEFAULT_MASK  ((1 << 8) - 1)
-#define TILE_CHUNK_SAFE_MARGIN (INT32_MAX / 64)
+#define TILE_CHUNK_SAFE_MARGIN   (INT32_MAX / 64)
+#define TILE_CHUNK_UNINITIALIZED (INT32_MAX)
 
 typedef struct TileChunk TileChunk;
 struct TileChunk

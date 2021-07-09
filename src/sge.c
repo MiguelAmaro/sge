@@ -1183,7 +1183,7 @@ SGE_UPDATE(SGEUpdate)
                 f32 k = 3.0f;
                 
                 f32 center_x = (screen_center_x -
-                                (meters_to_pixels * game_state->camera_position.tile_rel_.x) + ((f32)rel_column           * tile_side_in_pixels));
+                                (meters_to_pixels * game_state->camera_position.tile_rel_.x) + ((f32)rel_column  * tile_side_in_pixels));
                 
                 f32 center_y = (screen_center_y +
                                 (meters_to_pixels * game_state->camera_position.tile_rel_.y) -

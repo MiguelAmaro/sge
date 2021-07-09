@@ -1,3 +1,4 @@
+
 //~ INITIALIZERS
 internal void
 Tile_tilemap_init(Tilemap *tilemap, f32 tile_side_in_meters)
@@ -10,7 +11,7 @@ Tile_tilemap_init(Tilemap *tilemap, f32 tile_side_in_meters)
     for(u32 tilechunk_index = 0;
         tilechunk_index < ARRAYCOUNT(tilemap->tilechunk_hash); tilechunk_index++)
     {
-        tilemap->tilechunk_hash[tilechunk_index].x = 0;
+        tilemap->tilechunk_hash[tilechunk_index].x = TILE_CHUNK_UNINITIALIZED;
     }
     return;
 }
@@ -45,11 +46,11 @@ Tile_get_TileChunk(Tilemap *tilemap, s32 tilechunk_x, s32 tilechunk_y, s32 tilec
         if(arena && (!chunk->next))
         {
             chunk->next = MEMORY_ARENA_PUSH_STRUCT(arena, TileChunk);
-            chunk->x = 0;
-            chunk = chunk->next;
+            chunk       = chunk->next;
+            chunk->x    = TILE_CHUNK_UNINITIALIZED;
         }
         
-        if(arena && (tilechunk_x == 0))
+        if(arena && (tilechunk_x == TILE_CHUNK_UNINITIALIZED))
         {
             u32 tile_count = tilemap->chunk_dimensions * tilemap->chunk_dimensions;
             
