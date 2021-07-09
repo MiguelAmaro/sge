@@ -230,8 +230,8 @@ Game_draw_mini_map(GameState *game_state,
         {
             if(camera_following_entity)
             {
-                u32 column = camera_following_entity->position.tile_abs_x + rel_column;
-                u32 row    = camera_following_entity->position.tile_abs_y + rel_row;
+                s32 column = camera_following_entity->position.tile_abs_x + rel_column;
+                s32 row    = camera_following_entity->position.tile_abs_y + rel_row;
                 
                 u32 tileid = Tile_get_tile_value(tilemap, column, row, camera_following_entity->position.tile_abs_z );
                 
@@ -861,7 +861,7 @@ SGE_UPDATE(SGEUpdate)
         
         tilemap->chunk_shift      = 4; //TILE_DEFAULT_CHUNK_SHIFT;
         tilemap->chunk_mask       = (1 << tilemap->chunk_shift) - 1; //TILE_DEFAULT_CHUNK_MASK ;
-        tilemap->chunk_dimensions = (1 << tilemap->chunk_shift); //1 << TILE_DEFAULT_CHUNK_SHIFT; //256
+        tilemap->chunk_dimensions = (1 << tilemap->chunk_shift);     //1 << TILE_DEFAULT_CHUNK_SHIFT; //256
         
         tilemap->tile_side_in_meters   =   1.4f;
         
@@ -870,9 +870,9 @@ SGE_UPDATE(SGEUpdate)
         
         u32 random_number_index = 0;
         
-        u16 screen_base_x = (u16)(INT16_MAX / tiles_per_chunk_width) / 2;
-        u16 screen_base_y = (u16)(INT16_MAX / tiles_per_chunk_height) / 2;
-        u16 screen_base_z = (u16)(INT16_MAX / 2);
+        u16 screen_base_x = 0;
+        u16 screen_base_y = 0;
+        u16 screen_base_z = 0;
         
         
         u32 screenx = screen_base_x;
@@ -1022,7 +1022,7 @@ SGE_UPDATE(SGEUpdate)
         
         
         TilemapCoord initial_camera_position = { 0 };
-        initial_camera_position.tile_abs_x = screen_base_x * tiles_per_chunk_width + 17 / 2;
+        initial_camera_position.tile_abs_x = screen_base_x * tiles_per_chunk_width  + 17 / 2;
         initial_camera_position.tile_abs_y = screen_base_y * tiles_per_chunk_height +  9 / 2;
         initial_camera_position.tile_abs_z = screen_base_z;
         Game_set_camera(game_state, initial_camera_position); 
@@ -1168,8 +1168,8 @@ SGE_UPDATE(SGEUpdate)
     {
         for(s32 rel_column = -camera_range_y; rel_column < camera_range_y; rel_column++)
         {
-            u32 column = game_state->camera_position.tile_abs_x + rel_column;
-            u32 row    = game_state->camera_position.tile_abs_y + rel_row;
+            s32 column = game_state->camera_position.tile_abs_x + rel_column;
+            s32 row    = game_state->camera_position.tile_abs_y + rel_row;
             
             u32 tileid = Tile_get_tile_value(tilemap, column, row, game_state->camera_position.tile_abs_z );
             

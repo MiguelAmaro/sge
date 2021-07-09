@@ -6,16 +6,16 @@
 #include "sge_math.h"
 
 
-#define TILE_DEFAULT_CHUNK_SHIFT (8)
-#define TILE_DEFAULT_CHUNK_MASK  ((1 << 8) - 1)
-#define TILE_SAFE_MARGIN (256)
+#define TILE_CHUNK_DEFAULT_SHIFT (8)
+#define TILE_CHUNK_DEFAULT_MASK  ((1 << 8) - 1)
+#define TILE_CHUNK_SAFE_MARGIN (INT32_MAX / 64)
 
 typedef struct TileChunk TileChunk;
 struct TileChunk
 {
-    u32 x;
-    u32 y;
-    u32 z;
+    s32 x;
+    s32 y;
+    s32 z;
     
     u32 *tiles;
     
@@ -32,21 +32,21 @@ struct TilemapDifference
 typedef struct TileChunkPosition TileChunkPosition;
 struct TileChunkPosition
 {
-    u32 tile_chunk_x;
-    u32 tile_chunk_y;
-    u32 tile_chunk_z;
+    s32 tile_chunk_x;
+    s32 tile_chunk_y;
+    s32 tile_chunk_z;
     
-    u32 tile_rel_x;
-    u32 tile_rel_y;
+    s32 tile_rel_x;
+    s32 tile_rel_y;
 };
 
 
 typedef struct TilemapCoord TilemapCoord;
 struct TilemapCoord
 {
-    u32 tile_abs_x;
-    u32 tile_abs_y;
-    u32 tile_abs_z;
+    s32 tile_abs_x;
+    s32 tile_abs_y;
+    s32 tile_abs_z;
     
     V2  tile_rel_;
 };
@@ -54,9 +54,9 @@ struct TilemapCoord
 typedef struct Tilemap Tilemap;
 struct Tilemap
 {
-    u32 chunk_shift;
-    u32 chunk_mask;
-    u32 chunk_dimensions;
+    s32 chunk_shift;
+    s32 chunk_mask;
+    s32 chunk_dimensions;
     
     f32 tile_side_in_meters;
     
