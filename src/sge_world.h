@@ -4,6 +4,7 @@
 #define SGE_TILE_H
 
 #include "sge_math.h"
+#include "sge.h"
 
 
 #define TILE_CHUNK_DEFAULT_SHIFT (8)
@@ -11,39 +12,35 @@
 #define TILE_CHUNK_SAFE_MARGIN   (INT32_MAX / 64)
 #define TILE_CHUNK_UNINITIALIZED (INT32_MAX)
 
-typedef struct TileChunk TileChunk;
-struct TileChunk
+typedef struct WorldEntityBlock WorldEntityBlock;
+struct  WorldEntityBlock
+{
+    u32     entity_count;
+    u32 low_entity_index[16];
+    WorldEntityBlock *next;
+};
+
+typedef struct WorldChunk WorldChunk;
+struct WorldChunk
 {
     s32 x;
     s32 y;
     s32 z;
     
-    u32 *tiles;
+    WorldEntityBlock first_block;
     
-    TileChunk *next;
+    WorldChunk *next;
 };
 
-typedef struct TilemapDifference TilemapDifference;
-struct TilemapDifference
+typedef struct WorldDifference WorldDifference;
+struct WorldDifference
 {
     V2  dxy;
     f32 dz;
 };
 
-typedef struct TileChunkPosition TileChunkPosition;
-struct TileChunkPosition
-{
-    s32 tile_chunk_x;
-    s32 tile_chunk_y;
-    s32 tile_chunk_z;
-    
-    s32 tile_rel_x;
-    s32 tile_rel_y;
-};
-
-
-typedef struct TilemapCoord TilemapCoord;
-struct TilemapCoord
+typedef struct WorldCoord WorldCoord;
+struct WorldCoord
 {
     s32 tile_abs_x;
     s32 tile_abs_y;
@@ -52,8 +49,8 @@ struct TilemapCoord
     V2  tile_rel_;
 };
 
-typedef struct Tilemap Tilemap;
-struct Tilemap
+typedef struct World World;
+struct World
 {
     s32 chunk_shift;
     s32 chunk_mask;
@@ -61,7 +58,7 @@ struct Tilemap
     
     f32 tile_side_in_meters;
     
-    TileChunk tilechunk_hash[4096];
+    WorldChunk chunk_hash[4096];
 };
 
 

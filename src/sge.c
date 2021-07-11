@@ -50,10 +50,11 @@ Entity_set_frequency_high(GameState *game_state, u32 low_index)
             HighEntity *high_entity = &game_state->high_entities_[high_index];
             
             // NOTE(MIGUEL): map to camera space
-            TilemapDifference diff = Tile_subtract(game_state->world->tilemap,
-                                                   &low_entity->position,
-                                                   &game_state->camera_position);
-            
+#if 1
+            WorldDifference diff = World_subtract(game_state->world,
+                                                  &low_entity->position,
+                                                  &game_state->camera_position);
+#endif
             high_entity->position = diff.dxy;
             high_entity->velocity = (V2){0, 0};
             high_entity->tile_abs_z = low_entity->position.tile_abs_z;
@@ -99,7 +100,7 @@ Entity_set_frequency_low(GameState *game_state, u32 low_index)
 }
 
 internal void
-Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 camera_bounds)
+Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 high_frequency_bounds)
 {
     for(u32 high_index = 1;
         high_index < game_state->high_entity_count;)
@@ -108,7 +109,7 @@ Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 camera_b
         
         V2_add(high_entity->position, offset, &high_entity->position);
         
-        if(RectV2_is_in_rect(camera_bounds, high_entity->position))
+        if(RectV2_is_in_rect(high_frequency_bounds, high_entity->position))
         {
             high_index++;
         }
@@ -214,33 +215,49 @@ Game_draw_mini_map(GameState *game_state,
                    s32 camera_range_y,
                    s32 x, s32 y)
 {
-    Tilemap *tilemap = game_state->world->tilemap;
+    World *tilemap = game_state->world;
     
     f32 meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)tilemap->tile_side_in_meters);
     
     f32 screen_center_x = 0.5f * (f32)back_buffer->width;
     f32 screen_center_y = 0.5f * (f32)back_buffer->height;
     
+    camera_range_x = 30;
+    camera_range_y = 20;
+    
     // NOTE(MIGUEL): camera_following_entity_index is probly wrong or brokne.. i dont understand the system
     LowEntity *camera_following_entity = Entity_get_low_entity(game_state, game_state->camera_following_entity_index);
     
-    for(s32 rel_row = -camera_range_x; rel_row < camera_range_x; rel_row++)
+    for(s32 rel_column = -camera_range_x; rel_column < camera_range_x; rel_column++)
     {
-        for(s32 rel_column = -camera_range_y; rel_column < camera_range_y; rel_column++)
+        for(s32 rel_row = -camera_range_y; rel_row < camera_range_y; rel_row++)
         {
             if(camera_following_entity)
             {
                 s32 column = camera_following_entity->position.tile_abs_x + rel_column;
                 s32 row    = camera_following_entity->position.tile_abs_y + rel_row;
                 
-                u32 tileid = Tile_get_tile_value(tilemap, column, row, camera_following_entity->position.tile_abs_z );
+                u32 tileid = 1;//Tile_get_tile_value(tilemap, column, row, camera_following_entity->position.tile_abs_z );
+                //if(){} // TODO(MIGUEL): find way to render walls in the minimap
+                for(u32 high_index = 0; high_index < game_state->high_entity_count; high_index++)
+                {
+                    HighEntity *high = game_state->high_entities_ + high_index;
+                    LowEntity  *low  = game_state->low_entities + high->low_index;
+                    
+                    if(low->position.tile_abs_x == column &&
+                       low->position.tile_abs_y == row)
+                    {
+                        tileid = 2;
+                        break;
+                    }
+                }
                 
                 if(tileid > 0)
                 {
                     f32 gray = 0.2f;
                     
                     //circle drawing shinanegans
-                    f32 r = 20.0f; // * sinf(input->delta_t);
+                    f32 r = 40.0f;
                     f32 h = 4.0f;
                     f32 k = 3.0f;
                     
@@ -250,7 +267,7 @@ Game_draw_mini_map(GameState *game_state,
                     
                     f32 center_y = (screen_center_y +
                                     (meters_to_pixels * camera_following_entity->position.tile_rel_.y) -
-                                    ((f32)rel_row     * tile_side_in_pixels));
+                                    ((f32)rel_row  * tile_side_in_pixels));
                     
                     f32 min_x = x + center_x - 0.5f * tile_side_in_pixels;
                     f32 min_y = y + center_y - 0.5f * tile_side_in_pixels;
@@ -501,7 +518,7 @@ Game_get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_c
 internal void
 Game_player_move(GameState *game_state,  Entity entity, f32 delta_t, V2 acceleration)
 {
-    Tilemap *tilemap = game_state->world->tilemap;
+    World *world = game_state->world;
     
     f32 accel_magnitude = V2_dot(acceleration, acceleration);
     
@@ -721,36 +738,37 @@ Game_player_move(GameState *game_state,  Entity entity, f32 delta_t, V2 accelera
         }
     }
     
-    entity.low->position = Tile_map_to_tilespace(game_state->world->tilemap,
-                                                 game_state->camera_position,
-                                                 entity.high->position);
+    entity.low->position = World_map_to_tilespace(game_state->world,
+                                                  game_state->camera_position,
+                                                  entity.high->position);
     return;
 }
 
 internal V2
-Game_set_camera(GameState *game_state, TilemapCoord new_camera_position)
+Game_set_camera(GameState *game_state, WorldCoord new_camera_position)
 {
-    Tilemap *tilemap = game_state->world->tilemap;
-    TilemapDifference camera_position_delta = Tile_subtract(tilemap,
-                                                            &new_camera_position,
-                                                            &game_state->camera_position);
+    World *world = game_state->world;
+    WorldDifference camera_position_delta = World_subtract(world,
+                                                           &new_camera_position,
+                                                           &game_state->camera_position);
     game_state->camera_position = new_camera_position;
     
     V2 tile_span_in_meters = (V2){ (17 * 3) , (9 * 3)};
     
-    V2_scale(tilemap->tile_side_in_meters, &tile_span_in_meters);
+    V2_scale(world->tile_side_in_meters, &tile_span_in_meters);
     RectV2 camera_bounds = RectV2_center_half_dim((V2){0 , 0},
                                                   tile_span_in_meters);
     
     V2 entity_offset_for_frame = camera_position_delta.dxy;
     V2_scale(-1.0f, &entity_offset_for_frame);
     
+    
     Entity_check_frequency_by_area(game_state, entity_offset_for_frame, camera_bounds);
     
-    u32 min_x = new_camera_position.tile_abs_x - (u32)(tile_span_in_meters.x / 2.0f);
-    u32 min_y = new_camera_position.tile_abs_y - (u32)(tile_span_in_meters.y / 2.0f);
-    u32 max_x = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.x / 2.0f);
-    u32 max_y = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.y / 2.0f);
+    s32 min_x = new_camera_position.tile_abs_x - (u32)(tile_span_in_meters.x / 2.0f);
+    s32 min_y = new_camera_position.tile_abs_y - (u32)(tile_span_in_meters.y / 2.0f);
+    s32 max_x = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.x / 2.0f);
+    s32 max_y = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.y / 2.0f);
     
     
     for(u32 low_index = 1; 
@@ -760,13 +778,11 @@ Game_set_camera(GameState *game_state, TilemapCoord new_camera_position)
         
         if(low_entity->high_index == 0)
         {
-#if 0
             if((low_entity->position.tile_abs_z == new_camera_position.tile_abs_z) &&
                (low_entity->position.tile_abs_x >= min_x) &&
                (low_entity->position.tile_abs_x <= max_x) &&
                (low_entity->position.tile_abs_y >= min_y) &&
                (low_entity->position.tile_abs_y <= max_y))
-#endif
             {
                 Entity_set_frequency_high(game_state, low_index);
             }
@@ -849,21 +865,14 @@ SGE_UPDATE(SGEUpdate)
         
         
         game_state->world = MEMORY_ARENA_PUSH_STRUCT(&game_state->world_arena, World); 
-        World *the_world  = game_state->world;
+        World *world  = game_state->world;
+        World_init(world, 1.4f); 
         
-        the_world->tilemap = MEMORY_ARENA_PUSH_STRUCT(&game_state->world_arena, Tilemap);
-        int test = 2;
-        test += 2;
+        world->chunk_shift      = 4; //TILE_DEFAULT_CHUNK_SHIFT;
+        world->chunk_mask       = (1 << world->chunk_shift) - 1; //TILE_DEFAULT_CHUNK_MASK ;
+        world->chunk_dimensions = (1 << world->chunk_shift);     //1 << TILE_DEFAULT_CHUNK_SHIFT; //256
         
-        Tilemap *tilemap  = the_world->tilemap;
-        Tile_tilemap_init(tilemap, 1.4f);
-        
-        
-        tilemap->chunk_shift      = 4; //TILE_DEFAULT_CHUNK_SHIFT;
-        tilemap->chunk_mask       = (1 << tilemap->chunk_shift) - 1; //TILE_DEFAULT_CHUNK_MASK ;
-        tilemap->chunk_dimensions = (1 << tilemap->chunk_shift);     //1 << TILE_DEFAULT_CHUNK_SHIFT; //256
-        
-        tilemap->tile_side_in_meters   =   1.4f;
+        world->tile_side_in_meters   =   1.4f;
         
         u32 tiles_per_chunk_width  = 17;
         u32 tiles_per_chunk_height =  9;
@@ -967,11 +976,6 @@ SGE_UPDATE(SGEUpdate)
                     //debug
                     //tile_value = 1;
                     
-                    Tile_set_tile_value(&game_state->world_arena,
-                                        the_world->tilemap,
-                                        tile_abs_x, tile_abs_y, screenz,
-                                        tile_value);
-                    
                     if(tile_value == 2) 
                     {
                         // WALL
@@ -1020,8 +1024,14 @@ SGE_UPDATE(SGEUpdate)
             }
         }
         
+        while(game_state->low_entity_count < (ARRAYCOUNT(game_state->low_entities) - 16))
+        { 
+            local_persist u32 coord = 12;
+            Game_add_wall(game_state, coord, coord, 0);
+            coord+=1;
+        }
         
-        TilemapCoord initial_camera_position = { 0 };
+        WorldCoord initial_camera_position = { 0 };
         initial_camera_position.tile_abs_x = screen_base_x * tiles_per_chunk_width  + 17 / 2;
         initial_camera_position.tile_abs_y = screen_base_y * tiles_per_chunk_height +  9 / 2;
         initial_camera_position.tile_abs_z = screen_base_z;
@@ -1030,11 +1040,11 @@ SGE_UPDATE(SGEUpdate)
         sge_memory->is_initialized = 1;
     }
     
-    World *the_world  = game_state->world;
-    Tilemap *tilemap = the_world->tilemap;
+    World *world  = game_state->world;
+    //Tilemap *tilemap = the_world->tilemap;
     
     s32 tile_side_in_pixels = 60;
-    f32 meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)tilemap->tile_side_in_meters);
+    f32 meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)world->tile_side_in_meters);
     
     f32 lower_left_x = -(f32)tile_side_in_pixels / (f32)2;
     f32 lower_left_y =  (f32)back_buffer->height;
@@ -1111,7 +1121,7 @@ SGE_UPDATE(SGEUpdate)
     
     if(camera_following_entity.high)
     {
-        TilemapCoord new_camera_position = game_state->camera_position;
+        WorldCoord new_camera_position = game_state->camera_position;
         
         game_state->camera_position.tile_abs_z = camera_following_entity.low->position.tile_abs_z;
 #if 0
@@ -1136,14 +1146,14 @@ SGE_UPDATE(SGEUpdate)
         V2 entity_offset_for_frame = { 0 };
         V2 camera_half_field_of_view =
         {
-            (17.0f / 2.0f) * tilemap->tile_side_in_meters,
-            ( 9.0f / 2.0f) * tilemap->tile_side_in_meters
+            (17.0f / 2.0f) * world->tile_side_in_meters,
+            ( 9.0f / 2.0f) * world->tile_side_in_meters
         };
         
         entity_offset_for_frame.x = follow_speed.x * (camera_following_entity.high->position.x / camera_half_field_of_view.x);
         entity_offset_for_frame.y = follow_speed.y * (camera_following_entity.high->position.y / camera_half_field_of_view.y);
         
-        new_camera_position = Tile_map_to_tilespace(tilemap, new_camera_position, entity_offset_for_frame);
+        new_camera_position = World_map_to_tilespace(world, new_camera_position, entity_offset_for_frame);
 #endif
         Game_set_camera(game_state, new_camera_position);
     }
@@ -1162,8 +1172,8 @@ SGE_UPDATE(SGEUpdate)
     f32 screen_center_y = 0.5f * (f32)back_buffer->height;
     
     
-    s32 camera_range_x = 100;
-    s32 camera_range_y = 200;
+    s32 camera_range_x = 10;
+    s32 camera_range_y = 20;
     for(s32 rel_row = -camera_range_x; rel_row < camera_range_x; rel_row++)
     {
         for(s32 rel_column = -camera_range_y; rel_column < camera_range_y; rel_column++)
@@ -1171,7 +1181,7 @@ SGE_UPDATE(SGEUpdate)
             s32 column = game_state->camera_position.tile_abs_x + rel_column;
             s32 row    = game_state->camera_position.tile_abs_y + rel_row;
             
-            u32 tileid = Tile_get_tile_value(tilemap, column, row, game_state->camera_position.tile_abs_z );
+            u32 tileid = 1;//Tile_get_tile_value(tilemap, column, row, game_state->camera_position.tile_abs_z );
             
             if(tileid > 0)
             {
@@ -1259,7 +1269,9 @@ SGE_UPDATE(SGEUpdate)
     }
     
     game_state->clock += input->delta_t * 0.1f;
-    //game_render_weird_shit(back_buffer, 10, 40, game_state->clock);
+    
+    //Game_render_weird_shit(back_buffer, 10, 40, game_state->clock);
+    
     if(game_state->player_controller_entity_index[0])
     {
         int i = 1;
@@ -1503,20 +1515,22 @@ internal void Game_render_weird_shit(game_back_buffer *buffer, s32 x_offset, s32
         
         for(s32 x = 0; x < buffer->width; x++) 
         {
-            u32 fragment = 0;
+            u32 fragment = 2;
             
             f32 alpha_channel = 0.5f;
             f32 red_channel   = 0.0f;
             f32 green_channel = 0.0f;
             f32 blue_channel  = math_cos(time );
             
-#if 0
-            f32 amplitude = 0.2f;
-            
+#if 1
+            f32 amplitude = 0.0001f;
+            s32 crest = 20;
+            local_persist u64 move = 0;
+            move += 5000;
             RectV2 bounds = { {0 ,0}, {(f32)buffer->width, (f32)buffer->height} };
             
             //printf("N-Y: %f | X-CMP: %f  \n", y_comp, x_comp);
-            if((floor_f32_to_s32(math_cos(time * 2.0f * (x * 0.04f) * amplitude) * (f32)buffer->height) == y))
+            if(((floor_f32_to_s32(math_cos(time * 2.0f * ((move + x) * 0.04f) * amplitude) * (f32)buffer->height)) == y))
             {
                 //alpha_channel = 220;
                 red_channel   = math_cos(time);

@@ -49,15 +49,8 @@ MemoryArena_push_data_structure(MemoryArena *arena, memory_index size)
 
 
 #include "sge_intrinsics.h"
-#include "sge_tile.h"
-#include "sge_tile.c"
-
-typedef struct World World;
-struct World
-{
-    Tilemap *tilemap;
-};
-
+#include "sge_world.h"
+#include "sge_world.c"
 
 #pragma pack(push, 1)
 typedef struct BitmapHeader BitmapHeader;
@@ -135,7 +128,7 @@ struct LowEntity
     EntityType type;
     
     f32 width, height;
-    TilemapCoord position;
+    WorldCoord position;
     
     // NOTE(MIGUEL): for stairs
     s32 delta_tile_abs_z;
@@ -159,7 +152,7 @@ struct GameState
     World       *world    ;
     
     u32 camera_following_entity_index;
-    TilemapCoord camera_position;
+    WorldCoord camera_position;
     
     BitmapData  back_drop;
     BitmapData  player_head;
@@ -177,7 +170,7 @@ struct GameState
     HighEntity high_entities_    [256];
     
     u32       low_entity_count;
-    LowEntity low_entities     [4096];
+    LowEntity low_entities[100000];
     
     // NOTE(MIGUEL): temp shit
     u32 *pixel_ptr;
