@@ -1109,7 +1109,11 @@ SGE_UPDATE(SGEUpdate)
             {
                 controlled_entity.high->delta_z = 3.0f;
             }
-            
+            if(controller->shoulder_left.ended_down)
+            {
+                // focus camera on this player
+                game_state->camera_following_entity_index = game_state->player_controller_entity_index[controller_index];
+            }
             Game_player_move(game_state, controlled_entity, input->delta_t, player_accel);
         }
         
@@ -1270,7 +1274,7 @@ SGE_UPDATE(SGEUpdate)
     
     game_state->clock += input->delta_t * 0.1f;
     
-    //Game_render_weird_shit(back_buffer, 10, 40, game_state->clock);
+    //-Game_render_weird_shit(back_buffer, 10, 40, game_state->clock);
     
     if(game_state->player_controller_entity_index[0])
     {
