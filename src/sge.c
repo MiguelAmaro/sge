@@ -46,7 +46,7 @@ Entity_set_frequency_high(GameState *game_state, u32 low_index)
         if(game_state->high_entity_count < ARRAYCOUNT(game_state->high_entities_))
         {   
             
-            u32 high_index = game_state->high_entity_count++;
+            u32         high_index  =  game_state->high_entity_count++;
             HighEntity *high_entity = &game_state->high_entities_[high_index];
             
             // NOTE(MIGUEL): map to camera space
@@ -106,6 +106,7 @@ Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 high_fre
         high_index < game_state->high_entity_count;)
     {
         HighEntity *high_entity = game_state->high_entities_ + high_index;
+        LowEntity  * low_entity = game_state->low_entities   + high_entity->low_index;
         
         V2_add(high_entity->position, offset, &high_entity->position);
         
@@ -115,7 +116,14 @@ Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 high_fre
         }
         else
         {
-            Entity_set_frequency_low(game_state, high_entity->low_index);
+            if(low_entity->type != EntityType_player)
+            {
+                Entity_set_frequency_low(game_state, high_entity->low_index);
+            }
+            else
+            {
+                high_index++;
+            }
         }
         
     }
@@ -217,13 +225,14 @@ Game_draw_mini_map(GameState *game_state,
 {
     World *tilemap = game_state->world;
     
-    f32 meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)tilemap->tile_side_in_meters);
+    f32 meters_to_pixels    =  ((f32)tile_side_in_pixels / (f32)tilemap->tile_side_in_meters);
     
     f32 screen_center_x = 0.5f * (f32)back_buffer->width;
     f32 screen_center_y = 0.5f * (f32)back_buffer->height;
     
-    camera_range_x = 30;
-    camera_range_y = 20;
+    s32 view_scale = 1;
+    camera_range_x = 40 * view_scale;
+    camera_range_y = 30 * view_scale;
     
     // NOTE(MIGUEL): camera_following_entity_index is probly wrong or brokne.. i dont understand the system
     LowEntity *camera_following_entity = Entity_get_low_entity(game_state, game_state->camera_following_entity_index);
@@ -310,6 +319,53 @@ Game_draw_mini_map(GameState *game_state,
                                             (V2){max_x,max_y},
                                             gray, gray, gray);
                     }
+                    /// DEBUG
+                    
+                    V2 tile_span_in_meters = (V2){ (17 * 3) / 2 , (9 * 3) / 2};
+                    V2 camera_point        = 
+                    { 
+                        (f32)game_state->camera_position.tile_abs_x,
+                        (f32)game_state->camera_position.tile_abs_y 
+                    };
+                    
+                    RectV2 high_frequency_bounds = RectV2_center_half_dim(game_state->camera_position.tile_rel_,
+                                                                          tile_span_in_meters);
+                    
+                    V2_add(camera_point, high_frequency_bounds.min, &high_frequency_bounds.min);
+                    V2_add(camera_point, high_frequency_bounds.max, &high_frequency_bounds.max);
+                    
+                    tile_span_in_meters  = (V2){ 17/ 2 , 9/2};
+                    RectV2 camera_bounds = RectV2_center_half_dim(game_state->camera_position.tile_rel_,
+                                                                  tile_span_in_meters);
+                    
+                    V2_add(camera_point, camera_bounds.min, &camera_bounds.min);
+                    V2_add(camera_point, camera_bounds.max, &camera_bounds.max);
+                    
+                    
+                    if((((column >= (s32)high_frequency_bounds.min.x) && (column <= (s32)high_frequency_bounds.max.x)) &&
+                        ((row    == (s32)high_frequency_bounds.min.y) || (row    == (s32)high_frequency_bounds.max.y))) 
+                       ||
+                       ((row    >= (s32)high_frequency_bounds.min.y) && (row    <= (s32)high_frequency_bounds.max.y)) &&
+                       ((column == (s32)high_frequency_bounds.min.x) || (column == (s32)high_frequency_bounds.max.x)))
+                    {
+                        Game_draw_rectangle(back_buffer,
+                                            (V2){min_x,min_y},
+                                            (V2){max_x,max_y},
+                                            1.0f, 0.0f, 0.0f);
+                    }
+                    
+                    if((((column >= (s32)camera_bounds.min.x) && (column <= (s32)camera_bounds.max.x)) &&
+                        ((row    == (s32)camera_bounds.min.y) || (row    == (s32)camera_bounds.max.y))) 
+                       ||
+                       ((row    >= (s32)camera_bounds.min.y) && (row    <= (s32)camera_bounds.max.y)) &&
+                       ((column == (s32)camera_bounds.min.x) || (column == (s32)camera_bounds.max.x)))
+                    {
+                        Game_draw_rectangle(back_buffer,
+                                            (V2){min_x,min_y},
+                                            (V2){max_x,max_y},
+                                            0.0f, 0.0f, 1.0f);
+                    }
+                    
                     
                     //DEBUG - PLAYERS CURRENT TILE
                     for(int player_index = 0; player_index < 4; player_index++)
@@ -334,7 +390,6 @@ Game_draw_mini_map(GameState *game_state,
             }
         }
     }
-    
     
     return;
 }
@@ -561,33 +616,7 @@ Game_player_move(GameState *game_state,  Entity entity, f32 delta_t, V2 accelera
     V2 new_pos = { 0 };
     V2_add(old_pos, position_delta, &new_pos);//Tile_offset(tilemap, old_pos, position_delta);
     
-    /*
-    u32 min_tile_x = MINIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
-    u32 min_tile_y = MINIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
-    u32 max_tile_x = MAXIMUM(old_pos.tile_abs_x, new_pos.tile_abs_x);
-    u32 max_tile_y = MAXIMUM(old_pos.tile_abs_y, new_pos.tile_abs_y);
-        
-    u32 entity_tile_width  = ceiling_f32_to_s32(entity->width  / tilemap->tile_side_in_meters);
-    u32 entity_tile_height = ceiling_f32_to_s32(entity->height / tilemap->tile_side_in_meters);
-        
-    min_tile_x -= entity_tile_width;
-    min_tile_y -= entity_tile_height;
-    max_tile_x += entity_tile_width;
-    max_tile_y += entity_tile_height;
-        
-    NOTE(MIGUEL): IF COLLISION IS FUKED LOOK AT THIS SHIT. JUST HACKED THIS IN
-        if((min_tile_y == 0xFFFFFFFF) ||
-        (min_tile_x == 0xFFFFFFFF))
-    {
-        NOTE(MIGUEL): IF SPEED IS GREATER THAN 50.0F(LIKE IN HMH) THEN THIS IS NEEDE ASSERT BELOW ARE GOOD ENOUGH
-            min_tile_x = 0;
-        min_tile_y = 0; 
-    }
-        
-        
-    u32 tile_abs_z = entity->pos.tile_abs_z;
-    */
-    //f32 t_remaining = 1.0f;
+    
     
     for(u32 collision_resolve_attempt = 0; 
         collision_resolve_attempt < 4; collision_resolve_attempt++)
@@ -753,23 +782,27 @@ Game_set_camera(GameState *game_state, WorldCoord new_camera_position)
                                                            &game_state->camera_position);
     game_state->camera_position = new_camera_position;
     
-    V2 tile_span_in_meters = (V2){ (17 * 3) , (9 * 3)};
-    
-    V2_scale(world->tile_side_in_meters, &tile_span_in_meters);
-    RectV2 camera_bounds = RectV2_center_half_dim((V2){0 , 0},
-                                                  tile_span_in_meters);
+    V2 tile_span_in_meters = (V2){ (17 * 3)/2 , (9 * 3)/2};
     
     V2 entity_offset_for_frame = camera_position_delta.dxy;
+    
+    //V2_scale((1 / 2.0f), &tile_span_in_meters);
+    V2_scale(world->tile_side_in_meters, &tile_span_in_meters);
+    
+    RectV2 high_frequency_bounds = RectV2_center_half_dim((V2){0 , 0},
+                                                          tile_span_in_meters);
+    
     V2_scale(-1.0f, &entity_offset_for_frame);
     
+    // NOTE(MIGUEL): set out of bounds entities low
+    Entity_check_frequency_by_area(game_state, entity_offset_for_frame,
+                                   high_frequency_bounds);
     
-    Entity_check_frequency_by_area(game_state, entity_offset_for_frame, camera_bounds);
-    
+    V2_scale((2 / (f32)(world->tile_side_in_meters)), &tile_span_in_meters);
     s32 min_x = new_camera_position.tile_abs_x - (u32)(tile_span_in_meters.x / 2.0f);
     s32 min_y = new_camera_position.tile_abs_y - (u32)(tile_span_in_meters.y / 2.0f);
-    s32 max_x = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.x / 2.0f);
+    s32 max_x = new_camera_position.tile_abs_x + (u32)(tile_span_in_meters.x / 2.0f);
     s32 max_y = new_camera_position.tile_abs_y + (u32)(tile_span_in_meters.y / 2.0f);
-    
     
     for(u32 low_index = 1; 
         low_index < game_state->low_entity_count; low_index++)
@@ -895,7 +928,7 @@ SGE_UPDATE(SGEUpdate)
         b32 door_up     = 0;
         b32 door_down   = 0;
         
-        for(u32 screen_index = 0; screen_index < 2; screen_index++)
+        for(u32 screen_index = 0; screen_index < 100; screen_index++)
         {
             ASSERT(random_number_index < ARRAYCOUNT(random_number_table));
             u32 random_choice;
@@ -1022,13 +1055,6 @@ SGE_UPDATE(SGEUpdate)
             {
                 screeny += 1;
             }
-        }
-        
-        while(game_state->low_entity_count < (ARRAYCOUNT(game_state->low_entities) - 16))
-        { 
-            local_persist u32 coord = 12;
-            Game_add_wall(game_state, coord, coord, 0);
-            coord+=1;
         }
         
         WorldCoord initial_camera_position = { 0 };
@@ -1401,7 +1427,7 @@ SGE_UPDATE(SGEUpdate)
 #if 1
     Game_draw_mini_map(game_state,
                        back_buffer,
-                       6,
+                       4,
                        200,
                        100,
                        300, 140);
