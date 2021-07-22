@@ -1,8 +1,9 @@
-@ECHO OFF
-PUSHD build
+@echo off
 
-REM START cmd /k Win32_SGE.exe
+pushd build
 
-Win32_SGE.exe
+rem start cmd /k win32_sge.exe
 
-POPD
+win32_sge.exe
+
+popd

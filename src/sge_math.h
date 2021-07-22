@@ -166,5 +166,19 @@ RectV2_is_in_rect(RectV2 rect, V2 test_position)
     return result;
 }
 
+inline V2
+RectV2_min_corner(RectV2 rect)
+{
+    V2 result = rect.min;
+    
+    return result;
+}
 
+inline V2
+RectV2_max_corner(RectV2 rect)
+{
+    V2 result = rect.max;
+    
+    return result;
+}
 #endif //SGE_MATH_H

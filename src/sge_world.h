@@ -7,16 +7,17 @@
 #include "sge.h"
 
 
-#define TILE_CHUNK_DEFAULT_SHIFT (8)
-#define TILE_CHUNK_DEFAULT_MASK  ((1 << 8) - 1)
-#define TILE_CHUNK_SAFE_MARGIN   (INT32_MAX / 64)
-#define TILE_CHUNK_UNINITIALIZED (INT32_MAX)
+#define WORLD_CHUNK_DEFAULT_SHIFT (8)
+#define WORLD_CHUNK_DEFAULT_MASK  ((1 << 8) - 1)
+#define WORLD_CHUNK_SAFE_MARGIN   (INT32_MAX / 64)
+#define WORLD_CHUNK_UNINITIALIZED (INT32_MAX)
+#define WORLD_TILES_PER_CHUNK     (16)
 
 typedef struct WorldEntityBlock WorldEntityBlock;
 struct  WorldEntityBlock
 {
-    u32     entity_count;
-    u32 low_entity_index[16];
+    u32 entity_count;
+    u32 entity_indices_low[16];
     WorldEntityBlock *next;
 };
 
@@ -42,23 +43,25 @@ struct WorldDifference
 typedef struct WorldCoord WorldCoord;
 struct WorldCoord
 {
-    s32 tile_abs_x;
-    s32 tile_abs_y;
-    s32 tile_abs_z;
+    s32 chunk_x;
+    s32 chunk_y;
+    s32 chunk_z;
     
-    V2  tile_rel_;
+    V2  rel_;
 };
 
 typedef struct World World;
 struct World
 {
-    s32 chunk_shift;
-    s32 chunk_mask;
-    s32 chunk_dimensions;
-    
-    f32 tile_side_in_meters;
+    f32 side_in_meters_tile ;
+    f32 side_in_meters_chunk;
     
     WorldChunk chunk_hash[4096];
+    
+    // NOTE(MIGUEL): Entity blocks that are allocated at some point
+    //               for storage but then "freed" cause nothing is stored
+    //               anymore are chained here for reuse. 
+    WorldEntityBlock *first_free;
 };
 
 

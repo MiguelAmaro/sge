@@ -107,23 +107,23 @@ enum EntityType
     EntityType_ladder_down,
 };
 
-typedef struct HighEntity HighEntity;
-struct HighEntity
+typedef struct EntityHigh EntityHigh;
+struct EntityHigh
 {
     b32 exists;
     V2  position; // NOTE(MIGUEL): relative to camera
     V2  velocity;
     u32 facing_direction;
-    s32 tile_abs_z;
+    s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??
     
     f32 z;
     f32 delta_z;
     
-    u32 low_index;
+    u32 index_low;
 };
 
-typedef struct LowEntity LowEntity;
-struct LowEntity
+typedef struct EntityLow EntityLow;
+struct EntityLow
 {
     EntityType type;
     
@@ -134,15 +134,15 @@ struct LowEntity
     s32 delta_tile_abs_z;
     b32 collides;
     
-    u32 high_index;
+    u32 index_high;
 }; 
 
 typedef struct Entity Entity;
 struct Entity
 {
     u32 low_index;
-    HighEntity *high;
-    LowEntity  *low;
+    EntityHigh *high;
+    EntityLow  *low;
 };
 
 typedef struct GameState GameState;
@@ -163,17 +163,14 @@ struct GameState
     
     player_bitmaps playerbitmaps[4];
     
-    
     u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
-    //u32 entity_count;   //256
-    u32        high_entity_count;
-    HighEntity high_entities_    [256];
     
-    u32       low_entity_count;
-    LowEntity low_entities[100000];
+    u32        entity_count_high;
+    u32        entity_count_low;
+    EntityHigh entities_high_[256];
+    EntityLow  entities_low  [100000];
     
-    // NOTE(MIGUEL): temp shit
-    u32 *pixel_ptr;
+    u32 *pixel_ptr; // NOTE(MIGUEL): temp shit
     
     f32 accely;
     f32 clock;
@@ -201,7 +198,7 @@ internal void Game_render_weird_shit(game_back_buffer *buffer, s32 x_offset, s32
 
 
 internal void Game_draw_rectangle(game_back_buffer *buffer,
-                                  V2 min, V2 max, f32 r, f32 g, f32 b);
+                                  V2 min, V2 max, f32 r, f32 g, f32 b, b32 grid);
 
 
 internal void Game_update_sound_buffer  (GameState *game_state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
