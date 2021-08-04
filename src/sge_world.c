@@ -193,6 +193,7 @@ World_change_entity_location(World * world, u32 index_low,
         
         ASSERT(block->entity_count < ARRAYCOUNT(block->entity_indices_low));
         block->entity_indices_low[block->entity_count++] = index_low;
+        
     }
     
     return;

@@ -105,6 +105,8 @@ enum EntityType
     EntityType_floor,
     EntityType_ladder_up,
     EntityType_ladder_down,
+    EntityType_friendly,
+    EntityType_hostile,
 };
 
 typedef struct EntityHigh EntityHigh;
@@ -160,6 +162,7 @@ struct GameState
     BitmapData  player_cape;
     BitmapData  shadow;
     BitmapData  debug_bmp;
+    BitmapData  tree;
     
     player_bitmaps playerbitmaps[4];
     
