@@ -87,14 +87,14 @@ struct BitmapData
     u32 *pixels;
 };
 
-typedef struct
+typedef struct PlayerBitmaps PlayerBitmaps;
+struct PlayerBitmaps
 {
-    u32 align_x;
-    u32 align_y;
+    V2 align;
     BitmapData head;
     BitmapData cape;
     BitmapData torso;
-} player_bitmaps;
+};
 
 typedef enum EntityType EntityType;
 enum EntityType
@@ -102,6 +102,7 @@ enum EntityType
     EntityType_null,
     EntityType_player,
     EntityType_wall,
+    EntityType_sword,
     EntityType_floor,
     EntityType_ladder_up,
     EntityType_ladder_down,
@@ -119,10 +120,19 @@ struct EntityHigh
     s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??
     
     f32 z;
+    f32 bob_t;
     f32 delta_z;
     
     u32 index_low;
 };
+
+#define HITPOINT_SUB_COUNT (4)
+typedef struct HitPoint HitPoint;
+struct HitPoint
+{
+    u8 flags;
+    u8 filled_amount;
+}; 
 
 typedef struct EntityLow EntityLow;
 struct EntityLow
@@ -137,12 +147,18 @@ struct EntityLow
     b32 collides;
     
     u32 index_high;
-}; 
+    
+    u32 hit_point_max;
+    HitPoint hit_points[16];
+    
+    u32 index_low_sword;
+    f32 distance_remaining; // sword
+};  
 
 typedef struct Entity Entity;
 struct Entity
 {
-    u32 low_index;
+    u32 index_low;
     EntityHigh *high;
     EntityLow  *low;
 };
@@ -161,12 +177,13 @@ struct GameState
     BitmapData  player_torso;
     BitmapData  player_cape;
     BitmapData  shadow;
+    BitmapData  sword;
     BitmapData  debug_bmp;
     BitmapData  tree;
     
-    player_bitmaps playerbitmaps[4];
+    PlayerBitmaps playerbitmaps[4];
     
-    u32 player_controller_entity_index[ARRAYCOUNT(((game_input *)0)->controllers)];
+    u32 player_controller_entity_index[ARRAYCOUNT(((GameInput *)0)->controllers)];
     
     u32        entity_count_high;
     u32        entity_count_low;
@@ -177,39 +194,64 @@ struct GameState
     
     f32 accely;
     f32 clock;
+    
+    f32 meters_to_pixels;
 };
+
+
+typedef struct EntityVisiblePiece EntityVisiblePiece;
+struct EntityVisiblePiece
+{
+    BitmapData *bitmap;
+    V3 offset;
+    f32 entity_zc;
+    
+    V4 color;
+    V2 dim;
+};
+
+typedef struct EntityVisiblePieceGroup EntityVisiblePieceGroup;
+struct EntityVisiblePieceGroup
+{
+    u32 piece_count;
+    EntityVisiblePiece pieces[32];
+    GameState *game_state;
+};
+;
+
+
 
 //~ FUNCTION DECLERATIONS
 
-#define SGE_INIT(    name) void name(thread_context *thread, game_memory *sge_memory)
+#define SGE_INIT(    name) void name(ThreadContext *thread, GameMemory *sge_memory)
 typedef SGE_INIT(SGE_Init);
 SGE_INIT(SGEInitStub)
 { return; } 
 // NOTE(MIGUEL): what should the return value be??? Any value that matches the function signiture. The stub is just a place holder/ fallback if we cant load the real thing
 
-#define SGE_UPDATE( name) void name(thread_context *thread, game_memory *sge_memory, game_input *input, game_back_buffer *back_buffer)
+#define SGE_UPDATE( name) void name(ThreadContext *thread, GameMemory *sge_memory, GameInput *input, GameBackBuffer *back_buffer)
 typedef SGE_UPDATE(SGE_Update);
 SGE_UPDATE(SGEUpdateStub)
 { return; }
 
 // NOTE(MIGUEL): game_memroy doesnt exist
-#define SGE_GET_SOUND_SAMPLES(name) void name(thread_context *thread, game_memory *sge_memory, game_sound_output_buffer *sound_buffer)
+#define SGE_GET_SOUND_SAMPLES(name) void name(ThreadContext *thread, GameMemory *sge_memory, GameSoundOutputBuffer *sound_buffer)
 typedef SGE_GET_SOUND_SAMPLES(SGE_GetSoundSamples);
 // NOTE(MIGUEL): no stub cause game should crash if core fucntions are missing
 
-internal void Game_render_weird_shit(game_back_buffer *buffer, s32 x_offset, s32 y_offset, f32 delta_t);
+internal void Game_render_weird_shit(GameBackBuffer *buffer, s32 x_offset, s32 y_offset, f32 delta_t);
 
 
-internal void Game_draw_rectangle(game_back_buffer *buffer,
+internal void Game_draw_rectangle(GameBackBuffer *buffer,
                                   V2 min, V2 max, f32 r, f32 g, f32 b, b32 grid);
 
 
-internal void Game_update_sound_buffer  (GameState *game_state, game_sound_output_buffer *sound_buffer, u32 tone_hz);
+internal void Game_update_sound_buffer  (GameState *game_state, GameSoundOutputBuffer *sound_buffer, u32 tone_hz);
 
-inline game_controller_input *get_controller(game_input *input, u32 controller_index)
+inline GameControllerInput *get_controller(GameInput *input, u32 controller_index)
 {
     ASSERT(controller_index < (u32)ARRAYCOUNT(input->controllers));
-    game_controller_input *result = &input->controllers[controller_index];
+    GameControllerInput *result = &input->controllers[controller_index];
     
     return result;
 }
