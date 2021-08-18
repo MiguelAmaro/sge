@@ -5,6 +5,26 @@
 
 #include "sge_platform.h"
 
+//~ General Functions
+
+inline f32
+square(f32 a)
+{
+    f32 result = a * a;
+    
+    return result;
+}
+
+inline f32
+square_root(f32 a)
+{
+    f32 result = sqrtf(a);
+    
+    return result;
+}
+
+
+//~ VECTORS
 typedef union V2 V2;
 union V2
 {
@@ -135,17 +155,9 @@ V2_length_sq(V2 a)
 }
 
 inline f32
-square(f32 a)
+V2_length(V2 a)
 {
-    f32 result = a * a;
-    
-    return result;
-}
-
-inline f32
-square_root(f32 a)
-{
-    f32 result = sqrtf(a);
+    f32 result = square_root(V2_length_sq(a)); 
     
     return result;
 }
@@ -337,7 +349,7 @@ V4_length_sq(V4 a)
     return result;
 }
 
-
+//~ Rect
 inline RectV2
 RectV2_min_dim(V2 min, V2 max)
 {

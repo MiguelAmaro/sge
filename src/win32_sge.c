@@ -116,7 +116,7 @@ DEBUG_PLATFORM_FREE_FILE_MEMORY (debug_platform_free_file_memory );
 
 DEBUG_PLATFORM_READ_ENTIRE_FILE (debug_platform_read_entire_file )
 {
-    debug_read_file_result result = {0};
+    DebugReadFileResult result = {0};
     
     HANDLE file_handle = CreateFileA(file_name,
                                      GENERIC_READ,

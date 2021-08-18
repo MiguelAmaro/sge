@@ -47,10 +47,13 @@ MemoryArena_push_data_structure(MemoryArena *arena, memory_index size)
     return new_arena_partition_adress;
 }
 
+typedef enum EntityType EntityType;
 
 #include "sge_intrinsics.h"
+#include "sge_math.h"
 #include "sge_world.h"
-#include "sge_world.c"
+#include "sge_sim_region.h"
+#include "sge_entity.h"
 
 #pragma pack(push, 1)
 typedef struct BitmapHeader BitmapHeader;
@@ -110,57 +113,21 @@ enum EntityType
     EntityType_hostile,
 };
 
-typedef struct EntityHigh EntityHigh;
-struct EntityHigh
-{
-    b32 exists;
-    V2  position; // NOTE(MIGUEL): relative to camera
-    V2  velocity;
-    u32 facing_direction;
-    s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??
-    
-    f32 z;
-    f32 bob_t;
-    f32 delta_z;
-    
-    u32 index_low;
-};
-
-#define HITPOINT_SUB_COUNT (4)
-typedef struct HitPoint HitPoint;
-struct HitPoint
-{
-    u8 flags;
-    u8 filled_amount;
-}; 
-
 typedef struct EntityLow EntityLow;
 struct EntityLow
 {
-    EntityType type;
-    
-    f32 width, height;
     WorldCoord position;
-    
-    // NOTE(MIGUEL): for stairs
-    s32 delta_tile_abs_z;
-    b32 collides;
-    
-    u32 index_high;
-    
-    u32 hit_point_max;
-    HitPoint hit_points[16];
-    
-    u32 index_low_sword;
-    f32 distance_remaining; // sword
+    EntitySim  sim;
 };  
 
-typedef struct Entity Entity;
-struct Entity
+typedef struct ControlledPlayer ControlledPlayer;
+struct ControlledPlayer
 {
-    u32 index_low;
-    EntityHigh *high;
-    EntityLow  *low;
+    u32 entity_index; // NOTE(MIGUEL): index_low
+    // NOTE(MIGUEL): controller request for simulation
+    V2 acceleration;
+    V2 delta_sword;
+    f32 delta_z;
 };
 
 typedef struct GameState GameState;
@@ -178,16 +145,17 @@ struct GameState
     BitmapData  player_cape;
     BitmapData  shadow;
     BitmapData  sword;
+    
+    
     BitmapData  debug_bmp;
     BitmapData  tree;
     
     PlayerBitmaps playerbitmaps[4];
     
-    u32 player_controller_entity_index[ARRAYCOUNT(((GameInput *)0)->controllers)];
+    ControlledPlayer controlled_players[ARRAYCOUNT(((GameInput *)0)->controllers)];
     
-    u32        entity_count_high;
     u32        entity_count_low;
-    EntityHigh entities_high_[256];
+    //EntityHigh entities_high_[256];
     EntityLow  entities_low  [100000];
     
     u32 *pixel_ptr; // NOTE(MIGUEL): temp shit
@@ -197,6 +165,7 @@ struct GameState
     
     f32 meters_to_pixels;
 };
+
 
 
 typedef struct EntityVisiblePiece EntityVisiblePiece;
@@ -217,7 +186,20 @@ struct EntityVisiblePieceGroup
     EntityVisiblePiece pieces[32];
     GameState *game_state;
 };
-;
+
+
+inline EntityLow *
+Entity_get_entity_low(GameState *game_state,  u32 index_low)
+{
+    EntityLow *result = NULLPTR;
+    
+    if((index_low > 0) && (index_low < game_state->entity_count_low))
+    {
+        result = game_state->entities_low + index_low;
+    }
+    
+    return result;
+}
 
 
 

@@ -1,7 +1,7 @@
 #include "sge.h"
+#include "sge_world.c"
 #include "sge_random.h"
-#include "sge_math.h"
-#include "stdio.h" // for debug tilemap out to file
+#include "sge_sim_region.c"
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
 // TODO(MIGUEL): App should give use an oppertunity to connect a device(stick, mcu) thoughout app life time
@@ -43,97 +43,15 @@ inline V2 Entity_get_camera_space_position(GameState *game_state, EntityLow *ent
     return result;
 }
 
-internal EntityHigh *
-Entity_set_frequency_high_(GameState *game_state, EntityLow *entity_low, u32 index_low, V2 camara_space_position)
-{
-    EntityHigh *entity_high = NULLPTR;
-    
-    ASSERT(entity_low->index_high == 0 );
-    
-    if(entity_low->index_high == 0)
-    {
-        if(game_state->entity_count_high < ARRAYCOUNT(game_state->entities_high_))
-        {   
-            
-            u32         index_high  =  game_state->entity_count_high++;
-            EntityHigh *entity_high = &game_state->entities_high_[index_high];
-            
-            entity_high->position   = camara_space_position;
-            entity_high->velocity   = (V2){0, 0};
-            entity_high->tile_abs_z = entity_low->position.chunk_z;
-            entity_high->facing_direction = 0;
-            entity_high->index_low  = index_low;
-            
-            entity_low->index_high  = index_high;
-        }
-        else
-        {
-            INVALID_CODE_PATH;
-        }
-    }
-    
-    return entity_high;
-}
-
-internal EntityHigh *
-Entity_set_frequency_high(GameState *game_state, u32 index_low)
-{
-    EntityHigh *entity_high = NULLPTR;
-    EntityLow  *entity_low = game_state->entities_low + index_low;
-    
-    if(entity_low->index_high)
-    {
-        entity_high = game_state->entities_high_ + entity_low->index_high;
-    }
-    else
-    {
-        V2 camara_space_position = Entity_get_camera_space_position(game_state, entity_low);
-        
-        EntityHigh *high_entity  = Entity_set_frequency_high_(game_state,
-                                                              entity_low,
-                                                              index_low,
-                                                              camara_space_position);
-    }
-    return entity_high;
-}
-
-internal void
-Entity_set_frequency_low(GameState *game_state, u32 low_index)
-{
-    EntityLow *low_entity = &game_state->entities_low[low_index];
-    
-    u32 index_high = low_entity->index_high;
-    
-    if(index_high)
-    {
-        u32 last_index_high = game_state->entity_count_high - 1;
-        
-        if(index_high != last_index_high)
-        {
-            EntityHigh *last_entity    = game_state->entities_high_ + last_index_high;
-            EntityHigh *deleted_entity = game_state->entities_high_ + index_high;
-            
-            *deleted_entity = *last_entity;
-            game_state->entities_low[last_entity->index_low].index_high = index_high;
-        }
-        
-        game_state->entity_count_high--;
-        low_entity->index_high = 0;
-    }
-    
-    return;
-}
-
-
 internal void
 Entity_change_entity_location_raw(World * world, u32 index_low,
                                   WorldCoord *old_pos, WorldCoord *new_pos,
                                   MemoryArena *arena)
 {
-    ASSERT(!old_pos || World_is_valid(*old_pos));
-    ASSERT(!new_pos || World_is_valid(*new_pos));
+    ASSERT(!old_pos || World_is_valid_position(*old_pos));
+    ASSERT(!new_pos || World_is_valid_position(*new_pos));
     
-    if(old_pos && World_are_on_same_chunk(world, old_pos, new_pos))
+    if(old_pos && new_pos &&World_are_on_same_chunk(world, old_pos, new_pos))
     {
         // NOTE(MIGUEL): NOOP
     }
@@ -221,13 +139,19 @@ Entity_change_entity_location_raw(World * world, u32 index_low,
     
     return;
 }
-
+// NOTE(MIGUEL): thers a call b4 this definition. its located in end_sim at sge_sim_region.h
 inline void
 Entity_change_entity_location(World *world,
                               u32 index_low, EntityLow *entity_low,
                               WorldCoord *old_pos, WorldCoord *new_pos,
                               MemoryArena *arena)
 {
+    if(entity_low->sim.type == EntityType_sword)
+    {
+        int brk = 2;
+        brk += 6;
+    }
+    
     Entity_change_entity_location_raw(world, index_low,
                                       old_pos, new_pos,
                                       arena);
@@ -244,63 +168,14 @@ Entity_change_entity_location(World *world,
     return;
 }
 
-
-inline b32
-Entity_validate_entity_pairs(GameState *game_state)
-{
-    b32 valid = 1;
-    
-    for(u32 index_high = 1; index_high < game_state->entity_count_high; index_high++)
-    {
-        EntityHigh *entity_high = game_state->entities_high_ +  index_high;
-        valid = valid &&
-            (game_state->entities_low[entity_high->index_low].index_high == index_high);
-    }
-    
-    return valid;
-}
-
-internal void
-Entity_check_frequency_by_area(GameState *game_state, V2 offset, RectV2 high_frequency_bounds)
-{
-    for(u32 index_high = 1;
-        index_high < game_state->entity_count_high;)
-    {
-        EntityHigh *entity_high = game_state->entities_high_ +  index_high;
-        EntityLow  *entity_low  = game_state->entities_low   + entity_high->index_low;
-        
-        V2_add(entity_high->position, offset, &entity_high->position);
-        
-        if(RectV2_is_in_rect(high_frequency_bounds, entity_high->position))
-        {
-            index_high++;
-        }
-        else
-        {
-            if(entity_low->type != EntityType_player)
-            {
-                ASSERT(game_state->entities_low[entity_high->index_low].index_high == index_high);
-                Entity_set_frequency_low(game_state, entity_high->index_low);
-            }
-            else
-            {
-                index_high++;
-            }
-        }
-        
-    }
-    
-    return;
-}
-
-typedef struct CreateEntityLowResult CreateEntityLowResult;
-struct CreateEntityLowResult
+typedef struct CreateEntitySimResult CreateEntitySimResult;
+struct CreateEntitySimResult
 {
     EntityLow *entity_low;
     u32         index_low;
 };
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord *position)
 {
     ASSERT(game_state->entity_count_low < ARRAYCOUNT(game_state->entities_low));
@@ -309,8 +184,8 @@ Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord *pos
     
     EntityLow *entity_low = game_state->entities_low + index_low;
     
-    memset(entity_low, 0, sizeof(EntityLow));
-    entity_low->type     = type;
+    memset(entity_low, 0, sizeof(EntitySim));
+    entity_low->sim.type     = type;
     
     Entity_change_entity_location(game_state->world,
                                   index_low,
@@ -319,38 +194,9 @@ Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord *pos
                                   position,
                                   &game_state->world_arena);
     
-    CreateEntityLowResult result;
+    CreateEntitySimResult result;
     result.index_low  = index_low;
     result.entity_low = entity_low;
-    
-    return result;
-}
-
-inline Entity
-Entity_force_entity_high(GameState *game_state,  u32 index_low)
-{
-    Entity result = { 0 };
-    
-    if((index_low > 0) && (index_low < game_state->entity_count_low))
-    {
-        result.index_low = index_low;
-        result.low       = game_state->entities_low   + index_low;
-        result.high      = Entity_set_frequency_high(game_state, index_low);
-    }
-    
-    return result;
-}
-
-
-inline EntityLow *
-Entity_get_entity_low(GameState *game_state,  u32 index_low)
-{
-    EntityLow *result = NULLPTR;
-    
-    if((index_low > 0) && (index_low < game_state->entity_count_low))
-    {
-        result = game_state->entities_low + index_low;
-    }
     
     return result;
 }
@@ -358,15 +204,14 @@ Entity_get_entity_low(GameState *game_state,  u32 index_low)
 internal void
 init_hitpoint(EntityLow *entity_low, u32 hitpointcount)
 {
+    ASSERT(hitpointcount <= ARRAYCOUNT(entity_low->sim.hit_points));
     
-    ASSERT(hitpointcount <= ARRAYCOUNT(entity_low->hit_points));
-    
-    entity_low->hit_point_max = hitpointcount;
+    entity_low->sim.hit_point_max = hitpointcount;
     
     for(u32 hitpoint_index = 0; 
-        hitpoint_index < entity_low->hit_point_max; hitpoint_index++)
+        hitpoint_index < entity_low->sim.hit_point_max; hitpoint_index++)
     {
-        HitPoint *hitpoint = entity_low->hit_points + hitpoint_index;
+        HitPoint *hitpoint = entity_low->sim.hit_points + hitpoint_index;
         hitpoint->flags = 0;
         hitpoint->filled_amount = HITPOINT_SUB_COUNT;
     }
@@ -375,36 +220,36 @@ init_hitpoint(EntityLow *entity_low, u32 hitpointcount)
 }
 
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Game_add_sword(GameState *game_state)
 { 
-    CreateEntityLowResult result = Entity_create_entity_low(game_state, EntityType_sword, NULLPTR);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_sword, NULLPTR);
     
-    result.entity_low->height          = 0.5f; //           UNITS: meters
-    result.entity_low->width           = 1.0f; //           UNITS: meters
-    result.entity_low->collides        = 0;
+    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.collides        = 0;
     
     return result;
 }
 
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Game_add_player(GameState *game_state, u32 player_number)
 {
     WorldCoord position = game_state->camera_position;
     position.rel_.x += player_number * 2;
     
-    CreateEntityLowResult result = Entity_create_entity_low(game_state, EntityType_player, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_player, &position);
     
-    CreateEntityLowResult weapon = Game_add_sword (game_state);
+    CreateEntitySimResult weapon = Game_add_sword (game_state);
     
-    result.entity_low->index_low_sword = weapon.index_low;
+    result.entity_low->sim.sword.index = weapon.index_low;
     
     init_hitpoint(result.entity_low, 3);
     
-    result.entity_low->height          = 0.5f; //           UNITS: meters
-    result.entity_low->width           = 1.0f; //           UNITS: meters
-    result.entity_low->collides        = 1;
+    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.collides        = 1;
     
     if(game_state->camera_following_entity_index == 0)
     {
@@ -415,61 +260,61 @@ Game_add_player(GameState *game_state, u32 player_number)
 }
 
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Game_add_friendly(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_abs_z)
 {
-    WorldCoord position = World_tilecoord_to_chunkcoord(game_state->world,
-                                                        tile_abs_x,
-                                                        tile_abs_y,
-                                                        tile_abs_z);
+    WorldCoord position = World_worldcoord_from_tilecoord(game_state->world,
+                                                          tile_abs_x,
+                                                          tile_abs_y,
+                                                          tile_abs_z);
     
-    CreateEntityLowResult result = Entity_create_entity_low(game_state, EntityType_friendly, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_friendly, &position);
     
-    init_hitpoint(result.entity_low, 3);
+    //init_hitpoint(result.entity_low, 3); // NOTE(MIGUEL): these have no hitpoints yet
     
-    result.entity_low->height          = 0.5f; // UNITS: meters
-    result.entity_low->width           = 1.0f; // UNITS: meters
-    result.entity_low->collides        = 1;
+    result.entity_low->sim.height          = 0.5f; // UNITS: meters
+    result.entity_low->sim.width           = 1.0f; // UNITS: meters
+    result.entity_low->sim.collides        = 1;
     
     return result;
 }
 
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Game_add_hostile(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_abs_z)
 {
-    WorldCoord position = World_tilecoord_to_chunkcoord(game_state->world,
-                                                        tile_abs_x,
-                                                        tile_abs_y,
-                                                        tile_abs_z);
+    WorldCoord position = World_worldcoord_from_tilecoord(game_state->world,
+                                                          tile_abs_x,
+                                                          tile_abs_y,
+                                                          tile_abs_z);
     
-    CreateEntityLowResult result = Entity_create_entity_low(game_state, EntityType_hostile, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_hostile, &position);
     
     
     init_hitpoint(result.entity_low, 3);
     
     
-    result.entity_low->height          = 0.5f; //           UNITS: meters
-    result.entity_low->width           = 1.0f; //           UNITS: meters
-    result.entity_low->collides        = 1;
+    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.collides        = 1;
     
     return result;
 }
 
-internal CreateEntityLowResult
+internal CreateEntitySimResult
 Game_add_wall(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_abs_z)
 {
     
-    WorldCoord position = World_tilecoord_to_chunkcoord(game_state->world,
-                                                        tile_abs_x,
-                                                        tile_abs_y,
-                                                        tile_abs_z);
+    WorldCoord position = World_worldcoord_from_tilecoord(game_state->world,
+                                                          tile_abs_x,
+                                                          tile_abs_y,
+                                                          tile_abs_z);
     
-    CreateEntityLowResult result = Entity_create_entity_low(game_state, EntityType_wall, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_wall, &position);
     
-    result.entity_low->height   = 1.4f; //UNITS: meters
-    result.entity_low->width    = 1.4f; //UNITS: meters
-    result.entity_low->collides = 1;
+    result.entity_low->sim.height   = game_state->world->side_in_meters_tile; //UNITS: meters
+    result.entity_low->sim.width    = result.entity_low->sim.height; //UNITS: meters
+    result.entity_low->sim.collides = 1;
     
     return result;
 }
@@ -506,20 +351,7 @@ Game_draw_mini_map(GameState *game_state,
                 s32 column = camera_following_entity->position.chunk_x + rel_column;
                 s32 row    = camera_following_entity->position.chunk_y + rel_row;
                 
-                u32 tileid = 1;//Tile_get_tile_value(tilemap, column, row, camera_following_entity->position.chunk_z );
-                //if(){} // TODO(MIGUEL): find way to render walls in the minimap
-                for(u32 index_high = 0; index_high < game_state->entity_count_high; index_high++)
-                {
-                    EntityHigh *high = game_state->entities_high_ + index_high;
-                    EntityLow  *low  = game_state->entities_low   + high->index_low;
-                    
-                    if(low->position.chunk_x == column &&
-                       low->position.chunk_y == row)
-                    {
-                        tileid = 2;
-                        break;
-                    }
-                }
+                u32 tileid = 1;
                 
                 if(tileid > 0)
                 {
@@ -636,7 +468,7 @@ Game_draw_mini_map(GameState *game_state,
                     for(int player_index = 0; player_index < 4; player_index++)
                     {
                         // NOTE(MIGUEL): get function set residency. no known way to check if enity exists or not
-                        EntityLow *player = Entity_get_entity_low(game_state, game_state->player_controller_entity_index[player_index]);
+                        EntityLow *player = Entity_get_entity_low(game_state, game_state->controlled_players[player_index].entity_index);
                         
                         if(player &&
                            ((column == player->position.chunk_x) &&
@@ -834,292 +666,15 @@ Game_get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_c
     return hit;
 }
 
-internal void
-Entity_move(GameState *game_state,  Entity entity, f32 delta_t, V2 acceleration)
+inline MoveSpec
+default_movespec(void)
 {
-    World *world = game_state->world;
+    MoveSpec result = { 0 };
+    result.unitmaxaccel = 0;
+    result.speed = 1.f;
+    result.drag  = 0.f;
     
-    f32 accel_magnitude = V2_dot(acceleration, acceleration);
-    
-    if(accel_magnitude > 1.0f)
-    {
-        V2_scale(1.0f / square_root(accel_magnitude), &acceleration);
-    }
-    
-    V2 v = entity.high->velocity;
-    V2 a = acceleration;
-    V2 old_pos = entity.high->position;
-    //TilemapPosition new_pos = old_pos;
-    f32 speed    = 300.0f; // m/s^2
-    f32 friction = -12.0f;
-    
-    V2_scale(speed, &acceleration); // Tune the accleration with speed
-    V2_scale(friction, &v); // Apply friction to acceleration
-    V2_add  (acceleration, v, &acceleration);
-    
-    V2 position_delta = { 0 };
-    a = acceleration;
-    v = entity.high->velocity;
-    // ACCELRATION COMPONENT
-    V2_scale(0.5f , &a);
-    V2_scale(square(delta_t), &a);
-    // VELOCITY COMPONENT
-    V2_scale(delta_t , &v);
-    // JOIN ACCEL & VELOCITY COMPONENT
-    V2_add  (a, v, &position_delta); // NOTE(MIGUEL): do not alter value! used a bit lower in the function
-    
-    // STORE VELOCITY EQUATION
-    a = acceleration;
-    v = entity.high->velocity;
-    V2_add(a, v, &a);
-    V2_scale(0.5f , &a);
-    V2_scale(delta_t, &a);
-    V2_add  (a, entity.high->velocity, &entity.high->velocity);
-    
-    // CALCULATED PLAYER NEW POSITION
-    //V2 new_pos = { 0 };
-    //V2_add(old_pos, position_delta, &new_pos);//Tile_offset(tilemap, old_pos, position_delta);
-    
-    
-    
-    for(u32 collision_resolve_attempt = 0; 
-        collision_resolve_attempt < 4; collision_resolve_attempt++)
-    {
-        V2 wall_normal = { 0 };
-        f32 normalized_time_of_pos_delta = 1.0f; // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
-        u32 hit_high_entity_index = 0;
-        
-        V2 desired_position;
-        V2_add(entity.high->position, position_delta, &desired_position);
-        
-        for(u32 test_high_entity_index = 1; test_high_entity_index < game_state->entity_count_high; test_high_entity_index++)
-        {
-            if(test_high_entity_index != entity.low->index_high)
-            { 
-                Entity test_entity;
-                test_entity.high = game_state->entities_high_ + test_high_entity_index;
-                test_entity.low  = game_state->entities_low   + test_entity.high->index_low;
-                
-                if(test_entity.low->collides)
-                {
-                    
-                    // NOTE(MIGUEL): Minkowski sum
-                    f32 diameter_w = test_entity.low->width  + entity.low->width;
-                    f32 diameter_h = test_entity.low->height + entity.low->height;
-                    V2 min_corner = { diameter_w, diameter_h };
-                    V2 max_corner = { diameter_w, diameter_h };
-                    
-                    // NOTE(MIGUEL): distancs away from tile center
-                    V2_scale(-0.5f, &min_corner);
-                    V2_scale( 0.5f, &max_corner);
-                    
-                    // NOTE(MIGUEL): old pos's Distance away from test tile in meters in x & y respectively
-                    // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
-                    V2 rel = { 0 };
-                    V2_sub(entity.high->position, test_entity.high->position, &rel);
-                    
-                    f32 MinCowSkied_wall_left_x   = min_corner.x;
-                    f32 MinCowSkied_wall_right_x  = max_corner.x;
-                    f32 MinCowSkied_wall_top_y    = max_corner.y;
-                    f32 MinCowSkied_wall_bottom_y = min_corner.y;
-                    
-                    // VERTICAL WALL RIGHT FACE
-                    if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_right_x,
-                                                             rel.x, rel.y,
-                                                             position_delta.x, position_delta.y,
-                                                             min_corner.y, max_corner.y))
-                    {
-                        wall_normal = (V2){1.0, 0.0};
-                        hit_high_entity_index =  test_high_entity_index;
-                    }
-                    
-                    // VERTICAL WALL LEFT FACE
-                    if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_left_x,
-                                                             rel.x, rel.y,
-                                                             position_delta.x, position_delta.y,
-                                                             min_corner.y, max_corner.y))
-                    {
-                        wall_normal = (V2){-1.0, 0.0};
-                        hit_high_entity_index = test_high_entity_index;
-                    }
-                    
-                    // HORIZONTAL BOTTOM WALL
-                    if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_bottom_y,
-                                                             rel.y, rel.x,
-                                                             position_delta.y, position_delta.x,
-                                                             min_corner.x, max_corner.x))
-                    {
-                        wall_normal = (V2){0.0, -1.0};
-                        hit_high_entity_index = test_high_entity_index;
-                    }
-                    
-                    // HORIZONTAL TOP WALL
-                    if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_top_y,
-                                                             rel.y, rel.x,
-                                                             position_delta.y, position_delta.x,
-                                                             min_corner.x, max_corner.x))
-                    {
-                        wall_normal = (V2){0.0, 1.0};
-                        hit_high_entity_index = test_high_entity_index;
-                    }
-                    
-                    ASSERT((normalized_time_of_pos_delta <= 1.0f) && (normalized_time_of_pos_delta >= 0.0f));
-                }
-            }
-        }
-        
-        // UPDATED PLAYER POSITION & STORE NEW PLAYER POSITION
-        V2 scratch_position_delta = position_delta;
-        V2_scale(normalized_time_of_pos_delta, &scratch_position_delta);
-        V2_add(entity.high->position, scratch_position_delta ,&entity.high->position);
-        
-        if(hit_high_entity_index)
-        {
-            V2 scratch_wall_normal = wall_normal;
-            // UPDATE VELOCITY VECTOR 
-            V2_scale(V2_dot(entity.high->velocity, scratch_wall_normal), &scratch_wall_normal);
-            V2_scale(1.0f, &scratch_wall_normal);
-            V2_sub  (entity.high->velocity, scratch_wall_normal, &entity.high->velocity);
-            
-            // NEW POSITION FOR COLLISION TEST
-            V2_sub(desired_position, entity.high->position, &position_delta);
-            
-            scratch_wall_normal = wall_normal;
-            // UPDATE MOVEMENT VECTOR
-            V2_scale(V2_dot(position_delta, scratch_wall_normal), &scratch_wall_normal);
-            V2_scale(1.0f, &scratch_wall_normal);
-            V2_sub  (position_delta, scratch_wall_normal, &position_delta);
-            
-            // STAIRS
-            EntityHigh *hit_high_entity = game_state->entities_high_ + hit_high_entity_index;
-            EntityLow  *hit_low_entity  = game_state->entities_low + hit_high_entity->index_low;
-            entity.high->tile_abs_z += hit_low_entity->delta_tile_abs_z;
-        }
-        else
-        {
-            break;
-        }
-        
-    }
-    
-    if((entity.high->velocity.x == 0.0f) &&
-       (entity.high->velocity.y == 0.0f))
-    {
-    }
-    else if(absolute_value(entity.high->velocity.x) > absolute_value(entity.high->velocity.y))
-    {
-        if(entity.high->velocity.x > 0)
-        {
-            entity.high->facing_direction = 0;
-        }
-        else
-        {
-            entity.high->facing_direction = 2;
-        }
-        
-    }
-    else if(absolute_value(entity.high->velocity.x) < absolute_value(entity.high->velocity.y))
-    {
-        if(entity.high->velocity.y > 0)
-        {
-            entity.high->facing_direction = 1;
-        }
-        else
-        {
-            entity.high->facing_direction = 3;
-        }
-    }
-    
-    
-    WorldCoord new_position = World_map_to_chunkspace(game_state->world,
-                                                      game_state->camera_position,
-                                                      entity.high->position);
-    
-    Entity_change_entity_location(game_state->world,
-                                  entity.high->index_low,
-                                  entity.low,
-                                  &entity.low->position,
-                                  &new_position,
-                                  &game_state->world_arena);
-    
-    
-    return;
-}
-
-internal V2
-Game_set_camera(GameState *game_state, WorldCoord new_camera_position)
-{
-    World *world = game_state->world;
-    
-    ASSERT(Entity_validate_entity_pairs(game_state));
-    
-    WorldDifference camera_position_delta = World_subtract(world,
-                                                           &new_camera_position,
-                                                           &game_state->camera_position);
-    game_state->camera_position = new_camera_position;
-    
-    V2 tile_span_in_meters = (V2){ (17 * 3)/2 , (9 * 3)/2};
-    
-    V2 entity_offset_for_frame = camera_position_delta.dxy;
-    
-    //V2_scale((1 / 2.0f), &tile_span_in_meters);
-    V2_scale(world->side_in_meters_tile, &tile_span_in_meters);
-    
-    RectV2 high_frequency_bounds = RectV2_center_half_dim((V2){0 , 0},
-                                                          tile_span_in_meters);
-    
-    V2_scale(-1.0f, &entity_offset_for_frame);
-    
-    // NOTE(MIGUEL): set out of bounds entities low
-    Entity_check_frequency_by_area(game_state, entity_offset_for_frame,
-                                   high_frequency_bounds);
-    
-    ASSERT(Entity_validate_entity_pairs(game_state));
-    
-    V2_scale((2 / (f32)(world->side_in_meters_tile)), &tile_span_in_meters);
-    
-    
-    // TODO(MIGUEL): 07/12/2021 | HMH DAY 058  | TIME 35:57
-    WorldCoord minchunk_pos = World_map_to_chunkspace(world, new_camera_position, RectV2_min_corner(high_frequency_bounds));
-    WorldCoord maxchunk_pos = World_map_to_chunkspace(world, new_camera_position, RectV2_max_corner(high_frequency_bounds));
-    
-    for(s32 chunk_y = minchunk_pos.chunk_y; chunk_y < maxchunk_pos.chunk_y; chunk_y++)
-    {
-        for(s32 chunk_x = minchunk_pos.chunk_x; chunk_x < maxchunk_pos.chunk_x; chunk_x++)
-        {
-            WorldChunk *chunk = World_get_worldchunk(world, chunk_x, chunk_y, new_camera_position.chunk_z, NULLPTR);
-            
-            if(chunk)
-            {
-                for(WorldEntityBlock *block = &chunk->first_block;
-                    block; block = block->next)
-                {
-                    for(u32 entityindexindex = 0; 
-                        entityindexindex < block->entity_count; entityindexindex++)
-                    {
-                        u32 index_low = block->entity_indices_low[entityindexindex];
-                        EntityLow *entity_low = game_state->entities_low + index_low;
-                        
-                        if(entity_low->index_high == 0)
-                        {
-                            V2 camera_space_pos = Entity_get_camera_space_position(game_state, entity_low);
-                            
-                            if(RectV2_is_in_rect(high_frequency_bounds, camera_space_pos))
-                            {
-                                Entity_set_frequency_high_(game_state, entity_low, index_low, camera_space_pos);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    ASSERT(Entity_validate_entity_pairs(game_state));
-    
-    // TODO(MIGUEL): move entities into high set here
-    
-    return entity_offset_for_frame;
+    return result;
 }
 
 internal Entity
@@ -1138,66 +693,20 @@ Entity_from_high_index(GameState *game_state, u32 index_high)
     return result;
 }
 
-internal void
-Game_update_friendly(GameState *game_state, Entity entity, f32 delta_t)
-{
-    Entity closest_player = { 0 };
-    f32    player_search_diametersq = square(10.0f);
-    
-    for(u32 index_high = 1; index_high < game_state->entity_count_high; index_high++)
-    {
-        Entity test_entity = Entity_from_high_index(game_state, index_high);
-        
-        if(test_entity.low->type == EntityType_player)
-        {
-            //follow
-            V2 position_delta;
-            V2_sub(test_entity.high->position, entity.high->position, &position_delta);
-            f32 test_dsq = V2_length_sq(position_delta);
-            
-            if(player_search_diametersq > test_dsq)
-            {
-                closest_player = test_entity;
-                player_search_diametersq = test_dsq;
-            }
-            
-        }
-        
-    }
-    
-    V2 acceleration = { 0 };
-    if(closest_player.high && (player_search_diametersq > square(3.0f)))
-    {
-        f32 coef = 0.5f;
-        f32 one_over_length = coef / square_root(player_search_diametersq);
-        
-        V2_sub(closest_player.high->position, entity.high->position, &acceleration);
-        V2_scale(one_over_length, &acceleration);
-        
-        Entity_move(game_state, entity, delta_t, acceleration);
-    }
-    
-    return;
-}
-
-
-internal void
-Game_update_hostile(GameState *game_state, Entity entity, f32 delta_t)
-{
-    
-    return;
-}
-
 
 
 internal void
 push_piece(EntityVisiblePieceGroup *group, BitmapData *bitmap,
-           V2 dim, V3 offset, f32 entity_zc, V4 color)
+           V2 dim, V3 offset, V2 align, f32 entity_zc, V4 color)
 {
     ASSERT(group->piece_count < ARRAYCOUNT(group->pieces));
     EntityVisiblePiece *piece = group->pieces + group->piece_count++;
     piece->bitmap = bitmap;
+    
+    V3_scale(group->game_state->meters_to_pixels, &offset);
+    V2_sub(offset.xy, align, &offset.xy);
     piece->offset = offset;
+    
     piece->entity_zc = entity_zc;
     piece->color = color;
     piece->dim = dim;
@@ -1210,10 +719,7 @@ internal void
 push_bitmap(EntityVisiblePieceGroup *group, BitmapData *bitmap,
             V3 offset, f32 entity_zc, V2 align, f32 alpha)
 {
-    V3_scale(group->game_state->meters_to_pixels, &offset);
-    V2_sub(offset.xy, align, &offset.xy);
-    
-    push_piece(group, bitmap, (V2){0,0}, offset, entity_zc, (V4){0,0,0,alpha});
+    push_piece(group, bitmap, (V2){0,0}, offset, align, entity_zc, (V4){0,0,0,alpha});
     
     return;
 } 
@@ -1225,31 +731,31 @@ push_rect(EntityVisiblePieceGroup *group,
           V2 dim, V3 offset, f32 entity_zc,
           V4 color)
 {
-    V3_scale(group->game_state->meters_to_pixels, &offset);
-    V2_scale(group->game_state->meters_to_pixels, &dim);
+    //V2_scale(group->game_state->meters_to_pixels, &dim);
     
-    push_piece(group, NULLPTR, dim, offset, entity_zc, color);
+    push_piece(group, NULLPTR, dim, offset, (V2){0.0f,0.0f}, entity_zc, color);
     
     return;
 } 
 
 
 internal void
-draw_hitpoint(EntityLow *entity_low, EntityVisiblePieceGroup *piece_group)
+draw_hitpoint(EntitySim *entity_sim, EntityVisiblePieceGroup *piece_group)
 {
     
-    if(entity_low->hit_point_max >= 1)
+    if(entity_sim->hit_point_max >= 1)
     {
         V2 health_dim = { 0.2f, 0.2f};
         f32 spacing_x = 1.5f * health_dim.x;
-        f32 first_x = 0.5f *  (entity_low->hit_point_max - 1) * spacing_x;
+        f32 first_x = 0.5f *  (entity_sim->hit_point_max - 1) * spacing_x;
         // NOTE(MIGUEL): pixel space. y axis upside down
-        V3 hit_position = {-0.5f * (entity_low->hit_point_max - 1) * spacing_x, 0.5f, 0};
+        V3 hit_position = {-0.5f * (entity_sim->hit_point_max - 1) * spacing_x, 0.5f, 0};
         V2 hit_position_delta = {spacing_x, 0.0f};
-        for(u32 health_index = 0; health_index < entity_low->hit_point_max;
+        
+        for(u32 health_index = 0; health_index < entity_sim->hit_point_max;
             health_index++)
         {
-            HitPoint *hitpoint = entity_low->hit_points + health_index;
+            HitPoint *hitpoint = entity_sim->hit_points + health_index;
             V4 color = { 1.0f, 0.0f, 0.0f, 1.0f };
             
             if(hitpoint->filled_amount == 0)
@@ -1277,14 +783,7 @@ SGE_UPDATE(SGEUpdate)
     if(!sge_memory->is_initialized)
     {   
         // NOTE(MIGUEL): Entity at slot 0 reserved as null
-        Entity_create_entity_low(game_state, EntityType_null, NULLPTR);
-        game_state->entity_count_high = 1;
-        
-        //~ PLAYER(s) INITIALIZATION
-        
-        //game_state->camera_position.chunk_x = 17 / 2;
-        //game_state->camera_position.chunk_y =  9 / 2;
-        
+        Entity_create_entity_sim(game_state, EntityType_null, NULLPTR);
         
         //~ BITMAP LOADING
         game_state->back_drop = Game_debug_load_bmp(thread,
@@ -1499,10 +998,10 @@ SGE_UPDATE(SGEUpdate)
         u32 camera_tile_y = screen_base_y * tiles_per_chunk_height +  9 / 2;
         u32 camera_tile_z = screen_base_z;
         
-        initial_camera_position = World_tilecoord_to_chunkcoord(world,
-                                                                camera_tile_x,
-                                                                camera_tile_y,
-                                                                camera_tile_z);
+        initial_camera_position = World_worldcoord_from_tilecoord(world,
+                                                                  camera_tile_x,
+                                                                  camera_tile_y,
+                                                                  camera_tile_z);
         
         Game_add_hostile(game_state,
                          camera_tile_x + 2,
@@ -1511,16 +1010,18 @@ SGE_UPDATE(SGEUpdate)
         
         for(f32 friendly_index = 0; friendly_index < 2; friendly_index++)
         {
-            s32 friendly_offset_x = (random_number_table[random_number_index++] % 10) - 5;
-            s32 friendly_offset_y = (random_number_table[random_number_index++] % 10) - 5;
+            s32 friendly_offset_x = (random_number_table[random_number_index++] % 10) - 7;
+            s32 friendly_offset_y = (random_number_table[random_number_index++] % 10) - 3;
             
-            Game_add_friendly(game_state,
-                              camera_tile_x + friendly_offset_x,
-                              camera_tile_y + friendly_offset_y,
-                              camera_tile_z);
+            if((friendly_offset_x != 0) &&
+               (friendly_offset_y != 0))
+            {
+                Game_add_friendly(game_state,
+                                  camera_tile_x + friendly_offset_x,
+                                  camera_tile_y + friendly_offset_y,
+                                  camera_tile_z);
+            }
         }
-        
-        Game_set_camera(game_state, initial_camera_position); 
         
         sge_memory->is_initialized = 1; 
     }
@@ -1541,28 +1042,24 @@ SGE_UPDATE(SGEUpdate)
     {
         GameControllerInput *controller = &input->controllers[controller_index];
         
-        u32 index_low = game_state->player_controller_entity_index[controller_index];
+        ControlledPlayer *player = game_state->controlled_players + controller_index;
         
-        if(index_low == 0)
+        if(player->entity_index == 0)
         {
             if(controller->button_start.ended_down)
             { 
-                CreateEntityLowResult result = Game_add_player(game_state, controller_index);
-                
-                game_state->player_controller_entity_index[controller_index] = result.index_low; 
+                memset(player, 0, sizeof(player));
+                player->entity_index = Game_add_player(game_state, controller_index).index_low; 
             }
         }
         else
         {
-            
-            Entity controlled_entity = Entity_force_entity_high(game_state, index_low);
-            
-            V2 player_accel = { 0.0f };
+            player->acceleration = (V2){ 0.0f, 0.0f };
             
             if(controller->is_analog)
             {
                 // NOTE(MIGUEL): use analog mov tunning
-                player_accel = (V2){ controller->stick_avg_x,controller->stick_avg_y };
+                player->acceleration = (V2){ controller->stick_avg_x,controller->stick_avg_y };
                 
             }
             else
@@ -1570,122 +1067,88 @@ SGE_UPDATE(SGEUpdate)
                 if(controller->button_y.ended_down)
                 {
                     // up
-                    player_accel.y = 1.0f;
+                    player->acceleration.y = 1.0f;
                 }
                 if(controller->button_a.ended_down)
                 {
                     // down
-                    player_accel.y = -1.0f;
+                    player->acceleration.y = -1.0f;
                 }
                 
                 if(controller->button_x.ended_down)
                 {
                     // left
-                    player_accel.x = -1.0f;
+                    player->acceleration.x = -1.0f;
                 }
                 
                 if(controller->button_b.ended_down)
                 {
                     // right
-                    player_accel.x = 1.0f;
+                    player->acceleration.x = 1.0f;
                 }
             }
             
-            V2 sword_accel = { 0.0f };
+            player->delta_sword = (V2){ 0.0f, 0.0f };
             if(controller->action_up.ended_down)
             {
-                sword_accel.y =  1.0f;
+                player->delta_sword.y =  1.0f;
             }
             if(controller->action_down.ended_down)
             {
-                sword_accel.y = -1.0f;
+                player->delta_sword.y = -1.0f;
             }
             if(controller->action_left.ended_down)
             {
-                sword_accel.x = -1.0f;
+                player->delta_sword.x = -1.0f;
             }
             if(controller->action_right.ended_down)
             {
-                sword_accel.x =  1.0f;
+                player->delta_sword.x =  1.0f;
             }
             
             if(controller->button_start.ended_down)
             {
-                controlled_entity.high->delta_z = 3.0f;
+                player->delta_z = 3.0f;
             }
             if(controller->shoulder_left.ended_down)
             {
+                // TODO(MIGUEL): fix my beloved camera pan to other player code :(
                 // focus camera on this player
-                game_state->camera_following_entity_index = game_state->player_controller_entity_index[controller_index];
-            }
-            
-            Entity_move(game_state, controlled_entity, input->delta_t, player_accel);
-            
-            if((sword_accel.x != 0.0f) || (sword_accel.y != 0.0f))
-            {
-                EntityLow *sword = Entity_get_entity_low(game_state, controlled_entity.low->index_low_sword);
-                
-                if(sword && !World_is_valid(sword->position))
-                {
-                    WorldCoord sword_position = controlled_entity.low->position;
-                    
-                    Entity_change_entity_location(game_state->world,
-                                                  controlled_entity.low->index_low_sword,
-                                                  sword,
-                                                  0,
-                                                  &sword_position,
-                                                  &game_state->world_arena);
-                    
-                    int fuck = 4;
-                    
-                }
+                // NOTE(MIGUEL): the following code is from the "set camera" old system
+                //game_state->camera_following_entity_index = game_state->player_controller_entity_index[controller_index];
             }
         }
         
     } /// END OF INPUT LOOP
     
     
-    /// CAMRERA MOVEMENT LOGIC
-    Entity camera_following_entity = Entity_force_entity_high(game_state, game_state->camera_following_entity_index);
     
-    if(camera_following_entity.high)
-    {
-        WorldCoord new_camera_position = game_state->camera_position;
-        
-        game_state->camera_position.chunk_z = camera_following_entity.low->position.chunk_z;
-#if 0
-        if(camera_following_entity.high->position.x > (9.0f * tilemap->side_in_meters_tile))
-        {
-            new_camera_position.tile_abs_x += 17; 
-        }
-        if(camera_following_entity.high->position.x < -(9.0f * tilemap->side_in_meters_tile))
-        {
-            new_camera_position.tile_abs_x -= 17; 
-        }
-        if(camera_following_entity.high->position.y > (5.0f * tilemap->side_in_meters_tile))
-        {
-            new_camera_position.tile_abs_y += 9; 
-        }
-        if(camera_following_entity.high->position.y < -(5.0f * tilemap->side_in_meters_tile))
-        {
-            new_camera_position.tile_abs_y -= 9; 
-        }
-#else
-        V2 follow_speed = { 1.0f, 1.0f };
-        V2 entity_offset_for_frame = { 0 };
-        V2 camera_half_field_of_view =
-        {
-            (17.0f / 2.0f) * world->side_in_meters_tile,
-            ( 9.0f / 2.0f) * world->side_in_meters_tile
-        };
-        
-        entity_offset_for_frame.x = follow_speed.x * (camera_following_entity.high->position.x / camera_half_field_of_view.x);
-        entity_offset_for_frame.y = follow_speed.y * (camera_following_entity.high->position.y / camera_half_field_of_view.y);
-        
-        new_camera_position = World_map_to_chunkspace(world, new_camera_position, entity_offset_for_frame);
-#endif
-        Game_set_camera(game_state, new_camera_position);
-    }
+    
+    //World *world = game_state->world;
+    
+    V2 tile_span_in_meters = (V2){ (17 * 3)/2 , (9 * 3)/2};
+    
+    V2 entity_offset_for_frame = camera_position_delta.dxy;
+    
+    //V2_scale((1 / 2.0f), &tile_span_in_meters);
+    V2_scale(world->side_in_meters_tile, &tile_span_in_meters);
+    
+    RectV2 high_frequency_bounds = RectV2_center_half_dim((V2){0 , 0},
+                                                          tile_span_in_meters);
+    
+    V2_scale(-1.0f, &entity_offset_for_frame);
+    /*
+    MemoryArena *sim_arena;
+    
+    MemoryArena_init(&game_state->world_arena,
+                     sge_memory->permanent_storage_size  - sizeof(GameState),
+                     (u8 *)sge_memory->permanent_storage + sizeof(GameState));
+    */
+    SimRegion *sim_region = SimRegion_begin_sim(sim_arena,
+                                                game_state,
+                                                game_state->world,
+                                                game_state->camera_position,
+                                                high_frequency_bounds);
     
     
     /// debug purp background clear
@@ -1814,60 +1277,64 @@ SGE_UPDATE(SGEUpdate)
     
     EntityVisiblePieceGroup piece_group = { 0 };
     piece_group.game_state = game_state;
-    for(u32 index_high = 1;
-        index_high < game_state->entity_count_high; index_high++)
+    
+    EntitySim *entity = sim_region->entities;
+    for(u32 entity_index = 1;
+        entity_index < sim_region->entity_count_high;
+        entity_index++)
     {
         piece_group.piece_count = 0;
-        EntityHigh *entity_high = game_state->entities_high_ + index_high;
-        EntityLow  *entity_low  = game_state->entities_low   + entity_high->index_low;
+        //EntityHigh *entity_high = game_state->entities_high_ + index_high;
+        EntityLow  *entity_sim  = game_state->entities_low   + entity_high->index_low;
         
-        Entity entity;
-        entity.low = entity_low;
-        entity.high = entity_high;
-        // Game_update_entity(game_state, entity, delta_t);
-        
-        
-        f32 width  = entity_low->width;
-        f32 height = entity_low->height;
-        
-        V2 entity_dimensions = { width, height };
         V2 entity_bottom_right = { 0 };
         
-        // JUMP CODE
         
+        // JUMP CODE
         f32 shadow_alpha = 1.0f - 0.5f * entity_high->z;
         
         if(shadow_alpha < 0.0f)
         {
             shadow_alpha = 0.0f;
         }
-        
-        f32 delta_t      = input->delta_t;
-        
-        f32 gray = 0.0f;
-        
-        
-        // JUMP CODE
-        
-        f32 acceleration = -9.8f;
-        
-        f32 z = -entity_high->z;
-        entity_high->z = 0.5f * acceleration * square(delta_t) + entity_high->delta_z * delta_t + entity_high->z;
-        entity_high->delta_z = acceleration * delta_t + entity_high->delta_z;
-        
-        if(entity_high->z < 0.0f)
-        {
-            entity_high->z = 0.0f;
-        }
-        
         // END OF JUMP CODE
         
         
-        switch(entity_low->type )
+        switch(entity_sim->type )
         {
             
             case EntityType_player:
             {
+                for(u32 player_index = 0;
+                    player_index < ARRAYCOUNT(controlled_players);
+                    player_index++)
+                {
+                    ControlledPlayer player = controlled_players + player_index;
+                    
+                    if(entity->index_storage == player->entity_index)
+                    {
+                        MoveSpec movespec = default_movespec();
+                        movespec.unitmaxaccel = 1;
+                        movespec.speed = 300.0f;
+                        movespec.drag  = 12.0f;
+                        
+                        
+                        SimRegion_move_entity(sim_region, controlled_entity, &movespec, input->delta_t, player_accel);
+                        
+                        if((sword_velocity.x != 0.0f) || (sword_velocity.y != 0.0f))
+                        {
+                            u32 index_low_sword = controlled_entity.low->index_low_sword;
+                            EntityLow *sword = entity->sword.ptr;
+                            
+                            if(sword)
+                            {
+                                sword.low->distance_remaining = 5.0f;
+                                V2_scale(5.0f, &sword_velocity);
+                                sword.high->velocity = sword_velocity;
+                            }
+                        }
+                    }
+                }
                 
                 PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_high->facing_direction];
                 push_bitmap(&piece_group, &game_state->shadow  , (V3){0, 0, 0}, shadow_alpha, playerbitmaps->align, 1.0f);
@@ -1875,7 +1342,7 @@ SGE_UPDATE(SGEUpdate)
                 push_bitmap(&piece_group, &playerbitmaps->cape , (V3){0, 0, z}, 1.0f        , playerbitmaps->align, 1.0f); 
                 push_bitmap(&piece_group, &playerbitmaps->head , (V3){0, 0, z}, 1.0f        , playerbitmaps->align, 1.0f);
                 
-                draw_hitpoint(entity_low, &piece_group);
+                draw_hitpoint(entity_sim, &piece_group);
             } break;
             case EntityType_wall:
             {
@@ -1884,9 +1351,9 @@ SGE_UPDATE(SGEUpdate)
             } break;
             case EntityType_sword:
             {
-                push_bitmap(&piece_group, &game_state->shadow  , (V3){0, 0, 0}, shadow_alpha, (V2){0, 0}, 1.0f);
+                Game_update_sword(game_state, entity, delta_t);
+                push_bitmap(&piece_group, &game_state->shadow, (V3){0, 0, 0}, 1.0f, (V2){72, 182}, 1.0f);
                 push_bitmap(&piece_group, &game_state->sword , (V3){0, 0, 0}, 0.0f, (V2){29, 10}, 1.0f);
-                
             } break;
             
             case EntityType_friendly: 
@@ -1899,10 +1366,10 @@ SGE_UPDATE(SGEUpdate)
                 }
                 PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_high->facing_direction];
                 f32 bobsin = math_sin(entity.high->bob_t);
-                push_bitmap(&piece_group, &game_state->shadow , (V3){0, 0, 0}, (0.5f * shadow_alpha) + 0.2f * bobsin, playerbitmaps->align, 0.0f);
+                push_bitmap(&piece_group, &game_state->shadow , (V3){0, 0, 0}, (0.5f * shadow_alpha) + 0.2f * bobsin, playerbitmaps->align, 1.0f);
                 push_bitmap(&piece_group, &playerbitmaps->head, (V3){0, 0, 1.0f * bobsin}, 1.0f, playerbitmaps->align, 1.0f);
                 
-                draw_hitpoint(entity_low, &piece_group);
+                draw_hitpoint(entity_sim, &piece_group);
             } break;
             case EntityType_hostile: 
             {
@@ -1918,27 +1385,23 @@ SGE_UPDATE(SGEUpdate)
             } break;
         }
         
+        f32 acceleration = -9.8f;
         
-        f32 entity_ground_point_x = screen_center_x + meters_to_pixels * entity_high->position.x;
-        f32 entity_ground_point_y = screen_center_y - meters_to_pixels * entity_high->position.y;
+        // JUMP CODE
+        f32 z = -entity->z;
+        entity->z = 0.5f * acceleration * square(delta_t) + entity->delta_z * delta_t + entity->z;
+        entity->delta_z = acceleration * delta_t + entity->delta_z;
         
-        
-        
-#if 0
-        
-        V2 entity_top_left = 
+        i f(entity->z < 0.0f)
         {
-            entity_ground_point_x - 0.5f * meters_to_pixels * width, 
-            entity_ground_point_y - 0.5f * meters_to_pixels * height
-        };
+            entity->z = 0.0f;
+        }
+        // END OF JUMP CODE
+        
+        f32 entity_ground_point_x = screen_center_x + meters_to_pixels * entity->position.x;
+        f32 entity_ground_point_y = screen_center_y - meters_to_pixels * entity->position.y;
         
         
-        push_piece(back_buffer,
-                   entity_top_left,
-                   entity_bottom_right,
-                   gray, gray, gray,
-                   1);
-#endif
         for(u32 piece_index = 0; piece_index < piece_group.piece_count; piece_index++)
         {
             EntityVisiblePiece *piece = piece_group.pieces + piece_index;
@@ -1959,7 +1422,7 @@ SGE_UPDATE(SGEUpdate)
             }
             else
             {
-                V2 halfdim = piece->dim   ;
+                V2 halfdim = piece->dim ;
                 V2_scale(0.5f, &halfdim);
                 V2 point[2];
                 V2_sub(center, halfdim, &point[0]);
@@ -1984,6 +1447,10 @@ SGE_UPDATE(SGEUpdate)
                        100,
                        300, 140);
 #endif
+    
+    
+    SimRegion_end_sim  (sim_region, game_state);
+    
     return;
 }
 

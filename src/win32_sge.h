@@ -174,10 +174,10 @@ internal void
 win32_input_end_playback      (win32_state *state);
 
 internal void
-win32_input_record            (win32_state *state, game_input *new_input);
+win32_input_record            (win32_state *state, GameInput *new_input);
 
 internal void
-win32_input_playback          (win32_state *state, game_input *new_input);
+win32_input_playback          (win32_state *state, GameInput *new_input);
 
 
 //~ STRINGS

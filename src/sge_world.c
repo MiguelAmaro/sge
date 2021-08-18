@@ -42,7 +42,7 @@ World_null_position(void)
 }
 
 inline b32
-World_is_valid (WorldCoord position)
+World_is_valid_position(WorldCoord position)
 {
     b32 result = position.chunk_x != WORLD_CHUNK_UNINITIALIZED;
     
@@ -178,7 +178,7 @@ World_offset(World *tilemap, WorldCoord pos, V2 offset)
 }
 
 inline WorldCoord
-World_tilecoord_to_chunkcoord(World *world, s32 tile_abs_x, s32 tile_abs_y, s32 tile_abs_z)
+World_worldcoord_from_tilecoord(World *world, s32 tile_abs_x, s32 tile_abs_y, s32 tile_abs_z)
 {
     WorldCoord  result = { 0 };
     
