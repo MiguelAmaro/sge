@@ -150,6 +150,126 @@ World_centered_point(u32 chunk_x, s32 chunk_y, s32 chunk_z)
     return result;
 }
 
+
+internal void
+World_change_entity_location_raw(World * world, u32 index_low,
+                                 WorldCoord *old_pos, WorldCoord *new_pos,
+                                 MemoryArena *arena)
+{
+    ASSERT(!old_pos || World_is_valid_position(*old_pos));
+    ASSERT(!new_pos || World_is_valid_position(*new_pos));
+    
+    if(old_pos && new_pos &&World_are_on_same_chunk(world, old_pos, new_pos))
+    {
+        // NOTE(MIGUEL): NOOP
+    }
+    else
+    {
+        if(old_pos)
+        {
+            // NOTE(MIGUEL): pull entity out of current block
+            WorldChunk *chunk = World_get_worldchunk(world,
+                                                     old_pos->chunk_x,
+                                                     old_pos->chunk_y,
+                                                     old_pos->chunk_z,
+                                                     NULLPTR);
+            ASSERT(chunk);
+            if(chunk)
+            {
+                WorldEntityBlock *first_block = &chunk->first_block;
+                b32 not_found = 1;
+                
+                for(WorldEntityBlock *block = first_block;
+                    block && not_found; block = block->next)
+                {
+                    for(u32 index = 0; 
+                        (index < block->entity_count) && not_found; index++)
+                    {
+                        if(block->entity_indices_low[index] == index_low)
+                        {
+                            ASSERT(first_block->entity_count > 0);
+                            
+                            block->entity_indices_low[index] = 
+                                first_block->entity_indices_low[--first_block->entity_count];
+                            
+                            if(first_block->entity_count == 0)
+                            {
+                                if(first_block->next)
+                                {
+                                    WorldEntityBlock *next_block = first_block->next;
+                                    *first_block = *next_block;
+                                    
+                                    next_block->next  = world->first_free;
+                                    world->first_free = next_block;
+                                }
+                            }
+                            not_found = 0;
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        if(new_pos)
+        {
+            // NOTE(MIGUEL): pull entity out of current block
+            WorldChunk *chunk = World_get_worldchunk(world,
+                                                     new_pos->chunk_x,
+                                                     new_pos->chunk_y,
+                                                     new_pos->chunk_z,arena);
+            ASSERT(chunk);
+            WorldEntityBlock *block = &chunk->first_block;
+            
+            if(block->entity_count == ARRAYCOUNT(block->entity_indices_low))
+            {
+                WorldEntityBlock *old_block = world->first_free;
+                
+                if(old_block)
+                {
+                    world->first_free  = old_block->next;
+                }
+                else
+                {
+                    old_block = MEMORY_ARENA_PUSH_STRUCT(arena, WorldEntityBlock);
+                }
+                
+                *old_block = *block;
+                block->next = old_block;
+                block->entity_count = 0;
+            }
+            
+            ASSERT(block->entity_count < ARRAYCOUNT(block->entity_indices_low));
+            block->entity_indices_low[block->entity_count++] = index_low;
+            
+        }
+    }
+    
+    return;
+}
+// NOTE(MIGUEL): thers a call b4 this definition. its located in end_sim at sge_sim_region.h
+inline void
+World_change_entity_location(World *world,
+                             u32 index_low, EntityLow *entity_low,
+                             WorldCoord *old_pos, WorldCoord *new_pos,
+                             MemoryArena *arena)
+{
+    World_change_entity_location_raw(world, index_low,
+                                     old_pos, new_pos,
+                                     arena);
+    
+    if(new_pos)
+    {
+        entity_low->position = *new_pos;
+    }
+    else
+    {
+        entity_low->position = World_null_position();
+    }
+    
+    return;
+}
+
 inline WorldDifference
 World_subtract(World *world, WorldCoord *a, WorldCoord *b)
 {

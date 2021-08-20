@@ -222,7 +222,7 @@ win32_xinput_load_functions()
 }
 
 internal void
-win32_process_pending_messages(win32_state *state, game_controller_input *keyboard_controller);
+win32_process_pending_messages(win32_state *state, GameControllerInput *keyboard_controller);
 
 // ************************
 // OPENGL ABSTRACTIONS
@@ -231,40 +231,40 @@ win32_process_pending_messages(win32_state *state, game_controller_input *keyboa
 // INDEX BUFFER SETUP
 // VERTEX ARRAYS
 // ***********************
-
-global win32_state win32_state_;
-
-global Entity Sprite = {0};
-global OpenGL_Render_Info sprite_render_info;
-global vec4 vec_color       = { 1.0f, 1.0f, 1.0f };
-
-global mat4 translation = GLM_MAT4_ZERO_INIT;// NOTE(MIGUEL): This is in the App stuct
-global mat4 scale       = GLM_MAT4_ZERO_INIT;
-global mat4 rotation    = GLM_MAT4_ZERO_INIT;
-global vec3 scalefactor = { 100.0f, 100.0f, 0.0f };
+//
+//global win32_state win32_state_;
+//
+//global Entity Sprite = {0};
+//global OpenGL_Render_Info sprite_render_info;
+//global vec4 vec_color       = { 1.0f, 1.0f, 1.0f };
+//
+//global mat4 translation = GLM_MAT4_ZERO_INIT;// NOTE(MIGUEL): This is in the App stuct
+//global mat4 scale       = GLM_MAT4_ZERO_INIT;
+//global mat4 rotation    = GLM_MAT4_ZERO_INIT;
+//global vec3 scalefactor = { 100.0f, 100.0f, 0.0f };
 // TODO(MIGUEL): 
 // NOTE(MIGUEL): Should there just be one projectin matrix for everthing
-global Entity Nick = {0};
-global OpenGL_Render_Info nick_render_info;
-
-global vec4 nick_color       = { 1.0f, 1.0f, 1.0f };
-global mat4 nick_translation = GLM_MAT4_ZERO_INIT;
-global mat4 nick_scale       = GLM_MAT4_ZERO_INIT;
-global mat4 nick_rotation    = GLM_MAT4_ZERO_INIT;
-global vec3 nick_scalefactor = { 100.0f, 100.0f, 0.0f };
-
-
-global BITMAPINFO BitmapInfo;
-global void *BitmapMemory;
-global int   BitmapWidth ;
-global int   BitmapHeight;
-global int   BytesPerPixel = 4;
-
+//global Entity Nick = {0};
+//global OpenGL_Render_Info nick_render_info;
+//
+//global vec4 nick_color       = { 1.0f, 1.0f, 1.0f };
+//global mat4 nick_translation = GLM_MAT4_ZERO_INIT;
+//global mat4 nick_scale       = GLM_MAT4_ZERO_INIT;
+//global mat4 nick_rotation    = GLM_MAT4_ZERO_INIT;
+//global vec3 nick_scalefactor = { 100.0f, 100.0f, 0.0f };
+//
+//
+//global BITMAPINFO BitmapInfo;
+//global void *BitmapMemory;
+//global int   BitmapWidth ;
+//global int   BitmapHeight;
+//global int   BytesPerPixel = 4;
+//
 //#define true  (1)
 //#define false (0)
-/*
-*/
-
+///*
+//*/
+//
 internal 
 void win32_print_last_sys_error(void)
 {
@@ -287,7 +287,7 @@ void win32_print_last_sys_error(void)
 }
 
 internal void
-win32_xinput_process_digital_button(game_button_state *state_new, game_button_state *state_old,
+win32_xinput_process_digital_button(GameButtonState *state_new, GameButtonState *state_old,
                                     u32 xinput_button_state     , u32 button_mask             )
 {
     state_new->ended_down       = (xinput_button_state & button_mask) == button_mask;
@@ -309,7 +309,7 @@ win32_xinput_process_stick(s16 value, s16 deadzone_threshold)
 }
 
 internal void
-win32_process_keyboard_message(game_button_state *state_new, b32 is_down)
+win32_process_keyboard_message(GameButtonState *state_new, b32 is_down)
 {
     if(state_new->ended_down != is_down)
     {
@@ -472,7 +472,7 @@ win32_clear_sound_buffer(win32_sound_output *sound_output)
 }
 
 internal void
-win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock, u32 bytes_to_write, game_sound_output_buffer *source_buffer)
+win32_fill_sound_buffer(win32_sound_output *sound_output, u32 byte_to_lock, u32 bytes_to_write, GameSoundOutputBuffer *source_buffer)
 {
     
     void *buffer_region;
@@ -755,7 +755,7 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
         /*************************************************************************/
         // PLATFORM INITIALIZATION
         win32_state state_win32 = { 0 };
-        game_memory sge_memory  = { 0 };
+        GameMemory sge_memory  = { 0 };
         {
 #if SGE_INTERNAL
             LPVOID base_address = (LPVOID)TERABYTES(2);
@@ -894,9 +894,9 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                 }
             }
             
-            game_input  input[2]  = { 0 };
-            game_input *input_new = &input[0];
-            game_input *input_old = &input[1];
+            GameInput  input[2]  = { 0 };
+            GameInput *input_new = &input[0];
+            GameInput *input_old = &input[1];
             
             //~ TIMING STUFF
 #if RION
@@ -963,10 +963,10 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                 
                 input_new->delta_t = target_seconds_per_frame; 
                 
-                game_controller_input *keyboard_controller_snapshot_old = get_controller(input_old, 0);
-                game_controller_input *keyboard_controller_snapshot_new = get_controller(input_new, 0);
+                GameControllerInput *keyboard_controller_snapshot_old = get_controller(input_old, 0);
+                GameControllerInput *keyboard_controller_snapshot_new = get_controller(input_new, 0);
                 
-                memset(keyboard_controller_snapshot_new, 0, sizeof(game_controller_input));
+                memset(keyboard_controller_snapshot_new, 0, sizeof(GameControllerInput));
                 
                 keyboard_controller_snapshot_new->is_connected = 1;
                 
@@ -1008,10 +1008,10 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                     {
                         u32 gamepad_controller_index = controller_index + 1;
                         
-                        game_controller_input *controller_snapshot_old = get_controller(input_old,
-                                                                                        gamepad_controller_index);
-                        game_controller_input *controller_snapshot_new = get_controller(input_new,
-                                                                                        gamepad_controller_index);
+                        GameControllerInput *controller_snapshot_old = get_controller(input_old,
+                                                                                      gamepad_controller_index);
+                        GameControllerInput *controller_snapshot_new = get_controller(input_new,
+                                                                                      gamepad_controller_index);
                         XINPUT_STATE controller_state;
                         
                         if(XInputGetState(controller_index, &controller_state) == ERROR_SUCCESS)
@@ -1148,9 +1148,9 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                     //~ GRAPHICS - SOFTWARE
                     
                     //win32_back_buffer_resize(&g_main_window_back_buffer, g_window_width, g_window_height);
-                    thread_context thread = {0};
+                    ThreadContext thread = {0};
                     
-                    game_back_buffer back_buffer = { 0 };
+                    GameBackBuffer back_buffer = { 0 };
                     back_buffer.width           = g_main_window_back_buffer.width ;
                     back_buffer.height          = g_main_window_back_buffer.height;
                     back_buffer.pitch           = g_main_window_back_buffer.pitch ;
@@ -1224,7 +1224,7 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                             bytes_to_write  = target_cursor - byte_to_lock;
                         }
                         
-                        game_sound_output_buffer sound_buffer = { 0 };
+                        GameSoundOutputBuffer sound_buffer = { 0 };
                         sound_buffer.samples_per_second = sound_output.samples_per_second;
                         sound_buffer.sample_count       = bytes_to_write / sound_output.bytes_per_sample;
                         sound_buffer.samples            =  samples;
@@ -1443,7 +1443,7 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                     
                     
                     //~ INPUT STUFF
-                    game_input *temp;
+                    GameInput*temp;
                     temp      = input_new;
                     input_new = input_old;
                     input_old = temp;
@@ -1477,7 +1477,7 @@ typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const int *piAttribILi
 wglChoosePixelFormatARB_type    *wglChoosePixelFormatARB;
 
 internal void
-win32_process_pending_messages(win32_state *state, game_controller_input *keyboard_controller)
+win32_process_pending_messages(win32_state *state, GameControllerInput *keyboard_controller)
 {
     MSG message;
     
@@ -2096,7 +2096,7 @@ win32_input_begin_recording(win32_state *state, s32 input_record_index)
 
 
 internal void
-win32_input_record(win32_state *state, game_input *new_input)
+win32_input_record(win32_state *state, GameInput *new_input)
 { 
     u32 bytes_written = 0;
     
@@ -2153,7 +2153,7 @@ win32_input_begin_playback(win32_state *state, u32 input_playback_index)
 }
 
 internal void
-win32_input_playback(win32_state *state, game_input *new_input)
+win32_input_playback(win32_state *state, GameInput *new_input)
 {
     u32 bytes_read = 0;
     

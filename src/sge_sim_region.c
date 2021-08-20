@@ -11,13 +11,12 @@ SimRegion_get_hash_from_storage_index(SimRegion *sim_region, u32 index_storage)
     for(u32 offset = 0; 
         offset < ARRAYCOUNT(sim_region->hash); offset++)
     {
-        
         u32 hash_mask  = (ARRAYCOUNT(sim_region->hash) - 1);
         u32 hash_index = (hash_value + offset) & hash_mask;
         
         EntitySimHash *entry = sim_region->hash + hash_index;
         
-        if((entry->index == 0) == (entry->index == index_storage))
+        if((entry->index == 0) || (entry->index == index_storage))
         {
             result = entry;
             break;
@@ -153,7 +152,7 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
     WorldCoord minchunk_pos = World_map_to_chunkspace(world, sim_region->origin, RectV2_min_corner(sim_region->bounds));
     WorldCoord maxchunk_pos = World_map_to_chunkspace(world, sim_region->origin, RectV2_max_corner(sim_region->bounds));
     
-    for(s32 chunk_y = minchunk_pos.chunk_y; chunk_y < maxchunk_pos.chunk_y; sim_region->origin.chunk_y++)
+    for(s32 chunk_y = minchunk_pos.chunk_y; chunk_y < maxchunk_pos.chunk_y; chunk_y++)
     {
         for(s32 chunk_x = minchunk_pos.chunk_x; chunk_x < maxchunk_pos.chunk_x; chunk_x++)
         {
@@ -202,7 +201,7 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
     EntitySim *entity = sim_region->entities;
     
     for(u32 entity_index = 0;
-        entity_index < sim_region->entity_count; entity_index++)
+        entity_index < sim_region->entity_count; entity_index++, entity++)
     {
         EntityLow *entity_stored = game_state->entities_low + entity->index_storage;
         
@@ -211,26 +210,26 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
         
         WorldCoord new_position = World_map_to_chunkspace(sim_region->world, sim_region->origin, entity->position);
         
-        Entity_change_entity_location(game_state->world,
-                                      entity->index_storage,
-                                      entity_stored,
-                                      0,
-                                      new_position,
-                                      NULLPTR);
+        World_change_entity_location(game_state->world,
+                                     entity->index_storage,
+                                     entity_stored,
+                                     0,
+                                     &new_position,
+                                     &game_state->world_arena);
         
         
         /// CAMRERA MOVEMENT LOGIC
         // TODO(MIGUEL): ENTITY MAPPOING HASH TABLES
-        
-        EntityLow *camera_following_entity = Entity_get_entity_low(game_state,
-                                                                   game_state->camera_following_entity_index);
-        
+        /*
+       EntityLow *camera_following_entity = Entity_get_entity_low(game_state,
+                                                                  game_state->camera_following_entity_index);
+       */
         if(entity->index_storage == game_state->camera_following_entity_index)
         {
             
             WorldCoord new_camera_position = game_state->camera_position;
             
-            game_state->camera_position.chunk_z = camera_following_entity->position.chunk_z;
+            game_state->camera_position.chunk_z = entity_stored->position.chunk_z;
 #if 0
             if(camera_following_entity.high->position.x > (9.0f * tilemap->side_in_meters_tile))
             {
@@ -249,6 +248,7 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
                 new_camera_position.tile_abs_y -= 9; 
             }
 #else
+            /*
             V2 follow_speed = { 1.0f, 1.0f };
             V2 entity_offset_for_frame = { 0 };
             V2 camera_half_field_of_view =
@@ -256,11 +256,11 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
                 (17.0f / 2.0f) * game_state->world->side_in_meters_tile,
                 ( 9.0f / 2.0f) * game_state->world->side_in_meters_tile
             };
-            
             entity_offset_for_frame.x = follow_speed.x * (camera_following_entity->sim.position.x / camera_half_field_of_view.x);
             entity_offset_for_frame.y = follow_speed.y * (camera_following_entity->sim.position.y / camera_half_field_of_view.y);
-            
-            new_camera_position = World_map_to_chunkspace(game_state->world, new_camera_position, entity_offset_for_frame);
+            */
+            //new_camera_position = World_map_to_chunkspace(game_state->world, new_camera_position, entity_offset_for_frame);
+            new_camera_position = entity_stored->position;
 #endif
         }
         
