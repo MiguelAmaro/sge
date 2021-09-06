@@ -1,8 +1,8 @@
 #include "sge.h"
 #include "sge_world.c"
 #include "sge_random.h"
-#include "sge_sim_region.c"
 #include "sge_entity.c"
+#include "sge_sim_region.c"
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
 // TODO(MIGUEL): App should give use an oppertunity to connect a device(stick, mcu) thoughout app life time
@@ -28,8 +28,6 @@ SGE_INIT(SGEInit)
     
     return;
 }
-
-
 
 //~ Entity Interface
 
