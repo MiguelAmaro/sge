@@ -131,7 +131,7 @@ struct ControlledPlayer
 };
 
 typedef struct GameState GameState;
-struct GameState 
+struct GameState
 {
     MemoryArena world_arena;
     World       *world    ;

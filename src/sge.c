@@ -630,7 +630,7 @@ SGE_UPDATE(SGEUpdate)
     if(!sge_memory->is_initialized)
     {   
         // NOTE(MIGUEL): Entity at slot 0 reserved as null
-        Entity_create_entity_low(game_state, EntityType_null, NULLPTR);
+        //Entity_create_entity_low(game_state, EntityType_null, NULLPTR);
         
         //~ BITMAP LOADING
         game_state->back_drop = Game_debug_load_bmp(thread,
@@ -710,7 +710,7 @@ SGE_UPDATE(SGEUpdate)
         b32 door_up     = 0;
         b32 door_down   = 0;
         
-        for(u32 screen_index = 0; screen_index < 100; screen_index++)
+        for(u32 screen_index = 0; screen_index < 1; screen_index++)
         {
             ASSERT(random_number_index < ARRAYCOUNT(random_number_table));
             u32 random_choice;
@@ -850,6 +850,8 @@ SGE_UPDATE(SGEUpdate)
                                                                   camera_tile_y,
                                                                   camera_tile_z);
         
+        game_state->camera_position = initial_camera_position;
+        
         Game_add_hostile(game_state,
                          camera_tile_x + 2,
                          camera_tile_y + 2,
@@ -986,6 +988,8 @@ SGE_UPDATE(SGEUpdate)
                                                 game_state->world,
                                                 game_state->camera_position,
                                                 high_frequency_bounds);
+    
+    ASSERT(validate_sim_entities(sim_region));
     
     
     /// debug purp background clear

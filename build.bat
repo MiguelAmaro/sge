@@ -137,8 +137,8 @@ echo ============================================================
 rem del *.pdb > NUL 2> NUL
 rem echo WAITING FOR PDB > lock.tmp
 
+rem -std:c17 ^
 cl ^
--std:c17 ^
 %MSVC_FLAGS% ^
 %BUILD_MODES% ^
 %INCLUDE_PATHS% ^
