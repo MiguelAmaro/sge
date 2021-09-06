@@ -217,7 +217,7 @@ World_change_entity_location_raw(World * world, u32 index_low,
             WorldChunk *chunk = World_get_worldchunk(world,
                                                      new_pos->chunk_x,
                                                      new_pos->chunk_y,
-                                                     new_pos->chunk_z,arena);
+                                                     new_pos->chunk_z, arena);
             ASSERT(chunk);
             WorldEntityBlock *block = &chunk->first_block;
             

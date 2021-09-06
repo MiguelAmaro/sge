@@ -1,4 +1,18 @@
 
+inline b32 validate_sim_entities(SimRegion *sim_region)
+{
+    EntitySim *entity = sim_region->entities;
+    
+    b32 result = 1;
+    
+    for(u32 entity_index = 0; entity_index < sim_region->entity_count; entity_index++, entity++)
+    {
+        if(entity->index_storage == 0) result = 0;
+    }
+    
+    return result;
+}
+
 internal EntitySimHash *
 SimRegion_get_hash_from_storage_index(SimRegion *sim_region, u32 index_storage)
 {
@@ -92,7 +106,7 @@ SimRegion_add_entity_(GameState *game_state, SimRegion *sim_region, u32 index_st
             
             *entity = source->sim;
             SimRegion_load_entity_reference(game_state, sim_region, &entity->sword);
-            //dest->index_storage = index_storage;
+            entity->index_storage = index_storage;
         }
     }
     else
@@ -171,15 +185,19 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
                         
                         V2 sim_space_pos = SimRegion_get_sim_space_position(sim_region, entity_low);
                         
+                        ASSERT(index_low);
+                        
                         if(RectV2_is_in_rect(region_bounds, sim_space_pos))
                         {
                             SimRegion_add_entity(game_state, sim_region, index_low, entity_low, &sim_space_pos);
+                            ASSERT(validate_sim_entities(sim_region));
                         }
                     }
                 }
             }
         }
     }
+    
     
     return sim_region;
 }
@@ -200,8 +218,8 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
 {
     EntitySim *entity = sim_region->entities;
     
-    for(u32 entity_index = 0;
-        entity_index < sim_region->entity_count; entity_index++, entity++)
+    for(u32 sim_entity_index = 0;
+        sim_entity_index < sim_region->entity_count; sim_entity_index++, entity++)
     {
         EntityLow *entity_stored = game_state->entities_low + entity->index_storage;
         
@@ -209,11 +227,14 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
         SimRegion_store_entity_reference(&entity_stored->sim.sword);
         
         WorldCoord new_position = World_map_to_chunkspace(sim_region->world, sim_region->origin, entity->position);
-        
+        /*
+     ASSERT((new_position.chunk_x < 0) &&
+            (new_position.chunk_y < 0));
+     */
         World_change_entity_location(game_state->world,
                                      entity->index_storage,
                                      entity_stored,
-                                     0,
+                                     &entity_stored->position,
                                      &new_position,
                                      &game_state->world_arena);
         
