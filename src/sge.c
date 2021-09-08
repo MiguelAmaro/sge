@@ -1,8 +1,8 @@
 #include "sge.h"
 #include "sge_world.c"
+#include "sge_random.h"
 #include "sge_sim_region.c"
 #include "sge_entity.c"
-#include "sge_random.h"
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
 // TODO(MIGUEL): App should give use an oppertunity to connect a device(stick, mcu) thoughout app life time
@@ -504,41 +504,6 @@ Game_debug_load_bmp(ThreadContext *thread, DEBUG_PlatformReadEntireFile *read_en
     }
     
     return result;
-}
-
-inline b32
-Game_get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_collision,
-                                      f32 wall_a,
-                                      f32 rel_a, f32 rel_b,
-                                      f32 position_delta_a, f32 position_delta_b,
-                                      f32 min_b, f32 max_b)
-{
-    // NOTE(MIGUEL): a & b = generic coord components
-    // NOTE(MIGUEL): t_min = time at closet collision
-    // NOTE(MIGUEL): rel a & b = position of the colliding entity relative to the collidable entity being tested
-    // NOTE(MIGUEL): position_delta a & b = vector representing the plaber's direciton of travel
-    // NOTE(MIGUEL): min_b and max_b = ????
-    
-    b32 hit = 0;
-    f32 t_epsilon = 0.001f; // floating point tolerance
-    
-    if(position_delta_a != 0.0f)
-    {
-        f32 time_at_collision = (wall_a - rel_a) / position_delta_a;
-        f32 b        = rel_b + time_at_collision * position_delta_b;
-        
-        //time_at_collision will be normalized if valid
-        if((time_at_collision >= 0.0f) && (*normalized_time_at_closest_possible_collision > time_at_collision))
-        {
-            if((b >= min_b) && (b <= max_b))
-            {
-                *normalized_time_at_closest_possible_collision = MAXIMUM(0.0f, time_at_collision - t_epsilon);
-                hit = 1;
-            }
-        }
-    }
-    
-    return hit;
 }
 
 internal void

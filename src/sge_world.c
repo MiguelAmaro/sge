@@ -248,20 +248,6 @@ World_change_entity_location_raw(World * world, u32 index_low,
     return;
 }
 
-inline void Entity_set_entity_sim_flags(EntitySim *entity, u32 flags)
-{
-    entity->flags |= flags;
-    
-    return;
-};
-
-inline void Entity_clear_entity_sim_flags(EntitySim *entity, u32 flags)
-{
-    entity->flags &= ~flags;
-    
-    return;
-};
-
 
 // NOTE(MIGUEL): thers a call b4 this definition. its located in end_sim at sge_sim_region.h
 inline void
@@ -273,7 +259,7 @@ World_change_entity_location(World *world,
     WorldCoord *old_pos = NULLPTR;
     WorldCoord *new_pos = NULLPTR;
     
-    if(!Entity_is_entity_sim_flags_set(entity_low->sim, EntitySimFlag_nonspatial) &&
+    if(!Entity_is_entity_sim_flags_set(&entity_low->sim, EntitySimFlag_nonspatial) &&
        World_is_valid_position(entity_low->position))
     {
         old_pos = &entity_low->position;

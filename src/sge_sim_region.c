@@ -245,7 +245,7 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
         entity_stored->sim = *entity;
         SimRegion_store_entity_reference(&entity_stored->sim.sword);
         
-        WorldCoord new_position = Entity_is_entity_sim_flags_set(entity_stored->sim, EntitySimFlag_nonspatial)?
+        WorldCoord new_position = Entity_is_entity_sim_flags_set(&entity_stored->sim, EntitySimFlag_nonspatial)?
             World_null_position() : World_map_to_chunkspace(sim_region->world,
                                                             sim_region->origin,
                                                             entity->position);
@@ -315,6 +315,40 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
 }
 
 
+inline b32
+Game_get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_collision,
+                                      f32 wall_a,
+                                      f32 rel_a, f32 rel_b,
+                                      f32 position_delta_a, f32 position_delta_b,
+                                      f32 min_b, f32 max_b)
+{
+    // NOTE(MIGUEL): a & b = generic coord components
+    // NOTE(MIGUEL): t_min = time at closet collision
+    // NOTE(MIGUEL): rel a & b = position of the colliding entity relative to the collidable entity being tested
+    // NOTE(MIGUEL): position_delta a & b = vector representing the player's direciton of travel
+    // NOTE(MIGUEL): min_b and max_b = 
+    
+    b32 hit = 0;
+    f32 t_epsilon = 0.001f; // floating point tolerance
+    
+    if(position_delta_a != 0.0f)
+    {
+        f32 time_at_collision = (wall_a - rel_a) / position_delta_a;
+        f32 b        = rel_b + time_at_collision * position_delta_b;
+        
+        //time_at_collision will be normalized if valid
+        if((time_at_collision >= 0.0f) && (*normalized_time_at_closest_possible_collision > time_at_collision))
+        {
+            if((b >= min_b) && (b <= max_b))
+            {
+                *normalized_time_at_closest_possible_collision = MAXIMUM(0.0f, time_at_collision - t_epsilon);
+                hit = 1;
+            }
+        }
+    }
+    
+    return hit;
+}
 
 internal void
 SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *movespec, f32 delta_t, V2 acceleration)
@@ -335,7 +369,7 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
     
     V2 v = entity->velocity;
     V2 a = acceleration;
-    V2 old_pos = entity->position;
+    //V2 old_pos = entity->position;
     
     V2_scale(movespec->speed, &acceleration); // Tune the accleration with speed
     V2_scale(-movespec->drag, &v);            // Apply friction to acceleration
@@ -385,6 +419,14 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
                 { 
                     if(Entity_is_entity_sim_flags_set(test_entity, EntitySimFlag_collides))
                     {
+                        
+                        if(test_entity->index_storage == 26)
+                        {
+                            volatile int i = 0;
+                            i += 2;
+                        }
+                        
+                        
                         // NOTE(MIGUEL): Minkowski sum
                         f32 diameter_w = test_entity->width  + entity->width;
                         f32 diameter_h = test_entity->height + entity->height;
@@ -397,19 +439,13 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
                         
                         // NOTE(MIGUEL): old pos's Distance away from test tile in meters in x & y respectively
                         // NOTE(MIGUEL): Tile_subtract operand order maybe wrong...
-                        V2 rel = { 0 };
+                        V2 rel = { 0.0f };
                         V2_sub(entity->position, test_entity->position, &rel);
                         
                         f32 MinCowSkied_wall_left_x   = min_corner.x;
                         f32 MinCowSkied_wall_right_x  = max_corner.x;
                         f32 MinCowSkied_wall_top_y    = max_corner.y;
                         f32 MinCowSkied_wall_bottom_y = min_corner.y;
-                        
-                        if(test_entity->index_storage == 26)
-                        {
-                            volatile int i = 0;
-                            i += 2;
-                        }
                         
                         // VERTICAL WALL RIGHT FACE
                         if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_right_x,

@@ -63,9 +63,9 @@ typedef enum EntityType EntityType;
 
 #include "sge_intrinsics.h"
 #include "sge_math.h"
-#include "sge_entity.h"
 #include "sge_world.h"
 #include "sge_sim_region.h"
+#include "sge_entity.h"
 
 #pragma pack(push, 1)
 typedef struct BitmapHeader BitmapHeader;

@@ -42,20 +42,13 @@ set MSVC_COMMON=^
 
 rem TODO(MIGUEL): ENABLE WARNINGS ONE BY ONE AND RESOLVE
 set MSVC_WARNINGS= ^
--wd4057 ^
--wd4013 ^
+-W4 ^
+-WX ^
 -wd4057 ^
 -wd4100 ^
--wd4101 ^
 -wd4189 ^
 -wd4201 ^
--wd4204 ^
--wd4218 ^
--wd4431 ^
--wd4456 ^
--wd4700 ^
--wd4706 ^
--wd4996
+-wd4204
 
 rem NOTE(MIGUEL):-MD is using Dynamic CRT Lib which is what is supporting the console
 rem TODO(MIGUEL): Figure out a way to get a console that doesnt need to use the MD flag
@@ -65,8 +58,6 @@ set MSVC_FLAGS=^
 -GR ^
 -Oi ^
 -Od ^
--WX ^
--W4 ^
 -FC ^
 -Z7 ^
 -permissive ^
