@@ -3,11 +3,18 @@ default_movespec(void)
 {
     MoveSpec result = { 0 };
     result.unitmaxaccel = 0;
-    result.speed = 1.f;
-    result.drag  = 0.f;
+    result.speed = 1.0f;
+    result.drag  = 0.0f;
     
     return result;
 }
+
+inline b32 Entity_is_entity_sim_flags_set(EntitySim *entity, u32 flags)
+{
+    b32 result = entity->flags & flags;
+    
+    return result;
+};
 
 internal void
 Entity_update_friendly(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
@@ -64,28 +71,53 @@ Entity_update_hostile(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
     return;
 }
 
-internal void
+inline void
+Entity_make_nonspatial(EntitySim *entity)
+{
+    Entity_set_entity_sim_flags(entity, EntitySimFlag_nonspatial);
+    entity->position = ENTITY_INVALID_POSITION;
+    
+    return;
+}
+
+inline void
+Entity_make_spatial(EntitySim *entity, V2 pos, V2 vel)
+{
+    Entity_clear_entity_sim_flags(entity, EntitySimFlag_nonspatial);
+    entity->position = pos;
+    entity->velocity = vel;
+    
+    return;
+}
+
+inline void
 Entity_update_sword(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
 {
-    
-    // NOTE(MIGUEL): sword accerlerates even though theres no acceleration
-    // TODO(MIGUEL): fix it
-    MoveSpec movespec = default_movespec();
-    movespec.unitmaxaccel = 1;
-    movespec.speed = 0.0f;
-    movespec.drag  = 0.0f;
-    
-    V2 old_pos = entity->position;
-    SimRegion_move_entity(sim_region, entity, &movespec, delta_t, (V2){0,0});
-    V2 result = { 0 };
-    V2_sub(entity->position, old_pos , &result);
-    
-    f32 distance_travaled = V2_length(result);
-    
-    entity->distance_remaining -= distance_travaled;
-    if(entity->distance_remaining < 0.0f)
+    if(Entity_is_entity_sim_flags_set(entity, EntitySimFlag_nonspatial))
     {
-        ASSERT(!"NEED TO MAKE ENTITIES BE ABLE TO NOT BE THERE!");
+        
+    }
+    else
+    {
+        // NOTE(MIGUEL): sword accerlerates even though theres no acceleration
+        // TODO(MIGUEL): fix it
+        MoveSpec movespec = default_movespec();
+        movespec.unitmaxaccel = 1;
+        movespec.speed = 0.0f;
+        movespec.drag  = 0.0f;
+        
+        V2 old_pos = entity->position;
+        SimRegion_move_entity(sim_region, entity, &movespec, delta_t, (V2){0,0});
+        V2 result = { 0 };
+        V2_sub(entity->position, old_pos , &result);
+        
+        f32 distance_travaled = V2_length(result);
+        
+        entity->distance_remaining -= distance_travaled;
+        if(entity->distance_remaining < 0.0f)
+        {
+            Entity_make_nonspatial(entity );
+        }
     }
     
     return;

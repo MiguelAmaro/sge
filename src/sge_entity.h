@@ -5,4 +5,6 @@
 
 // eeep!
 
+#define ENTITY_INVALID_POSITION (V2){100000.0f, 100000.0f}
+
 #endif //SGE_ENTITY_H

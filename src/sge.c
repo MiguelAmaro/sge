@@ -1,8 +1,8 @@
 #include "sge.h"
 #include "sge_world.c"
-#include "sge_random.h"
-#include "sge_entity.c"
 #include "sge_sim_region.c"
+#include "sge_entity.c"
+#include "sge_random.h"
 // TODO(MIGUEL): App cannnot Crash when stick is not connected
 // TODO(MIGUEL): App cannnot Crash when MCU is not connected
 // TODO(MIGUEL): App should give use an oppertunity to connect a device(stick, mcu) thoughout app life time
@@ -29,18 +29,9 @@ SGE_INIT(SGEInit)
     return;
 }
 
-//~ Entity Interface
 
-inline V2 Entity_get_camera_space_position(GameState *game_state, EntityLow *entity_low)
-{
-    
-    WorldDifference diff = World_subtract(game_state->world,
-                                          &entity_low->position,
-                                          &game_state->camera_position);
-    V2 result = diff.dxy;
-    
-    return result;
-}
+
+//~ Entity Interface
 
 typedef struct CreateEntitySimResult CreateEntitySimResult;
 struct CreateEntitySimResult
@@ -50,7 +41,7 @@ struct CreateEntitySimResult
 };
 
 internal CreateEntitySimResult
-Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord *position)
+Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord position)
 {
     ASSERT(game_state->entity_count_low < ARRAYCOUNT(game_state->entities_low));
     
@@ -60,11 +51,11 @@ Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord *pos
     
     memset(entity_low, 0, sizeof(EntitySim));
     entity_low->sim.type     = type;
+    entity_low->position = World_null_position();
     
     World_change_entity_location(game_state->world,
                                  index_low,
                                  entity_low,
-                                 0,
                                  position,
                                  &game_state->world_arena);
     
@@ -97,11 +88,13 @@ init_hitpoint(EntityLow *entity_low, u32 hitpointcount)
 internal CreateEntitySimResult
 Game_add_sword(GameState *game_state)
 { 
-    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_sword, NULLPTR);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state,
+                                                            EntityType_sword,
+                                                            World_null_position());
     
     result.entity_low->sim.height          = 0.5f; //           UNITS: meters
     result.entity_low->sim.width           = 1.0f; //           UNITS: meters
-    result.entity_low->sim.collides        = 0;
+    Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_nonspatial);
     
     return result;
 }
@@ -113,7 +106,9 @@ Game_add_player(GameState *game_state, u32 player_number)
     WorldCoord position = game_state->camera_position;
     position.rel_.x += player_number * 2;
     
-    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_player, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state,
+                                                            EntityType_player,
+                                                            position);
     
     CreateEntitySimResult weapon = Game_add_sword (game_state);
     
@@ -123,7 +118,7 @@ Game_add_player(GameState *game_state, u32 player_number)
     
     result.entity_low->sim.height          = 0.5f; //           UNITS: meters
     result.entity_low->sim.width           = 1.0f; //           UNITS: meters
-    result.entity_low->sim.collides        = 1;
+    Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     if(game_state->camera_following_entity_index == 0)
     {
@@ -142,13 +137,15 @@ Game_add_friendly(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 til
                                                           tile_abs_y,
                                                           tile_abs_z);
     
-    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_friendly, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state,
+                                                            EntityType_friendly,
+                                                            position);
     
     //init_hitpoint(result.entity_low, 3); // NOTE(MIGUEL): these have no hitpoints yet
     
     result.entity_low->sim.height          = 0.5f; // UNITS: meters
     result.entity_low->sim.width           = 1.0f; // UNITS: meters
-    result.entity_low->sim.collides        = 1;
+    Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
 }
@@ -162,7 +159,9 @@ Game_add_hostile(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile
                                                           tile_abs_y,
                                                           tile_abs_z);
     
-    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_hostile, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state,
+                                                            EntityType_hostile,
+                                                            position);
     
     
     init_hitpoint(result.entity_low, 3);
@@ -170,7 +169,7 @@ Game_add_hostile(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile
     
     result.entity_low->sim.height          = 0.5f; //           UNITS: meters
     result.entity_low->sim.width           = 1.0f; //           UNITS: meters
-    result.entity_low->sim.collides        = 1;
+    Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
 }
@@ -184,11 +183,13 @@ Game_add_wall(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_ab
                                                           tile_abs_y,
                                                           tile_abs_z);
     
-    CreateEntitySimResult result = Entity_create_entity_low(game_state, EntityType_wall, &position);
+    CreateEntitySimResult result = Entity_create_entity_low(game_state,
+                                                            EntityType_wall,
+                                                            position);
     
     result.entity_low->sim.height   = game_state->world->side_in_meters_tile; //UNITS: meters
     result.entity_low->sim.width    = result.entity_low->sim.height; //UNITS: meters
-    result.entity_low->sim.collides = 1;
+    Entity_set_entity_sim_flags (&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
 }
@@ -514,9 +515,9 @@ Game_get_normalized_time_at_collision(f32 *normalized_time_at_closest_possible_c
 {
     // NOTE(MIGUEL): a & b = generic coord components
     // NOTE(MIGUEL): t_min = time at closet collision
-    // NOTE(MIGUEL): rel a & b = position of the plaber relative to the tile being tested
+    // NOTE(MIGUEL): rel a & b = position of the colliding entity relative to the collidable entity being tested
     // NOTE(MIGUEL): position_delta a & b = vector representing the plaber's direciton of travel
-    // NOTE(MIGUEL): min_b and maa_b = ????
+    // NOTE(MIGUEL): min_b and max_b = ????
     
     b32 hit = 0;
     f32 t_epsilon = 0.001f; // floating point tolerance
@@ -987,7 +988,7 @@ SGE_UPDATE(SGEUpdate)
                                                 game_state->camera_position,
                                                 high_frequency_bounds);
     
-    ASSERT(validate_sim_entities(sim_region));
+    //ASSERT(validate_sim_entities(sim_region));
     
     
     /// debug purp background clear

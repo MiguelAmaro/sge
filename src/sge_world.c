@@ -16,10 +16,10 @@ World_init(World *world, f32 side_in_meters_tile)
 inline b32
 World_is_cannonical_f32(World *world, f32 tile_rel)
 {
-    
+    f32 epsilon = 0.0001f;
     // TODO(MIGUEL): fix floating point math
-    b32 result = ((tile_rel >= -0.5f * world->side_in_meters_chunk) &&
-                  (tile_rel <=  0.5f * world->side_in_meters_chunk));
+    b32 result = ((tile_rel >= -(0.5f * world->side_in_meters_chunk + epsilon)) &&
+                  (tile_rel <=  (0.5f * world->side_in_meters_chunk + epsilon)));
     
     return result;
 }
@@ -247,13 +247,43 @@ World_change_entity_location_raw(World * world, u32 index_low,
     
     return;
 }
+
+inline void Entity_set_entity_sim_flags(EntitySim *entity, u32 flags)
+{
+    entity->flags |= flags;
+    
+    return;
+};
+
+inline void Entity_clear_entity_sim_flags(EntitySim *entity, u32 flags)
+{
+    entity->flags &= ~flags;
+    
+    return;
+};
+
+
 // NOTE(MIGUEL): thers a call b4 this definition. its located in end_sim at sge_sim_region.h
 inline void
 World_change_entity_location(World *world,
                              u32 index_low, EntityLow *entity_low,
-                             WorldCoord *old_pos, WorldCoord *new_pos,
+                             WorldCoord new_pos_init,
                              MemoryArena *arena)
 {
+    WorldCoord *old_pos = NULLPTR;
+    WorldCoord *new_pos = NULLPTR;
+    
+    if(!Entity_is_entity_sim_flags_set(entity_low->sim, EntitySimFlag_nonspatial) &&
+       World_is_valid_position(entity_low->position))
+    {
+        old_pos = &entity_low->position;
+    }
+    
+    if(World_is_valid_position(new_pos_init) )
+    {
+        new_pos = &new_pos_init;
+    }
+    
     World_change_entity_location_raw(world, index_low,
                                      old_pos, new_pos,
                                      arena);
@@ -261,10 +291,12 @@ World_change_entity_location(World *world,
     if(new_pos)
     {
         entity_low->position = *new_pos;
+        Entity_clear_entity_sim_flags(&entity_low->sim, EntitySimFlag_nonspatial);
     }
     else
     {
         entity_low->position = World_null_position();
+        Entity_set_entity_sim_flags(&entity_low->sim, EntitySimFlag_nonspatial);
     }
     
     return;

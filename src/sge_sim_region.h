@@ -22,6 +22,13 @@ struct MoveSpec
 
 typedef struct EntitySim EntitySim;
 
+typedef enum EntitySimFlags EntitySimFlags;
+enum EntitySimFlags
+{
+    EntitySimFlag_collides   = (1 << 1),
+    EntitySimFlag_nonspatial = (1 << 2),
+};
+
 typedef union EntityReference EntityReference;
 union EntityReference
 {
@@ -33,26 +40,27 @@ typedef struct EntitySim EntitySim;
 struct EntitySim
 {
     u32 index_storage;
+    u32 index_high;
     
+    f32 z;
     V2  position;
+    V2  velocity;
+    
     s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??
     u32 facing_direction;
     
-    f32 z;
     f32 delta_z;
     
+    EntitySimFlags flags;
     EntityType type;
     
+    
     f32 width, height;
-    V2  velocity;
     
     f32 bob_t;
     
     // NOTE(MIGUEL): for stairs
     s32 delta_tile_abs_z;
-    b32 collides;
-    
-    u32 index_high;
     
     u32 hit_point_max;
     HitPoint hit_points[16];

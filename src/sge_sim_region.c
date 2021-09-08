@@ -1,13 +1,19 @@
 
 inline b32 validate_sim_entities(SimRegion *sim_region)
 {
-    EntitySim *entity = sim_region->entities;
+    EntitySim *sim_entity = sim_region->entities;
     
     b32 result = 1;
     
-    for(u32 entity_index = 0; entity_index < sim_region->entity_count; entity_index++, entity++)
+    for(u32 sim_entity_index = 0; sim_entity_index < sim_region->entity_count; sim_entity_index++, sim_entity++)
     {
-        if(entity->index_storage == 0) result = 0;
+#if 0
+        if((sim_entity->index_storage == 0) ||
+           (sim_entity->flags & EntitySimFlag_nonspatial)) result = 0;
+#else
+        ASSERT(!(sim_entity->index_storage == 0));
+        ASSERT(!(sim_entity->flags & EntitySimFlag_nonspatial));
+#endif
     }
     
     return result;
@@ -64,7 +70,7 @@ SimRegion_get_entity_by_storage_index(SimRegion *sim_region, u32 index_storage)
 
 // NOTE(MIGUEL): forward decleration
 internal EntitySim *
-SimRegion_add_entity_(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source);
+SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source);
 
 inline void
 SimRegion_load_entity_reference(GameState *game_state, SimRegion *sim_region, EntityReference *ref)
@@ -76,10 +82,10 @@ SimRegion_load_entity_reference(GameState *game_state, SimRegion *sim_region, En
         if(entry->ptr == NULLPTR)
         {
             entry->index = ref->index;
-            SimRegion_add_entity_(game_state,
-                                  sim_region,
-                                  ref->index,
-                                  Entity_get_entity_low(game_state, ref->index));
+            SimRegion_add_entity_raw(game_state,
+                                     sim_region,
+                                     ref->index,
+                                     Entity_get_entity_low(game_state, ref->index));
         }
         
         ref->ptr = entry->ptr;
@@ -89,7 +95,7 @@ SimRegion_load_entity_reference(GameState *game_state, SimRegion *sim_region, En
 }
 
 internal EntitySim *
-SimRegion_add_entity_(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source)
+SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source)
 {
     ASSERT(index_storage);
     
@@ -120,19 +126,23 @@ SimRegion_add_entity_(GameState *game_state, SimRegion *sim_region, u32 index_st
 //EntityStored *entity_stored)
 inline V2 SimRegion_get_sim_space_position(SimRegion *sim_region, EntityLow *entity_stored)
 {
-    WorldDifference diff = World_subtract(sim_region->world,
-                                          &entity_stored->position,
-                                          &sim_region->origin);
-    V2 result = diff.dxy;
+    V2 result = ENTITY_INVALID_POSITION;
+    
+    if(!Entity_is_entity_sim_flags_set(&entity_stored->sim, EntitySimFlag_nonspatial))
+    {
+        WorldDifference diff = World_subtract(sim_region->world,
+                                              &entity_stored->position,
+                                              &sim_region->origin);
+        result = diff.dxy;
+    }
     
     return result;
 }
 
-//EntityStored *source
 internal EntitySim *
 SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source, V2 *sim_position)
 {
-    EntitySim *dest = SimRegion_add_entity_(game_state, sim_region, index_storage, source);
+    EntitySim *dest = SimRegion_add_entity_raw(game_state, sim_region, index_storage, source);
     
     if(dest)
     {
@@ -153,6 +163,9 @@ internal SimRegion *
 SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world, WorldCoord region_origin, RectV2 region_bounds)
 {
     SimRegion *sim_region = MEMORY_ARENA_PUSH_STRUCT(sim_arena, SimRegion);
+    MEMORY_ARENA_ZERO_STRUCT(sim_region->hash);
+    
+    //ASSERT(validate_sim_entities(sim_region));
     
     sim_region->world  = world;
     sim_region->origin = region_origin;
@@ -187,10 +200,16 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
                         
                         ASSERT(index_low);
                         
-                        if(RectV2_is_in_rect(region_bounds, sim_space_pos))
+                        if(!Entity_is_entity_sim_flags_set(&entity_low->sim, EntitySimFlag_nonspatial))
                         {
-                            SimRegion_add_entity(game_state, sim_region, index_low, entity_low, &sim_space_pos);
-                            ASSERT(validate_sim_entities(sim_region));
+                            
+                            if(RectV2_is_in_rect(region_bounds, sim_space_pos))
+                            {
+                                ASSERT(index_low != 49);
+                                
+                                SimRegion_add_entity(game_state, sim_region, index_low, entity_low, &sim_space_pos);
+                                //ASSERT(validate_sim_entities(sim_region));
+                            }
                         }
                     }
                 }
@@ -226,17 +245,21 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
         entity_stored->sim = *entity;
         SimRegion_store_entity_reference(&entity_stored->sim.sword);
         
-        WorldCoord new_position = World_map_to_chunkspace(sim_region->world, sim_region->origin, entity->position);
+        WorldCoord new_position = Entity_is_entity_sim_flags_set(entity_stored->sim, EntitySimFlag_nonspatial)?
+            World_null_position() : World_map_to_chunkspace(sim_region->world,
+                                                            sim_region->origin,
+                                                            entity->position);
         /*
      ASSERT((new_position.chunk_x < 0) &&
             (new_position.chunk_y < 0));
      */
+        
         World_change_entity_location(game_state->world,
                                      entity->index_storage,
                                      entity_stored,
-                                     &entity_stored->position,
-                                     &new_position,
+                                     new_position,
                                      &game_state->world_arena);
+        
         
         
         /// CAMRERA MOVEMENT LOGIC
@@ -283,8 +306,8 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
             //new_camera_position = World_map_to_chunkspace(game_state->world, new_camera_position, entity_offset_for_frame);
             new_camera_position = entity_stored->position;
 #endif
+            game_state->camera_position = new_camera_position;
         }
-        
         
     }
     
@@ -292,14 +315,18 @@ SimRegion_end_sim(SimRegion *sim_region, GameState *game_state)
 }
 
 
+
 internal void
 SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *movespec, f32 delta_t, V2 acceleration)
 {
+    ASSERT(!Entity_is_entity_sim_flags_set(entity, EntitySimFlag_nonspatial));
+    
     World *world = sim_region->world;
     
     if(movespec->unitmaxaccel)
     {
         f32 accel_magnitude = V2_dot(acceleration, acceleration);
+        
         if(accel_magnitude > 1.0f)
         {
             V2_scale(1.0f / square_root(accel_magnitude), &acceleration);
@@ -335,33 +362,36 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
     
     
     for(u32 collision_resolve_attempt = 0; 
-        collision_resolve_attempt < 4; collision_resolve_attempt++)
+        collision_resolve_attempt < 4;
+        collision_resolve_attempt++)
     {
         V2 wall_normal = { 0 };
-        f32 normalized_time_of_pos_delta = 1.0f; // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
+        // NORMALIZED SACALAR THAT REPS THE TIME STEP! NOT .033MS (MS PER FRAME)
+        f32 normalized_time_of_pos_delta = 1.0f; 
         EntitySim *hit_entity = NULLPTR;
         
         V2 desired_position;
         V2_add(entity->position, position_delta, &desired_position);
         
-        if(entity->collides)
+        if(Entity_is_entity_sim_flags_set(entity, EntitySimFlag_collides))
         {
-            for(u32 test_entity_sim_index = 1; test_entity_sim_index < sim_region->entity_count; test_entity_sim_index++)
+            for(u32 test_entity_sim_index = 0;
+                test_entity_sim_index < sim_region->entity_count;
+                test_entity_sim_index++)
             {
                 EntitySim *test_entity = sim_region->entities + test_entity_sim_index;
                 // NOTE(MIGUEL): to avoid colision test of an entity with itself (reference compararison)
                 if(entity != test_entity)
                 { 
-                    if(test_entity->collides)
+                    if(Entity_is_entity_sim_flags_set(test_entity, EntitySimFlag_collides))
                     {
-                        
                         // NOTE(MIGUEL): Minkowski sum
                         f32 diameter_w = test_entity->width  + entity->width;
                         f32 diameter_h = test_entity->height + entity->height;
                         V2 min_corner = { diameter_w, diameter_h };
                         V2 max_corner = { diameter_w, diameter_h };
                         
-                        // NOTE(MIGUEL): distancs away from tile center
+                        // NOTE(MIGUEL): distance away from tile center
                         V2_scale(-0.5f, &min_corner);
                         V2_scale( 0.5f, &max_corner);
                         
@@ -374,6 +404,12 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
                         f32 MinCowSkied_wall_right_x  = max_corner.x;
                         f32 MinCowSkied_wall_top_y    = max_corner.y;
                         f32 MinCowSkied_wall_bottom_y = min_corner.y;
+                        
+                        if(test_entity->index_storage == 26)
+                        {
+                            volatile int i = 0;
+                            i += 2;
+                        }
                         
                         // VERTICAL WALL RIGHT FACE
                         if(Game_get_normalized_time_at_collision(&normalized_time_of_pos_delta, MinCowSkied_wall_right_x,
@@ -420,6 +456,7 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
                 }
             }
         }
+        
         // UPDATED PLAYER POSITION & STORE NEW PLAYER POSITION
         V2 scratch_position_delta = position_delta;
         V2_scale(normalized_time_of_pos_delta, &scratch_position_delta);

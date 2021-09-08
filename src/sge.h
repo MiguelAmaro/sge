@@ -34,10 +34,11 @@ MemoryArena_init(MemoryArena *arena, memory_index size, u8 *base_ptr)
     return;
 }
 
-#define MEMORY_ARENA_PUSH_STRUCT(arena,        type) (type *)MemoryArena_push_data_structure(arena, sizeof(type))
-#define MEMORY_ARENA_PUSH_ARRAY( arena, count, type) (type *)MemoryArena_push_data_structure(arena, (count) * sizeof(type))
-internal void *
-MemoryArena_push_data_structure(MemoryArena *arena, memory_index size)
+#define MEMORY_ARENA_PUSH_STRUCT(arena,        type) (type *)MemoryArena_push_block(arena, sizeof(type))
+#define MEMORY_ARENA_PUSH_ARRAY( arena, count, type) (type *)MemoryArena_push_block(arena, (count) * sizeof(type))
+#define MEMORY_ARENA_ZERO_STRUCT(instance          )         MemoryArena_zero_block(sizeof(instance), &(instance))
+inline void *
+MemoryArena_push_block(MemoryArena *arena, memory_index size)
 {
     ASSERT((arena->used + size) <= arena->size);
     
@@ -46,14 +47,25 @@ MemoryArena_push_data_structure(MemoryArena *arena, memory_index size)
     
     return new_arena_partition_adress;
 }
-
+inline void
+MemoryArena_zero_block(memory_index size, void *address)
+{
+    u8 *byte = (u8 *)address;
+    
+    while(size--)
+    {
+        *byte++ = 0;
+    }
+    
+    return;
+}
 typedef enum EntityType EntityType;
 
 #include "sge_intrinsics.h"
 #include "sge_math.h"
+#include "sge_entity.h"
 #include "sge_world.h"
 #include "sge_sim_region.h"
-#include "sge_entity.h"
 
 #pragma pack(push, 1)
 typedef struct BitmapHeader BitmapHeader;
