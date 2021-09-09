@@ -116,13 +116,10 @@ enum EntityType
 {
     EntityType_null,
     EntityType_player,
-    EntityType_wall,
-    EntityType_sword,
-    EntityType_floor,
-    EntityType_ladder_up,
-    EntityType_ladder_down,
     EntityType_friendly,
     EntityType_hostile,
+    EntityType_wall,
+    EntityType_sword,
 };
 
 typedef struct EntityLow EntityLow;
@@ -237,7 +234,7 @@ internal void Game_render_weird_shit(GameBackBuffer *buffer, s32 x_offset, s32 y
 
 
 internal void Game_draw_rectangle(GameBackBuffer *buffer,
-                                  V2 min, V2 max, f32 r, f32 g, f32 b, b32 grid);
+                                  V2 min, V2 max, V3 color, b32 grid);
 
 
 internal void Game_update_sound_buffer  (GameState *game_state, GameSoundOutputBuffer *sound_buffer, u32 tone_hz);

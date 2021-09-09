@@ -160,7 +160,7 @@ SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_sto
 }
 
 internal SimRegion *
-SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world, WorldCoord region_origin, RectV2 region_bounds)
+SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world, WorldCoord region_origin, RectV2 region_bounds, GameBackBuffer *back_buffer)
 {
     SimRegion *sim_region = MEMORY_ARENA_PUSH_STRUCT(sim_arena, SimRegion);
     MEMORY_ARENA_ZERO_STRUCT(sim_region->hash);
