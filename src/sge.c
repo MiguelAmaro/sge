@@ -199,77 +199,152 @@ Game_draw_mini_map(GameState *game_state,
                    GameBackBuffer *back_buffer,
                    SimRegion *sim_region,
                    s32 tile_side_in_pixels,
-                   s32 camera_range_x,
-                   s32 camera_range_y,
-                   s32 x, s32 y)
+                   V2 camera_range_in_meters,
+                   s32 x, s32 y, f32 normalized_zoom)
 {
     World *world = game_state->world;
     
     
-    f32 meters_to_pixels    =  ((f32)tile_side_in_pixels / (f32)world->side_in_meters_tile);
+    // NOTE(MIGUEL): This is only good for positioning of the camera
+    EntityLow *camera_following_entity = Entity_get_entity_low(game_state,
+                                                               game_state->camera_following_entity_index);
+    f32 meters_to_pixels = ((f32)tile_side_in_pixels / (f32)world->side_in_meters_tile);
     
-    f32 screen_center_x = 0.5f * (f32)back_buffer->width;
-    f32 screen_center_y = 0.5f * (f32)back_buffer->height;
+    /// CAMERA BASIS CHANGE
+    V2 screen_center =
+    {
+        0.5f * (f32)back_buffer->width,
+        0.5f * (f32)back_buffer->height
+    };
+    
+    V2 minimap_center = 
+    {
+        (f32)screen_center.x + x,
+        (f32)screen_center.y + y,
+    };
+    
+    V2_scale((f32)meters_to_pixels, &camera_range_in_meters);
+    
+    V2 draw_pos = { 0 };
+    
+    if(camera_following_entity)
+    {
+        draw_pos.x = camera_following_entity->sim.position.x * meters_to_pixels;
+        draw_pos.y = camera_following_entity->sim.position.y * meters_to_pixels;
+    }
+    
+    V2 draw_size_in_meters =
+    {
+        .x = 1.3f * meters_to_pixels,
+        .y = 1.3f * meters_to_pixels,
+    };
+    
+    
+    
+    RectV2 minimap_draw_area = RectV2_center_dim(minimap_center, camera_range_in_meters);
     
     // TODO(MIGUEL): calculate the which chunks are in in the minimap view space.
     //               Grab low entities from those chunks to render their status.
     s32 view_scale = 1;
-    camera_range_x *= view_scale;
-    camera_range_y *= view_scale;
+    camera_range_in_meters.x *= view_scale;
+    camera_range_in_meters.y *= view_scale;
     
-    // NOTE(MIGUEL): camera_following_entity_index is probly wrong or brokne.. i dont understand the system
-    EntityLow *camera_following_entity = Entity_get_entity_low(game_state, game_state->camera_following_entity_index);
     
-    for(s32 rel_column = -camera_range_x;
-        rel_column < camera_range_x;
+    V3 color  = { 0 };
+    V3 red    = {1.0f, 0.0f, 0.0f};
+    V3 green  = {0.0f, 1.0f, 0.0f};
+    V3 blue   = {0.0f, 0.0f, 1.0f};
+    V3 yellow = {1.0f, 1.0f, 0.0f};
+    V3 purple = {1.0f, 0.0f, 1.0f};
+    V3 grey   = {0.6f, 0.6f, 0.6f};
+    V3 white  = {1.0f, 1.0f, 1.0f};
+    V3 black  = {0.0f, 0.0f, 0.0f};
+    V3 dark_gray = {0.3f, 0.3f, 0.3f};
+    
+    /// MINIMAP BACKGROUND
+    Game_draw_rectangle(back_buffer,
+                        (V2){minimap_draw_area.min.x,minimap_draw_area.min.y},
+                        (V2){minimap_draw_area.max.x,minimap_draw_area.max.y},
+                        green,
+                        0);
+    
+    
+    f32 meters_to_pixels_with_zoom_comp = meters_to_pixels * ((4.0f * normalized_zoom));
+    EntityLow *entity_low = game_state->entities_low;
+    
+    Game_draw_rectangle(back_buffer,
+                        sim_region->bounds.min,
+                        sim_region->bounds.max,
+                        color,
+                        0);
+    
+    for(u32 entity_low_index = 1;
+        entity_low_index < game_state->entity_count_low;
+        entity_low_index++, entity_low++)
+    {
+        V3 draw_color = red;
+        
+        draw_pos.x = entity_low->sim.position.x * meters_to_pixels_with_zoom_comp;
+        draw_pos.y = entity_low->sim.position.y * meters_to_pixels_with_zoom_comp;
+        
+        draw_size_in_meters.x = 1.3f * meters_to_pixels_with_zoom_comp;
+        draw_size_in_meters.y = 1.3f * meters_to_pixels_with_zoom_comp;
+        
+        EntitySimHash *entry = SimRegion_get_hash_from_storage_index(sim_region, entity_low_index);
+        
+        if(entry->ptr == NULLPTR)
+        {
+            draw_color = grey;
+            
+        }
+        
+        Game_draw_rectangle(back_buffer,
+                            (V2)
+                            {
+                                (minimap_center.x + draw_pos.x) - (draw_size_in_meters.x * 0.5f),
+                                (minimap_center.y - draw_pos.y) - (draw_size_in_meters.y * 0.5f)
+                            },
+                            (V2)
+                            {
+                                (minimap_center.x + draw_pos.x) + (draw_size_in_meters.x * 0.5f),
+                                (minimap_center.y - draw_pos.y) + (draw_size_in_meters.y * 0.5f),
+                            },
+                            draw_color,
+                            0);
+    }
+    
+#if 0
+    for(s32 rel_column  = (s32)-half_camera_range_in_tiles.x;
+        rel_column < half_camera_range_in_tiles.x;
         rel_column++)
     {
-        for(s32 rel_row = -camera_range_y;
-            rel_row < camera_range_y;
+        for(s32 rel_row = (s32)-half_camera_range_in_tiles.y;
+            rel_row < half_camera_range_in_tiles.y;
             rel_row++)
         {
+            
             if(camera_following_entity)
             {
+                //(meters_to_pixels * camera_following_entity->position.rel_.x) +
+                V2 minimap_center = 
+                {
+                    screen_center.x - (f32)(rel_column * tile_side_in_pixels),
+                    screen_center.y + (f32)(rel_row    * tile_side_in_pixels)
+                };
+                
+                RectV2 tile =
+                {
+                    .min.x = minimap_center.x - 0.5f * tile_side_in_pixels + offset_from_screen_center.x,
+                    .min.y = minimap_center.y - 0.5f * tile_side_in_pixels + offset_from_screen_center.y,
+                    .max.x = minimap_center.x + 0.5f * tile_side_in_pixels + offset_from_screen_center.x,
+                    .max.y = minimap_center.y + 0.5f * tile_side_in_pixels + offset_from_screen_center.y,
+                };
+                
+                /*
                 s32 column = camera_following_entity->position.chunk_x + rel_column;
                 s32 row    = camera_following_entity->position.chunk_y + rel_row;
-                
-                f32 gray = 0.2f;
-                
-                //circle drawing shinanegans
-                f32 r = 40.0f;
-                f32 h = 4.0f;
-                f32 k = 3.0f;
-                
-                f32 center_x = (screen_center_x -
-                                (meters_to_pixels * camera_following_entity->position.rel_.x) +
-                                ((f32)rel_column * tile_side_in_pixels));
-                
-                f32 center_y = (screen_center_y +
-                                (meters_to_pixels * camera_following_entity->position.rel_.y) -
-                                ((f32)rel_row  * tile_side_in_pixels));
-                
-                f32 min_x = x + center_x - 0.5f * tile_side_in_pixels;
-                f32 min_y = y + center_y - 0.5f * tile_side_in_pixels;
-                f32 max_x = x + center_x + 0.5f * tile_side_in_pixels;
-                f32 max_y = y + center_y + 0.5f * tile_side_in_pixels;
-                
-                // FLOOR & WALLS
-                if(((s32)column == ceiling_f32_to_s32(((-sqrtf(r * 2 - powf(row - h, 2))) + k))) ||
-                   ((s32)column == ceiling_f32_to_s32(  (sqrtf(r * 2 - powf(row - h, 2)) + k))))
-                {
-                    gray = 0.4f;
-                }
+                */
                 //UX2
-                V3 color  = { 0 };
-                V3 red    = {1.0f, 0.0f, 0.0f};
-                V3 green  = {0.0f, 1.0f, 0.0f};
-                V3 blue   = {0.0f, 0.0f, 1.0f};
-                V3 yellow = {1.0f, 1.0f, 0.0f};
-                V3 purple = {1.0f, 0.0f, 1.0f};
-                V3 grey   = {0.6f, 0.6f, 0.6f};
-                V3 white  = {1.0f, 1.0f, 1.0f};
-                V3 black  = {0.0f, 0.0f, 0.0f};
-                V3 dark_gray = {0.3f, 0.3f, 0.3f};
                 
                 switch(camera_following_entity->sim.type)
                 {
@@ -306,19 +381,49 @@ Game_draw_mini_map(GameState *game_state,
                 }
                 
                 Game_draw_rectangle(back_buffer,
-                                    (V2){min_x,min_y},
-                                    (V2){max_x,max_y},
+                                    (V2){tile.min.x, tile.min.y},
+                                    (V2){tile.max.x, tile.max.y},
                                     color,
                                     1);
                 
-                /// DEBUG
                 
+                WorldCoord world_origin = {0};
+                
+                if((rel_column % WORLD_TILES_PER_CHUNK == 0) ||
+                   (rel_row    % WORLD_TILES_PER_CHUNK == 0))
+                {
+                    Game_draw_rectangle(back_buffer,
+                                        (V2){tile.min.x,tile.min.y},
+                                        (V2){tile.max.x,tile.max.y},
+                                        white,
+                                        0);
+                }
+                
+                
+                if((rel_column == 0) && (rel_row == 0))
+                {
+                    Game_draw_rectangle(back_buffer,
+                                        (V2){tile.min.x,tile.min.y},
+                                        (V2){tile.max.x,tile.max.y},
+                                        red,
+                                        0);
+                }
+                
+                if((rel_column == camera_following_entity->sim.position.y) &&
+                   (rel_row    == camera_following_entity->sim.position.x))
+                {
+                    
+                }
+                
+#if 0
+                /// DRAWING THE CAMERA BOUNDS AND SIM REGION BOUNDS
                 V2 tile_span_in_meters = (V2){ (17 * 3) / 2 , (9 * 3) / 2};
                 V2 camera_point        = 
                 { 
                     (f32)game_state->camera_position.chunk_x,
                     (f32)game_state->camera_position.chunk_y 
                 };
+                
                 // TODO(MIGUEL): Use sim region origin and bound in stead of
                 //               this bullshit. Also make sure to visulaze the 
                 //               chunks and highligh chunk in the sim resion.
@@ -335,7 +440,7 @@ Game_draw_mini_map(GameState *game_state,
                 V2_add(camera_point, camera_bounds.min, &camera_bounds.min);
                 V2_add(camera_point, camera_bounds.max, &camera_bounds.max);
                 
-                
+                /// DRAW SIM REGION BOUNDS
                 if((((column >= (s32)high_frequency_bounds.min.x) && (column <= (s32)high_frequency_bounds.max.x)) &&
                     ((row    == (s32)high_frequency_bounds.min.y) || (row    == (s32)high_frequency_bounds.max.y))) 
                    ||
@@ -343,12 +448,13 @@ Game_draw_mini_map(GameState *game_state,
                    ((column == (s32)high_frequency_bounds.min.x) || (column == (s32)high_frequency_bounds.max.x)))
                 {
                     Game_draw_rectangle(back_buffer,
-                                        (V2){min_x,min_y},
-                                        (V2){max_x,max_y},
-                                        (V3){1.0f, 0.0f, 0.0f},
+                                        (V2){tile.min.x,tile.min.y},
+                                        (V2){tile.max.x,tile.max.y},
+                                        red,
                                         0);
                 }
                 
+                // DRAW CAMERA BOUNDS
                 if((((column >= (s32)camera_bounds.min.x) && (column <= (s32)camera_bounds.max.x)) &&
                     ((row    == (s32)camera_bounds.min.y) || (row    == (s32)camera_bounds.max.y))) 
                    ||
@@ -356,37 +462,16 @@ Game_draw_mini_map(GameState *game_state,
                    ((column == (s32)camera_bounds.min.x) || (column == (s32)camera_bounds.max.x)))
                 {
                     Game_draw_rectangle(back_buffer,
-                                        (V2){min_x,min_y},
-                                        (V2){max_x,max_y},
-                                        (V3){0.0f, 0.0f, 1.0f},
+                                        (V2){tile.min.x,tile.min.y},
+                                        (V2){tile.max.x,tile.max.y},
+                                        blue,
                                         0);
                 }
-                
-                /*
-                //DEBUG - PLAYERS CURRENT TILE
-                for(int player_index = 0; player_index < 4; player_index++)
-                {
-                    // NOTE(MIGUEL): get function set residency. no known way to check if enity exists or not
-                    EntityLow *player = Entity_get_entity_low(game_state, game_state->controlled_players[player_index].entity_index);
-                    
-                    if(player &&
-                       ((column == player->position.chunk_x) &&
-                        (row    == player->position.chunk_y)) )
-                    {
-                        gray = 0.0f;
-                        
-                        // SHADOW
-                        Game_draw_rectangle(back_buffer,
-                                            (V2){min_x,min_y},
-                                            (V2){max_x,max_y},
-                                            (V3){gray + 0.1f, gray + 0.5f, gray},
-                                            0);
-                    }
-                }
-                */
+#endif
             }
         }
     }
+#endif
     
     return;
 }
@@ -1259,9 +1344,9 @@ SGE_UPDATE(SGEUpdate)
                        back_buffer,
                        sim_region,
                        4,
-                       40,
-                       30,
-                       300, 140);
+                       (V2){120.0f, 80.0f},
+                       300, 140,
+                       0.5f);
 #endif
     
     
