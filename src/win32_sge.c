@@ -222,7 +222,7 @@ win32_xinput_load_functions()
 }
 
 internal void
-win32_process_pending_messages(win32_state *state, GameControllerInput *keyboard_controller);
+win32_process_pending_messages(win32_state *state, GameInput *input, GameControllerInput *keyboard_controller);
 
 // ************************
 // OPENGL ABSTRACTIONS
@@ -975,7 +975,15 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                     keyboard_controller_snapshot_new->buttons[button_index].ended_down = (keyboard_controller_snapshot_old->buttons[button_index].ended_down);
                 }
                 
-                win32_process_pending_messages(&state_win32, keyboard_controller_snapshot_new);
+                win32_process_pending_messages(&state_win32, input_new, keyboard_controller_snapshot_new);
+                // NOTE(MIGUEL): This is a fucking a hack and idk. It kind
+                //               0f complete bullshit. This is to stop mouse wheel
+                //               jitter that happens when the input_new & input_old
+                //               pointers are swaped. Essentially im sychronizeing just
+                //               the mouse wheel variables since I cant forcibly poll 
+                //               mouse wheel data on each frame.
+                input_old->mouse_wheel_delta = input_new->mouse_wheel_delta;
+                input_old->mouse_wheel_integral = input_new->mouse_wheel_integral;
                 
                 if(!g_pause)
                 {
@@ -1000,7 +1008,7 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
                                                    GetKeyState(VK_XBUTTON2) & (1 << 15));
                     
                     //~ GAMEPAD CONTROLLER PROCESSING
-                    win32_process_pending_messages(&state_win32, &input_new->controllers[0]);
+                    //win32_process_pending_messages(&state_win32, input_new, &input_new->controllers[0]);
                     
                     DWORD max_controller_count = XUSER_MAX_COUNT;
                     
@@ -1477,7 +1485,7 @@ typedef BOOL WINAPI wglChoosePixelFormatARB_type(HDC hdc, const int *piAttribILi
 wglChoosePixelFormatARB_type    *wglChoosePixelFormatARB;
 
 internal void
-win32_process_pending_messages(win32_state *state, GameControllerInput *keyboard_controller)
+win32_process_pending_messages(win32_state *state, GameInput *input, GameControllerInput *keyboard_controller)
 {
     MSG message;
     
@@ -1489,6 +1497,12 @@ win32_process_pending_messages(win32_state *state, GameControllerInput *keyboard
             {
                 g_running = false;
             }  break;
+            
+            case WM_MOUSEWHEEL:
+            {
+                input->mouse_wheel_delta = ((s16)(message.wParam >> 16) / 120.0f);
+                input->mouse_wheel_integral += input->mouse_wheel_delta;
+            } break;
             
             case WM_SYSKEYUP:
             

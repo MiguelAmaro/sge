@@ -268,15 +268,107 @@ Game_draw_mini_map(GameState *game_state,
                         green,
                         0);
     
-    
-    f32 meters_to_pixels_with_zoom_comp = meters_to_pixels * ((4.0f * normalized_zoom));
+    // NOTE(MIGUEL): APPLY THIS TO EVERYTHING!!!!
+    f32 meters_to_pixels_with_zoom_comp = (f32)meters_to_pixels * ((10.0f * normalized_zoom));
     EntityLow *entity_low = game_state->entities_low;
     
+    
+    // DRAW CAMERA BOUNDS
+    
+    V2 view_tile_span = { 17, 9 };
+    V2_scale(world->side_in_meters_tile, &view_tile_span);
+    V2_scale(0.5f, &view_tile_span);
+    
+    RectV2 camera_bounds_in_minimap_space = RectV2_center_half_dim((V2){0 , 0},
+                                                                   view_tile_span);
+    
+    V2_scale(meters_to_pixels_with_zoom_comp, &camera_bounds_in_minimap_space.min);
+    V2_scale(meters_to_pixels_with_zoom_comp, &camera_bounds_in_minimap_space.max);
+    V2_add(camera_bounds_in_minimap_space.min, minimap_center, &camera_bounds_in_minimap_space.min);
+    V2_add(camera_bounds_in_minimap_space.max, minimap_center, &camera_bounds_in_minimap_space.max);
+    
+    RectV2 camera_bounds_top    = camera_bounds_in_minimap_space;
+    RectV2 camera_bounds_bottom = camera_bounds_in_minimap_space;
+    RectV2 camera_bounds_left   = camera_bounds_in_minimap_space;
+    RectV2 camera_bounds_right  = camera_bounds_in_minimap_space;
+    
+    camera_bounds_top.min.y = camera_bounds_in_minimap_space.max.y - 2;
     Game_draw_rectangle(back_buffer,
-                        sim_region->bounds.min,
-                        sim_region->bounds.max,
-                        color,
+                        camera_bounds_top.min,
+                        camera_bounds_top.max,
+                        red,
                         0);
+    
+    
+    camera_bounds_bottom.max.y = camera_bounds_in_minimap_space.min.y + 2;
+    Game_draw_rectangle(back_buffer,
+                        camera_bounds_bottom.min,
+                        camera_bounds_bottom.max,
+                        blue,
+                        0);
+    
+    camera_bounds_left.min.x = camera_bounds_in_minimap_space.max.x - 2;
+    Game_draw_rectangle(back_buffer,
+                        camera_bounds_left.min,
+                        camera_bounds_left.max,
+                        purple,
+                        0);
+    
+    
+    camera_bounds_right.max.x = camera_bounds_in_minimap_space.min.x + 2;
+    Game_draw_rectangle(back_buffer,
+                        camera_bounds_right.min,
+                        camera_bounds_right.max,
+                        yellow,
+                        0);
+    
+    
+    // DRAW SIMREGION BOUNDS
+    RectV2 sim_region_bounds_in_minimap_space = sim_region->bounds;
+    // TODO(MIGUEL): fix the coordinate bullshit with point whatever
+    //V2_scale(-1.0f, &sim_region_bounds_in_minimap_space.min);
+    //V2_scale(-1.0f, &sim_region_bounds_in_minimap_space.max);
+    
+    V2_scale(meters_to_pixels_with_zoom_comp, &sim_region_bounds_in_minimap_space.min);
+    V2_scale(meters_to_pixels_with_zoom_comp, &sim_region_bounds_in_minimap_space.max);
+    V2_add(sim_region_bounds_in_minimap_space.min, minimap_center, &sim_region_bounds_in_minimap_space.min);
+    V2_add(sim_region_bounds_in_minimap_space.max, minimap_center, &sim_region_bounds_in_minimap_space.max);
+    
+    RectV2 sim_region_bounds_top    = sim_region_bounds_in_minimap_space;
+    RectV2 sim_region_bounds_bottom = sim_region_bounds_in_minimap_space;
+    RectV2 sim_region_bounds_left   = sim_region_bounds_in_minimap_space;
+    RectV2 sim_region_bounds_right  = sim_region_bounds_in_minimap_space;
+    
+    sim_region_bounds_top.min.y = sim_region_bounds_in_minimap_space.max.y - 2;
+    Game_draw_rectangle(back_buffer,
+                        sim_region_bounds_top.min,
+                        sim_region_bounds_top.max,
+                        red,
+                        0);
+    
+    
+    sim_region_bounds_bottom.max.y = sim_region_bounds_in_minimap_space.min.y + 2;
+    Game_draw_rectangle(back_buffer,
+                        sim_region_bounds_bottom.min,
+                        sim_region_bounds_bottom.max,
+                        blue,
+                        0);
+    
+    sim_region_bounds_left.min.x = sim_region_bounds_in_minimap_space.max.x - 2;
+    Game_draw_rectangle(back_buffer,
+                        sim_region_bounds_left.min,
+                        sim_region_bounds_left.max,
+                        purple,
+                        0);
+    
+    
+    sim_region_bounds_right.max.x = sim_region_bounds_in_minimap_space.min.x + 2;
+    Game_draw_rectangle(back_buffer,
+                        sim_region_bounds_right.min,
+                        sim_region_bounds_right.max,
+                        yellow,
+                        0);
+    
     
     for(u32 entity_low_index = 1;
         entity_low_index < game_state->entity_count_low;
@@ -292,9 +384,43 @@ Game_draw_mini_map(GameState *game_state,
         
         EntitySimHash *entry = SimRegion_get_hash_from_storage_index(sim_region, entity_low_index);
         
+        switch(entity_low->sim.type)
+        {
+            case EntityType_player:
+            {
+                draw_color = blue;
+            } break;
+            
+            case EntityType_friendly:
+            {
+                draw_color = yellow;
+            } break;
+            
+            case EntityType_hostile:
+            {
+                draw_color = red;
+            } break;
+            
+            case EntityType_wall:
+            {
+                draw_color = purple;
+            } break;
+            
+            case EntityType_sword:
+            {
+                draw_color = grey;
+            } break;
+            
+            case EntityType_null:
+            {
+                draw_color = dark_gray;
+            } break;
+            
+        }
+        
         if(entry->ptr == NULLPTR)
         {
-            draw_color = grey;
+            draw_color = (V3){0.5f, 0.8f, 0.2f};
             
         }
         
@@ -312,166 +438,6 @@ Game_draw_mini_map(GameState *game_state,
                             draw_color,
                             0);
     }
-    
-#if 0
-    for(s32 rel_column  = (s32)-half_camera_range_in_tiles.x;
-        rel_column < half_camera_range_in_tiles.x;
-        rel_column++)
-    {
-        for(s32 rel_row = (s32)-half_camera_range_in_tiles.y;
-            rel_row < half_camera_range_in_tiles.y;
-            rel_row++)
-        {
-            
-            if(camera_following_entity)
-            {
-                //(meters_to_pixels * camera_following_entity->position.rel_.x) +
-                V2 minimap_center = 
-                {
-                    screen_center.x - (f32)(rel_column * tile_side_in_pixels),
-                    screen_center.y + (f32)(rel_row    * tile_side_in_pixels)
-                };
-                
-                RectV2 tile =
-                {
-                    .min.x = minimap_center.x - 0.5f * tile_side_in_pixels + offset_from_screen_center.x,
-                    .min.y = minimap_center.y - 0.5f * tile_side_in_pixels + offset_from_screen_center.y,
-                    .max.x = minimap_center.x + 0.5f * tile_side_in_pixels + offset_from_screen_center.x,
-                    .max.y = minimap_center.y + 0.5f * tile_side_in_pixels + offset_from_screen_center.y,
-                };
-                
-                /*
-                s32 column = camera_following_entity->position.chunk_x + rel_column;
-                s32 row    = camera_following_entity->position.chunk_y + rel_row;
-                */
-                //UX2
-                
-                switch(camera_following_entity->sim.type)
-                {
-                    case EntityType_player:
-                    {
-                        color = blue;
-                    } break;
-                    
-                    case EntityType_friendly:
-                    {
-                        color = yellow;
-                    } break;
-                    
-                    case EntityType_hostile:
-                    {
-                        color = red;
-                    } break;
-                    
-                    case EntityType_wall:
-                    {
-                        color = purple;
-                    } break;
-                    
-                    case EntityType_sword:
-                    {
-                        color = grey;
-                    } break;
-                    
-                    case EntityType_null:
-                    {
-                        color = dark_gray;
-                    } break;
-                    
-                }
-                
-                Game_draw_rectangle(back_buffer,
-                                    (V2){tile.min.x, tile.min.y},
-                                    (V2){tile.max.x, tile.max.y},
-                                    color,
-                                    1);
-                
-                
-                WorldCoord world_origin = {0};
-                
-                if((rel_column % WORLD_TILES_PER_CHUNK == 0) ||
-                   (rel_row    % WORLD_TILES_PER_CHUNK == 0))
-                {
-                    Game_draw_rectangle(back_buffer,
-                                        (V2){tile.min.x,tile.min.y},
-                                        (V2){tile.max.x,tile.max.y},
-                                        white,
-                                        0);
-                }
-                
-                
-                if((rel_column == 0) && (rel_row == 0))
-                {
-                    Game_draw_rectangle(back_buffer,
-                                        (V2){tile.min.x,tile.min.y},
-                                        (V2){tile.max.x,tile.max.y},
-                                        red,
-                                        0);
-                }
-                
-                if((rel_column == camera_following_entity->sim.position.y) &&
-                   (rel_row    == camera_following_entity->sim.position.x))
-                {
-                    
-                }
-                
-#if 0
-                /// DRAWING THE CAMERA BOUNDS AND SIM REGION BOUNDS
-                V2 tile_span_in_meters = (V2){ (17 * 3) / 2 , (9 * 3) / 2};
-                V2 camera_point        = 
-                { 
-                    (f32)game_state->camera_position.chunk_x,
-                    (f32)game_state->camera_position.chunk_y 
-                };
-                
-                // TODO(MIGUEL): Use sim region origin and bound in stead of
-                //               this bullshit. Also make sure to visulaze the 
-                //               chunks and highligh chunk in the sim resion.
-                RectV2 high_frequency_bounds = RectV2_center_half_dim(game_state->camera_position.rel_,
-                                                                      tile_span_in_meters);
-                
-                V2_add(camera_point, high_frequency_bounds.min, &high_frequency_bounds.min);
-                V2_add(camera_point, high_frequency_bounds.max, &high_frequency_bounds.max);
-                
-                tile_span_in_meters  = (V2){ 17/ 2 , 9/2};
-                RectV2 camera_bounds = RectV2_center_half_dim(game_state->camera_position.rel_,
-                                                              tile_span_in_meters);
-                
-                V2_add(camera_point, camera_bounds.min, &camera_bounds.min);
-                V2_add(camera_point, camera_bounds.max, &camera_bounds.max);
-                
-                /// DRAW SIM REGION BOUNDS
-                if((((column >= (s32)high_frequency_bounds.min.x) && (column <= (s32)high_frequency_bounds.max.x)) &&
-                    ((row    == (s32)high_frequency_bounds.min.y) || (row    == (s32)high_frequency_bounds.max.y))) 
-                   ||
-                   ((row    >= (s32)high_frequency_bounds.min.y) && (row    <= (s32)high_frequency_bounds.max.y)) &&
-                   ((column == (s32)high_frequency_bounds.min.x) || (column == (s32)high_frequency_bounds.max.x)))
-                {
-                    Game_draw_rectangle(back_buffer,
-                                        (V2){tile.min.x,tile.min.y},
-                                        (V2){tile.max.x,tile.max.y},
-                                        red,
-                                        0);
-                }
-                
-                // DRAW CAMERA BOUNDS
-                if((((column >= (s32)camera_bounds.min.x) && (column <= (s32)camera_bounds.max.x)) &&
-                    ((row    == (s32)camera_bounds.min.y) || (row    == (s32)camera_bounds.max.y))) 
-                   ||
-                   ((row    >= (s32)camera_bounds.min.y) && (row    <= (s32)camera_bounds.max.y)) &&
-                   ((column == (s32)camera_bounds.min.x) || (column == (s32)camera_bounds.max.x)))
-                {
-                    Game_draw_rectangle(back_buffer,
-                                        (V2){tile.min.x,tile.min.y},
-                                        (V2){tile.max.x,tile.max.y},
-                                        blue,
-                                        0);
-                }
-#endif
-            }
-        }
-    }
-#endif
     
     return;
 }
@@ -783,7 +749,7 @@ SGE_UPDATE(SGEUpdate)
         b32 door_up     = 0;
         b32 door_down   = 0;
         
-        for(u32 screen_index = 0; screen_index < 1; screen_index++)
+        for(u32 screen_index = 0; screen_index < 3; screen_index++)
         {
             ASSERT(random_number_index < ARRAYCOUNT(random_number_table));
             u32 random_choice;
@@ -930,7 +896,7 @@ SGE_UPDATE(SGEUpdate)
                          camera_tile_y + 2,
                          camera_tile_z);
         
-        for(f32 friendly_index = 0; friendly_index < 2; friendly_index++)
+        for(f32 friendly_index = 0; friendly_index < 40; friendly_index++)
         {
             s32 friendly_offset_x = (random_number_table[random_number_index++] % 10) - 7;
             s32 friendly_offset_y = (random_number_table[random_number_index++] % 10) - 3;
@@ -950,9 +916,9 @@ SGE_UPDATE(SGEUpdate)
     
     World *world  = game_state->world;
     
-    f32 meters_to_pixels = game_state->meters_to_pixels;
     s32 tile_side_in_pixels = 60;
     game_state->meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)world->side_in_meters_tile);
+    f32 meters_to_pixels = game_state->meters_to_pixels;
     
     f32 lower_left_x = -(f32)tile_side_in_pixels / (f32)2;
     f32 lower_left_y =  (f32)back_buffer->height;
@@ -1037,7 +1003,7 @@ SGE_UPDATE(SGEUpdate)
                 // TODO(MIGUEL): fix my beloved camera pan to other player code :(
                 // focus camera on this player
                 // NOTE(MIGUEL): the following code is from the "set camera" old system
-                //game_state->camera_following_entity_index = game_state->player_controller_entity_index[controller_index];
+                game_state->camera_following_entity_index = player->entity_index;
             }
         }
         
@@ -1155,11 +1121,13 @@ SGE_UPDATE(SGEUpdate)
                 
                 draw_hitpoint(entity_sim, &piece_group);
             } break;
+            
             case EntityType_wall:
             {
                 push_bitmap(&piece_group, &game_state->tree, (V3){0, 0, 0}, 0.0f, (V2){40, 80}, 1.0f);
                 
             } break;
+            
             case EntityType_sword:
             {
                 Entity_update_sword(sim_region, entity_sim, input->delta_t);
@@ -1182,6 +1150,7 @@ SGE_UPDATE(SGEUpdate)
                 
                 draw_hitpoint(entity_sim, &piece_group);
             } break;
+            
             case EntityType_hostile: 
             {
                 Entity_update_hostile(sim_region, entity_sim, input->delta_t);
@@ -1190,6 +1159,7 @@ SGE_UPDATE(SGEUpdate)
                 push_bitmap(&piece_group, &playerbitmaps->torso, (V3){0, 0, 0},  1.0f, playerbitmaps->align, 0.0f);
                 
             } break;
+            
             default:
             {
                 INVALID_CODE_PATH;
@@ -1262,18 +1232,31 @@ SGE_UPDATE(SGEUpdate)
     
     EntitySim *entity = sim_region->entities;
     
-    f32 array_debug_zoom = 86.0f;
+    f32 array_debug_zoom = 79.0f;
     f32 padding = 10.0f;
     V2  offset  = {padding, padding};
+    // NOTE(MIGUEL): wtf is thisa
     f32 height  = (f32)floor_f32_to_s32((back_buffer->height - (padding * 2)) / (f32)(sim_region->max_entity_count * 0.001f * (100.1f - array_debug_zoom)));
-    f32 width   = 200.0f;
+    f32 width   = 8.0f;
+    u32 max_array_rows_for_height = (u32)((back_buffer->height - padding * 2.0f) / height);
+    
+    
+    u32 array_row = 0;
+    u32 array_col  = 1;
+    f32 array_col_padding = 1.0f;
     
     for(u32 entity_index = 0;
         entity_index < sim_region->max_entity_count;
-        entity_index++, entity++)
+        entity_index++, entity++ )
     {
         V3 divider_color = black;
-        V3 empty_color = green;
+        V3 empty_color   = green;
+        
+        array_row = entity_index % max_array_rows_for_height;
+        array_col = (u32)floor_f32_to_s32(entity_index / (f32)max_array_rows_for_height) + 1;
+        
+        f32 x = (array_col * (width + array_col_padding));
+        f32 y = (f32)height * (f32)array_row + padding;
         
         if(entity_index <= sim_region->entity_count)
         {
@@ -1311,42 +1294,56 @@ SGE_UPDATE(SGEUpdate)
                 
             }
             
-            
             Game_draw_rectangle(back_buffer,
-                                (V2){ padding, height * (f32)entity_index + padding},
-                                (V2){width + padding, height * ((f32)entity_index + 1.0f) + padding},
+                                (V2){x +  0.0f, y},
+                                (V2){x + width, height * ((f32)array_row + 1.0f) + padding},
                                 color, 0);
             
             Game_draw_rectangle(back_buffer,
-                                (V2){ padding, (height * (f32)entity_index + padding) + (height * 0.90f)},
-                                (V2){width + padding, height * ((f32)entity_index + 1.0f) + padding},
+                                (V2){x +  0.0f, y + (height * 0.90f)},
+                                (V2){x + width, height * ((f32)array_row + 1.0f) + padding},
                                 divider_color, 0);
             
             
             continue;
         }
         
+        /// EMPTY SLOT
         Game_draw_rectangle(back_buffer,
-                            (V2){ padding, height * (f32)entity_index + padding},
-                            (V2){width + padding, height * ((f32)entity_index + 1.0f) + padding},
+                            (V2){x +  0.0f, y + 0.0f},
+                            (V2){x + width, height * ((f32)array_row + 1.0f) + padding},
                             empty_color, 0);
         
+        /// DIVIDER LINE
         Game_draw_rectangle(back_buffer,
-                            (V2){ padding, (height * (f32)entity_index + padding) + (height * 0.95f)},
-                            (V2){width + padding, height * ((f32)entity_index + 1.0f) + padding},
+                            (V2){x +  0.0f, y + (height * 0.90f)},
+                            (V2){x + width,  height * ((f32)array_row + 1.0f) + padding},
                             divider_color, 0);
         
     }
     
     
 #if 1
+    
+    f32 mouse_wheel = input->mouse_wheel_integral * 0.01f;
+    
+    if(mouse_wheel > 1.0f)
+    {
+        mouse_wheel = 1.0f;
+    }
+    
+    if(mouse_wheel < -0.25f)
+    {
+        mouse_wheel = -0.25f;
+    }
     Game_draw_mini_map(game_state,
                        back_buffer,
                        sim_region,
                        4,
                        (V2){120.0f, 80.0f},
-                       300, 140,
-                       0.5f);
+                       (s32)(back_buffer->width  / -2.0f) + input->mouse_x,
+                       (s32)(back_buffer->height / -2.0f) + input->mouse_y,
+                       mouse_wheel + 0.25f);
 #endif
     
     

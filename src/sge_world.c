@@ -116,6 +116,7 @@ inline WorldCoord
 World_map_to_chunkspace(World *world, WorldCoord base_pos, V2 offset)
 {
     WorldCoord result = base_pos;
+    
     V2_add(result.rel_, offset, &result.rel_);
     
     World_recanonicalize_coord(world, &result.chunk_x, &result.rel_.x);

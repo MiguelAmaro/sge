@@ -47,8 +47,12 @@ set MSVC_WARNINGS= ^
 -wd4057 ^
 -wd4100 ^
 -wd4189 ^
+-wd4101 ^
 -wd4201 ^
--wd4204
+-wd4204 ^
+-wd4456 ^
+-wd4706 ^
+-wd4996
 
 rem NOTE(MIGUEL):-MD is using Dynamic CRT Lib which is what is supporting the console
 rem TODO(MIGUEL): Figure out a way to get a console that doesnt need to use the MD flag

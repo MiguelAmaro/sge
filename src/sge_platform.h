@@ -176,6 +176,9 @@ struct GameInput
     s32 mouse_y;
     s32 mouse_z;
     
+    f32 mouse_wheel_delta;
+    f32 mouse_wheel_integral;
+    
     // NOTE(MIGUEL): seconds_to_advance_over_update
     f32 delta_t;
     

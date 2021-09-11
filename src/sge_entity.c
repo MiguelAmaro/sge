@@ -17,7 +17,7 @@ internal void
 Entity_update_friendly(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
 {
     EntitySim *closest_player = { 0 };
-    f32    player_search_diametersq = square(10.0f);
+    f32    player_search_diametersq = square(30.0f);
     
     EntitySim *test_entity = sim_region->entities;
     for(u32 test_entity_index = 1;
