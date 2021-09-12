@@ -21,12 +21,13 @@ struct MoveSpec
 };
 
 typedef struct EntitySim EntitySim;
-
+// TODO(MIGUEL): change name to "EntityFlags"
 typedef enum EntitySimFlags EntitySimFlags;
 enum EntitySimFlags
 {
     EntitySimFlag_collides   = (1 << 1),
     EntitySimFlag_nonspatial = (1 << 2),
+    EntitySimFlag_simming    = (1 << 3),
 };
 
 typedef union EntityReference EntityReference;
@@ -43,7 +44,7 @@ struct EntitySim
     u32 index_high;
     
     f32 z;
-    V2  position;
+    V2 position;
     V2  velocity;
     
     s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??

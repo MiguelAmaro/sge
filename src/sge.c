@@ -250,16 +250,16 @@ Game_draw_mini_map(GameState *game_state,
     camera_range_in_meters.y *= view_scale;
     
     
-    V3 color  = { 0 };
-    V3 red    = {1.0f, 0.0f, 0.0f};
-    V3 green  = {0.0f, 1.0f, 0.0f};
-    V3 blue   = {0.0f, 0.0f, 1.0f};
-    V3 yellow = {1.0f, 1.0f, 0.0f};
-    V3 purple = {1.0f, 0.0f, 1.0f};
-    V3 grey   = {0.6f, 0.6f, 0.6f};
-    V3 white  = {1.0f, 1.0f, 1.0f};
-    V3 black  = {0.0f, 0.0f, 0.0f};
-    V3 dark_gray = {0.3f, 0.3f, 0.3f};
+    V4 color  = { 0 };
+    V4 red    = {1.0f, 0.0f, 0.0f, 0.5};
+    V4 green  = {0.0f, 1.0f, 0.0f, 0.5};
+    V4 blue   = {0.0f, 0.0f, 1.0f, 0.5};
+    V4 yellow = {1.0f, 1.0f, 0.0f, 0.5};
+    V4 purple = {1.0f, 0.0f, 1.0f, 0.5};
+    V4 grey   = {0.6f, 0.6f, 0.6f, 0.5};
+    V4 white  = {1.0f, 1.0f, 1.0f, 0.5};
+    V4 black  = {0.0f, 0.0f, 0.0f, 0.5};
+    V4 dark_gray = {0.3f, 0.3f, 0.3f, 0.5};
     
     /// MINIMAP BACKGROUND
     Game_draw_rectangle(back_buffer,
@@ -374,7 +374,7 @@ Game_draw_mini_map(GameState *game_state,
         entity_low_index < game_state->entity_count_low;
         entity_low_index++, entity_low++)
     {
-        V3 draw_color = red;
+        V4 draw_color = red;
         
         draw_pos.x = entity_low->sim.position.x * meters_to_pixels_with_zoom_comp;
         draw_pos.y = entity_low->sim.position.y * meters_to_pixels_with_zoom_comp;
@@ -420,7 +420,7 @@ Game_draw_mini_map(GameState *game_state,
         
         if(entry->ptr == NULLPTR)
         {
-            draw_color = (V3){0.5f, 0.8f, 0.2f};
+            draw_color = (V4){0.5f, 0.8f, 0.2f, 0.5f};
             
         }
         
@@ -590,7 +590,7 @@ push_piece(EntityVisiblePieceGroup *group, BitmapData *bitmap,
     piece->bitmap = bitmap;
     
     V3_scale(group->game_state->meters_to_pixels, &offset);
-    V2_sub(offset.xy, align, &offset.xy);
+    V2_sub((V2){offset.x, -offset.y}, align, &offset.xy);
     piece->offset = offset;
     
     piece->entity_zc = entity_zc;
@@ -605,7 +605,7 @@ internal void
 push_bitmap(EntityVisiblePieceGroup *group, BitmapData *bitmap,
             V3 offset, f32 entity_zc, V2 align, f32 alpha)
 {
-    push_piece(group, bitmap, (V2){0,0}, offset, align, entity_zc, (V4){0,0,0,alpha});
+    push_piece(group, bitmap, (V2){0,0}, offset, align, entity_zc, (V4){1.0f, 1.0f, 1.0f, alpha});
     
     return;
 } 
@@ -669,7 +669,7 @@ SGE_UPDATE(SGEUpdate)
     if(!sge_memory->is_initialized)
     {   
         // NOTE(MIGUEL): Entity at slot 0 reserved as null
-        //Entity_create_entity_low(game_state, EntityType_null, NULLPTR);
+        Entity_create_entity_low(game_state, EntityType_null, World_null_position());
         
         //~ BITMAP LOADING
         game_state->back_drop = Game_debug_load_bmp(thread,
@@ -728,8 +728,13 @@ SGE_UPDATE(SGEUpdate)
         World *world  = game_state->world;
         World_init(world, 1.4f); 
         
+        s32 tile_side_in_pixels      = 60;
+        game_state->meters_to_pixels = ((f32)tile_side_in_pixels /
+                                        (f32)world->side_in_meters_tile);
+        
         u32 tiles_per_chunk_width  = 17;
         u32 tiles_per_chunk_height =  9;
+        
         
         u32 random_number_index = 0;
         
@@ -749,7 +754,7 @@ SGE_UPDATE(SGEUpdate)
         b32 door_up     = 0;
         b32 door_down   = 0;
         
-        for(u32 screen_index = 0; screen_index < 3; screen_index++)
+        for(u32 screen_index = 0; screen_index < 2000; screen_index++)
         {
             ASSERT(random_number_index < ARRAYCOUNT(random_number_table));
             u32 random_choice;
@@ -762,7 +767,9 @@ SGE_UPDATE(SGEUpdate)
             {
                 random_choice = random_number_table[random_number_index++] % 3;
             }
+            
             b32 created_z_door = 0;
+            
             if(random_choice == 2)
             {
                 created_z_door = 1;
@@ -915,13 +922,7 @@ SGE_UPDATE(SGEUpdate)
     }
     
     World *world  = game_state->world;
-    
-    s32 tile_side_in_pixels = 60;
-    game_state->meters_to_pixels    = ((f32)tile_side_in_pixels / (f32)world->side_in_meters_tile);
     f32 meters_to_pixels = game_state->meters_to_pixels;
-    
-    f32 lower_left_x = -(f32)tile_side_in_pixels / (f32)2;
-    f32 lower_left_y =  (f32)back_buffer->height;
     
     // ************************************************
     // INPUT RESPONSE
@@ -942,12 +943,14 @@ SGE_UPDATE(SGEUpdate)
         }
         else
         {
+            player->delta_z = 0.0f;
+            player->delta_sword  = (V2){0.0f, 0.0f };
             player->acceleration = (V2){ 0.0f, 0.0f };
             
             if(controller->is_analog)
             {
                 // NOTE(MIGUEL): use analog mov tunning
-                player->acceleration = (V2){ controller->stick_avg_x,controller->stick_avg_y };
+                player->acceleration = (V2){ controller->stick_avg_x, controller->stick_avg_y };
                 
             }
             else
@@ -977,6 +980,11 @@ SGE_UPDATE(SGEUpdate)
             }
             
             player->delta_sword = (V2){ 0.0f, 0.0f };
+            if(controller->button_start.ended_down)
+            {
+                player->delta_z = 3.0f;
+            }
+            
             if(controller->action_up.ended_down)
             {
                 player->delta_sword.y =  1.0f;
@@ -989,20 +997,14 @@ SGE_UPDATE(SGEUpdate)
             {
                 player->delta_sword.x = -1.0f;
             }
+            
             if(controller->action_right.ended_down)
             {
                 player->delta_sword.x =  1.0f;
             }
             
-            if(controller->button_start.ended_down)
-            {
-                player->delta_z = 3.0f;
-            }
             if(controller->shoulder_left.ended_down)
             {
-                // TODO(MIGUEL): fix my beloved camera pan to other player code :(
-                // focus camera on this player
-                // NOTE(MIGUEL): the following code is from the "set camera" old system
                 game_state->camera_following_entity_index = player->entity_index;
             }
         }
@@ -1036,7 +1038,7 @@ SGE_UPDATE(SGEUpdate)
     Game_draw_rectangle(back_buffer,
                         (V2){0.0f, 0.0f} ,
                         (V2){(f32)back_buffer->width,(f32)back_buffer->height},
-                        (V3){0.4f, 0.8f, 1.0f},
+                        (V4){0.4f, 0.8f, 1.0f, 0.5},
                         0);
     
     
@@ -1055,14 +1057,12 @@ SGE_UPDATE(SGEUpdate)
     piece_group.game_state = game_state;
     
     EntitySim *entity_sim = sim_region->entities;
-    for(u32 entity_index = 1;
+    for(u32 entity_index = 0;
         entity_index < sim_region->entity_count;
         entity_index++, entity_sim++)
     {
         piece_group.piece_count = 0;
-        
-        V2 entity_bottom_right = { 0 };
-        
+        f32 delta_time = input->delta_t;
         
         // JUMP CODE
         f32 shadow_alpha = 1.0f - 0.5f * entity_sim->z;
@@ -1073,7 +1073,7 @@ SGE_UPDATE(SGEUpdate)
         }
         // END OF JUMP CODE
         
-        
+        PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
         switch(entity_sim->type )
         {
             
@@ -1089,75 +1089,149 @@ SGE_UPDATE(SGEUpdate)
                     //                what array do they refer to ????
                     if(entity_sim->index_storage == player->entity_index)
                     {
+                        if(player->delta_z != 0.0f)
+                        {
+                            entity_sim->delta_z = player->delta_z;
+                        }
+                        
                         MoveSpec movespec = default_movespec();
                         movespec.unitmaxaccel = 1;
                         movespec.speed = 300.0f;
                         movespec.drag  = 12.0f;
                         
-                        
-                        SimRegion_move_entity(sim_region, entity_sim, &movespec, input->delta_t, player->acceleration);
+                        SimRegion_move_entity(sim_region,
+                                              entity_sim,
+                                              &movespec,
+                                              delta_time,
+                                              player->acceleration);
                         
                         if((player->delta_sword.x != 0.0f) || (player->delta_sword.y != 0.0f))
                         {
                             EntitySim *sword = entity_sim->sword.ptr;
                             
-                            if(sword)
+                            if(sword && Entity_is_entity_sim_flags_set(sword, EntitySimFlag_nonspatial))
                             {
-                                sword->position = entity_sim->position;
-                                sword->distance_remaining = 5.0f;
                                 V2 delta_sword = player->delta_sword;
                                 V2_scale(5.0f, &delta_sword);
-                                sword->velocity = delta_sword;
+                                
+                                Entity_make_spatial(sword,
+                                                    entity_sim->position,
+                                                    delta_sword);
                             }
                         }
                     }
                 }
                 
-                PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
-                push_bitmap(&piece_group, &game_state->shadow  , (V3){0, 0, 0}, shadow_alpha, playerbitmaps->align, 1.0f);
-                push_bitmap(&piece_group, &playerbitmaps->torso, (V3){0, 0, entity_sim->z}, 1.0f        , playerbitmaps->align, 1.0f);
-                push_bitmap(&piece_group, &playerbitmaps->cape , (V3){0, 0, entity_sim->z}, 1.0f        , playerbitmaps->align, 1.0f); 
-                push_bitmap(&piece_group, &playerbitmaps->head , (V3){0, 0, entity_sim->z}, 1.0f        , playerbitmaps->align, 1.0f);
+                
+                push_bitmap(&piece_group,
+                            &game_state->shadow,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            shadow_alpha);
+                
+                push_bitmap(&piece_group,
+                            &playerbitmaps->torso,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            1.0f);
+                
+                push_bitmap(&piece_group,
+                            &playerbitmaps->cape,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            1.0f); 
+                
+                push_bitmap(&piece_group,
+                            &playerbitmaps->head,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            1.0f);
                 
                 draw_hitpoint(entity_sim, &piece_group);
             } break;
             
             case EntityType_wall:
             {
-                push_bitmap(&piece_group, &game_state->tree, (V3){0, 0, 0}, 0.0f, (V2){40, 80}, 1.0f);
+                push_bitmap(&piece_group,
+                            &game_state->tree,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            (V2){40, 80},
+                            1.0f);
                 
             } break;
             
             case EntityType_sword:
             {
-                Entity_update_sword(sim_region, entity_sim, input->delta_t);
-                push_bitmap(&piece_group, &game_state->shadow, (V3){0, 0, 0}, 1.0f, (V2){72, 182}, 1.0f);
-                push_bitmap(&piece_group, &game_state->sword , (V3){0, 0, 0}, 0.0f, (V2){29, 10}, 1.0f);
+                Entity_update_sword(sim_region, entity_sim, delta_time);
+                push_bitmap(&piece_group,
+                            &game_state->shadow,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            (V2){72, 182},
+                            1.0f);
+                
+                push_bitmap(&piece_group,
+                            &game_state->sword,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            (V2){29, 10},
+                            1.0f);
             } break;
             
             case EntityType_friendly: 
             {
-                Entity_update_friendly(sim_region, entity_sim, input->delta_t);
-                entity_sim->bob_t += 2.0f * input->delta_t;
+                Entity_update_friendly(sim_region, entity_sim, delta_time);
+                
+                entity_sim->bob_t += delta_time;
+                
                 if(entity_sim->bob_t > (2.0f * PI_32BIT))
                 {
                     entity_sim->bob_t -= 2.0f * PI_32BIT;
                 }
-                PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
-                f32 bobsin = math_sin(entity_sim->bob_t);
-                push_bitmap(&piece_group, &game_state->shadow , (V3){0, 0, 0}, (0.5f * shadow_alpha) + 0.2f * bobsin, playerbitmaps->align, 1.0f);
-                push_bitmap(&piece_group, &playerbitmaps->head, (V3){0, 0, 1.0f * bobsin}, 1.0f, playerbitmaps->align, 1.0f);
                 
-                draw_hitpoint(entity_sim, &piece_group);
+                f32 bobsin = math_sin(2.0f * entity_sim->bob_t);
+                
+                push_bitmap(&piece_group,
+                            &game_state->shadow,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            (0.5f * shadow_alpha) + 0.2f * bobsin);
+                
+                push_bitmap(&piece_group,
+                            &playerbitmaps->head,
+                            (V3){0, 0, 1.0f * bobsin},
+                            0.0f,
+                            playerbitmaps->align,
+                            1.0f);
+                
             } break;
             
             case EntityType_hostile: 
             {
-                Entity_update_hostile(sim_region, entity_sim, input->delta_t);
+                Entity_update_hostile(sim_region, entity_sim, delta_time);
                 PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
-                push_bitmap(&piece_group, &game_state->shadow  , (V3){0, 0, 0}, shadow_alpha, playerbitmaps->align, 0.0f);
-                push_bitmap(&piece_group, &playerbitmaps->torso, (V3){0, 0, 0},  1.0f, playerbitmaps->align, 0.0f);
                 
+                push_bitmap(&piece_group,
+                            &game_state->shadow,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            shadow_alpha);
+                
+                push_bitmap(&piece_group,
+                            &playerbitmaps->torso,
+                            (V3){0, 0, 0},
+                            0.0f,
+                            playerbitmaps->align,
+                            1.0f);
+                
+                draw_hitpoint(entity_sim, &piece_group);
             } break;
             
             default:
@@ -1166,12 +1240,11 @@ SGE_UPDATE(SGEUpdate)
             } break;
         }
         
-        f32 acceleration = -9.8f;
+        f32 gravity = -9.8f;
         
         // JUMP CODE
-        f32 z = -entity_sim->z;
-        entity_sim->z = 0.5f * acceleration * square(input->delta_t) + entity_sim->delta_z * input->delta_t + entity_sim->z;
-        entity_sim->delta_z = acceleration * input->delta_t + entity_sim->delta_z;
+        entity_sim->z = 0.5f * gravity * square(delta_time) + entity_sim->delta_z * delta_time + entity_sim->z;
+        entity_sim->delta_z = gravity * delta_time + entity_sim->delta_z;
         
         if(entity_sim->z < 0.0f)
         {
@@ -1181,7 +1254,7 @@ SGE_UPDATE(SGEUpdate)
         
         f32 entity_ground_point_x = screen_center.x + meters_to_pixels * entity_sim->position.x;
         f32 entity_ground_point_y = screen_center.y - meters_to_pixels * entity_sim->position.y;
-        
+        f32 entity_z = -meters_to_pixels * entity_sim->z;
         
         for(u32 piece_index = 0; piece_index < piece_group.piece_count; piece_index++)
         {
@@ -1190,13 +1263,14 @@ SGE_UPDATE(SGEUpdate)
             V2 center =
             {
                 entity_ground_point_x + piece->offset.x,
-                entity_ground_point_y + piece->offset.y + piece->offset.z
+                entity_ground_point_y + piece->offset.y + piece->offset.z + piece->entity_zc * entity_z
             }; 
             
             if(piece->bitmap)
             {
                 
-                Game_draw_bitmap(back_buffer, piece->bitmap,
+                Game_draw_bitmap(back_buffer,
+                                 piece->bitmap,
                                  center.x,
                                  center.y,
                                  piece->color.a);
@@ -1205,30 +1279,30 @@ SGE_UPDATE(SGEUpdate)
             {
                 V2 halfdim = piece->dim ;
                 V2_scale(0.5f, &halfdim);
-                V2 point[2];
-                V2_sub(center, halfdim, &point[0]);
-                V2_add(center, halfdim, &point[1]);
+                RectV2 piece_rect = { 0 };
+                V2_sub(center, halfdim, &piece_rect.min);
+                V2_add(center, halfdim, &piece_rect.max);
                 
                 Game_draw_rectangle(back_buffer,
-                                    point[0],
-                                    point[1],
-                                    (V3){piece->color.r, piece->color.g, piece->color.b},
-                                    0);
+                                    piece_rect.min,
+                                    piece_rect.max,
+                                    (V4){piece->color.r, piece->color.g, piece->color.b, 0.5f},
+                                    1);
             }
         }
     }
     //UX1
     //SimRegion DEBUG
-    V3 color  = { 0 };
-    V3 red    = {1.0f, 0.0f, 0.0f};
-    V3 green  = {0.0f, 1.0f, 0.0f};
-    V3 blue   = {0.0f, 0.0f, 1.0f};
-    V3 yellow = {1.0f, 1.0f, 0.0f};
-    V3 purple = {1.0f, 0.0f, 1.0f};
-    V3 grey   = {0.6f, 0.6f, 0.6f};
-    V3 white  = {1.0f, 1.0f, 1.0f};
-    V3 black  = {0.0f, 0.0f, 0.0f};
-    V3 dark_gray = {0.3f, 0.3f, 0.3f};
+    V4 color  = { 0 };
+    V4 red    = {1.0f, 0.0f, 0.0f, 0.5f};
+    V4 green  = {0.0f, 1.0f, 0.0f, 0.5f};
+    V4 blue   = {0.0f, 0.0f, 1.0f, 0.5f};
+    V4 yellow = {1.0f, 1.0f, 0.0f, 0.5f};
+    V4 purple = {1.0f, 0.0f, 1.0f, 0.5f};
+    V4 grey   = {0.6f, 0.6f, 0.6f, 0.5f};
+    V4 white  = {1.0f, 1.0f, 1.0f, 0.5f};
+    V4 black  = {0.0f, 0.0f, 0.0f, 0.5f};
+    V4 dark_gray = {0.3f, 0.3f, 0.3f, 0.5f};
     
     EntitySim *entity = sim_region->entities;
     
@@ -1249,8 +1323,8 @@ SGE_UPDATE(SGEUpdate)
         entity_index < sim_region->max_entity_count;
         entity_index++, entity++ )
     {
-        V3 divider_color = black;
-        V3 empty_color   = green;
+        V4 divider_color = black;
+        V4 empty_color   = green;
         
         array_row = entity_index % max_array_rows_for_height;
         array_col = (u32)floor_f32_to_s32(entity_index / (f32)max_array_rows_for_height) + 1;
@@ -1345,10 +1419,18 @@ SGE_UPDATE(SGEUpdate)
                        (s32)(back_buffer->height / -2.0f) + input->mouse_y,
                        mouse_wheel + 0.25f);
 #endif
+    /*
+    WorldCoord world_origin = { 0 };
+    WorldDifference diff    = World_subtract(sim_region->world, &world_origin, &sim_region->origin);
+    Game_draw_rectangle(back_buffer,
+                        diff.dxy,
+                        (V2){10.0f, 10.0f},
+                        (V4){1.0f, 1.0f, 0.0f, 1.0f},
+                        0);
+    */
     
     
     SimRegion_end_sim  (sim_region, game_state);
-    
     return;
 }
 
@@ -1386,11 +1468,12 @@ internal void Game_update_sound_buffer(GameState *game_state, GameSoundOutputBuf
 internal void
 Game_draw_rectangle(GameBackBuffer *buffer,
                     V2 min, V2 max,
-                    V3 color_vec, b32 grid)
+                    V4 color_vec, b32 grid)
 {
-    f32 r = color_vec.x; 
-    f32 g = color_vec.y;
-    f32 b = color_vec.z;
+    f32 r = color_vec.r; 
+    f32 g = color_vec.g;
+    f32 b = color_vec.b;
+    f32 a = color_vec.a;
     
     /// rounding / ruling
     s32 min_x = round_f32_to_s32(min.x);
@@ -1417,11 +1500,12 @@ Game_draw_rectangle(GameBackBuffer *buffer,
     {
         max_y = buffer->height;
     }
-    
+    /*
     /// bit pattern 0x AA RR GG BB
     u32 color = ((round_f32_to_u32(r * 255.0f) << 16) |
                  (round_f32_to_u32(g * 255.0f) <<  8) |
                  (round_f32_to_u32(b * 255.0f) <<  0));
+    */
     
     /// drawing
     u8 *line =  ((u8 *)  (buffer->data)            + 
@@ -1434,12 +1518,32 @@ Game_draw_rectangle(GameBackBuffer *buffer,
         
         for(s32 x = min_x; x < max_x; x++)
         {
-            *pixel = color;
+            u32 fragment      = 0;
+            f32 alpha_channel = a;
+            f32 red_channel   = r;
+            f32 green_channel = g;
+            f32 blue_channel  = b;
+            
+            u8 frag_red   = (u8)(255.0f *   red_channel);
+            u8 frag_green = (u8)(255.0f * green_channel);
+            u8 frag_blue  = (u8)(255.0f *  blue_channel);
+            
+            u8 pixel_red   = (u8)((*pixel & 0x00FF0000) >> 16);
+            u8 pixel_green = (u8)((*pixel & 0x0000FF00) >>  8);
+            u8 pixel_blue  = (u8)((*pixel & 0x000000FF) >>  0);
+            
+            fragment = ((u32)                                        ((u32)(    255.0f * alpha_channel)  << 24) |
+                        ((u32)(pixel_red   * (1.0f - alpha_channel) + (u32)(  frag_red * alpha_channel)) << 16) |
+                        ((u32)(pixel_green * (1.0f - alpha_channel) + (u32)(frag_green * alpha_channel)) <<  8) |
+                        ((u32)(pixel_blue  * (1.0f - alpha_channel) + (u32)( frag_blue * alpha_channel)) <<  0));
+            
+            
+            
+            *pixel = fragment;
             
             //debug
             if(grid)
             {
-                
                 if(x > (max_x - 2))
                 {
                     *pixel = 0xAAaaaaaa;

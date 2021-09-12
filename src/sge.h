@@ -234,7 +234,7 @@ internal void Game_render_weird_shit(GameBackBuffer *buffer, s32 x_offset, s32 y
 
 
 internal void Game_draw_rectangle(GameBackBuffer *buffer,
-                                  V2 min, V2 max, V3 color, b32 grid);
+                                  V2 min, V2 max, V4 color, b32 grid);
 
 
 internal void Game_update_sound_buffer  (GameState *game_state, GameSoundOutputBuffer *sound_buffer, u32 tone_hz);

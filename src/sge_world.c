@@ -36,7 +36,9 @@ World_is_cannonical_V2(World *world, V2 rel_pos)
 inline WorldCoord
 World_null_position(void)
 {
-    WorldCoord result = { WORLD_CHUNK_UNINITIALIZED };
+    WorldCoord result = { 0 };
+    
+    result.chunk_x = WORLD_CHUNK_UNINITIALIZED;
     
     return result;
 }
@@ -75,14 +77,14 @@ World_get_worldchunk(World *world, s32 worldchunk_x, s32 worldchunk_y, s32 world
             break;
         }
         
-        if(arena && (!chunk->next))
+        if(arena && (chunk->x != WORLD_CHUNK_UNINITIALIZED) && (!chunk->next))
         {
             chunk->next = MEMORY_ARENA_PUSH_STRUCT(arena, WorldChunk);
             chunk       = chunk->next;
             chunk->x    = WORLD_CHUNK_UNINITIALIZED;
         }
         
-        if(arena && (worldchunk_x != WORLD_CHUNK_UNINITIALIZED))
+        if(arena && (chunk->x == WORLD_CHUNK_UNINITIALIZED))
         {
             chunk->x = worldchunk_x;
             chunk->y = worldchunk_y;
@@ -214,6 +216,14 @@ World_change_entity_location_raw(World * world, u32 index_low,
         
         if(new_pos)
         {
+            // NOTE(MIGUEL): debug
+            if(new_pos->chunk_x == 0 &&
+               new_pos->chunk_y == 0 &&
+               new_pos->chunk_z == 0)
+            {
+                int i = 20;
+                i += 50;
+            }
             // NOTE(MIGUEL): pull entity out of current block
             WorldChunk *chunk = World_get_worldchunk(world,
                                                      new_pos->chunk_x,
