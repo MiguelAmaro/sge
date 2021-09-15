@@ -944,7 +944,7 @@ SGE_UPDATE(SGEUpdate)
         else
         {
             player->delta_z = 0.0f;
-            player->delta_sword  = (V2){0.0f, 0.0f };
+            player->delta_sword  = (V2){ 0.0f, 0.0f };
             player->acceleration = (V2){ 0.0f, 0.0f };
             
             if(controller->is_analog)
@@ -1061,236 +1061,241 @@ SGE_UPDATE(SGEUpdate)
         entity_index < sim_region->entity_count;
         entity_index++, entity_sim++)
     {
-        piece_group.piece_count = 0;
-        f32 delta_time = input->delta_t;
-        
-        // JUMP CODE
-        f32 shadow_alpha = 1.0f - 0.5f * entity_sim->z;
-        
-        if(shadow_alpha < 0.0f)
+        entity_sim->updatable = 1;
+        if(entity_sim->updatable)
         {
-            shadow_alpha = 0.0f;
-        }
-        // END OF JUMP CODE
-        
-        PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
-        switch(entity_sim->type )
-        {
+            piece_group.piece_count = 0;
+            f32 delta_time = input->delta_t;
             
-            case EntityType_player:
+            // JUMP CODE
+            f32 shadow_alpha = 1.0f - 0.5f * entity_sim->z;
+            
+            if(shadow_alpha < 0.0f)
             {
-                for(u32 player_index = 0;
-                    player_index < ARRAYCOUNT(game_state->controlled_players);
-                    player_index++)
+                shadow_alpha = 0.0f;
+            }
+            // END OF JUMP CODE
+            
+            PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
+            switch(entity_sim->type )
+            {
+                
+                case EntityType_player:
                 {
-                    ControlledPlayer *player = game_state->controlled_players + player_index;
-                    
-                    // NOTE(MIGUEL): these index naming differences are fucked!!!
-                    //                what array do they refer to ????
-                    if(entity_sim->index_storage == player->entity_index)
+                    for(u32 player_index = 0;
+                        player_index < ARRAYCOUNT(game_state->controlled_players);
+                        player_index++)
                     {
-                        if(player->delta_z != 0.0f)
+                        ControlledPlayer *player = game_state->controlled_players + player_index;
+                        
+                        // NOTE(MIGUEL): these index naming differences are fucked!!!
+                        //                what array do they refer to ????
+                        if(entity_sim->index_storage == player->entity_index)
                         {
-                            entity_sim->delta_z = player->delta_z;
-                        }
-                        
-                        MoveSpec movespec = default_movespec();
-                        movespec.unitmaxaccel = 1;
-                        movespec.speed = 300.0f;
-                        movespec.drag  = 12.0f;
-                        
-                        SimRegion_move_entity(sim_region,
-                                              entity_sim,
-                                              &movespec,
-                                              delta_time,
-                                              player->acceleration);
-                        
-                        if((player->delta_sword.x != 0.0f) || (player->delta_sword.y != 0.0f))
-                        {
-                            EntitySim *sword = entity_sim->sword.ptr;
-                            
-                            if(sword && Entity_is_entity_sim_flags_set(sword, EntitySimFlag_nonspatial))
+                            if(player->delta_z != 0.0f)
                             {
-                                V2 delta_sword = player->delta_sword;
-                                V2_scale(5.0f, &delta_sword);
+                                entity_sim->delta_z = player->delta_z;
+                            }
+                            
+                            MoveSpec movespec = default_movespec();
+                            movespec.unitmaxaccel = 1;
+                            movespec.speed = 300.0f;
+                            movespec.drag  = 12.0f;
+                            
+                            SimRegion_move_entity(sim_region,
+                                                  entity_sim,
+                                                  &movespec,
+                                                  delta_time,
+                                                  player->acceleration);
+                            
+                            if((player->delta_sword.x != 0.0f) || (player->delta_sword.y != 0.0f))
+                            {
+                                EntitySim *sword = entity_sim->sword.ptr;
                                 
-                                Entity_make_spatial(sword,
-                                                    entity_sim->position,
-                                                    delta_sword);
+                                if(sword && Entity_is_entity_sim_flags_set(sword, EntitySimFlag_nonspatial))
+                                {
+                                    V2 delta_sword = player->delta_sword;
+                                    V2_scale(5.0f, &delta_sword);
+                                    
+                                    Entity_make_spatial(sword,
+                                                        entity_sim->position,
+                                                        delta_sword);
+                                }
                             }
                         }
                     }
-                }
+                    
+                    
+                    push_bitmap(&piece_group,
+                                &game_state->shadow,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                shadow_alpha);
+                    
+                    push_bitmap(&piece_group,
+                                &playerbitmaps->torso,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                1.0f);
+                    
+                    push_bitmap(&piece_group,
+                                &playerbitmaps->cape,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                1.0f); 
+                    
+                    push_bitmap(&piece_group,
+                                &playerbitmaps->head,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                1.0f);
+                    
+                    draw_hitpoint(entity_sim, &piece_group);
+                } break;
                 
-                
-                push_bitmap(&piece_group,
-                            &game_state->shadow,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            shadow_alpha);
-                
-                push_bitmap(&piece_group,
-                            &playerbitmaps->torso,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            1.0f);
-                
-                push_bitmap(&piece_group,
-                            &playerbitmaps->cape,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            1.0f); 
-                
-                push_bitmap(&piece_group,
-                            &playerbitmaps->head,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            1.0f);
-                
-                draw_hitpoint(entity_sim, &piece_group);
-            } break;
-            
-            case EntityType_wall:
-            {
-                push_bitmap(&piece_group,
-                            &game_state->tree,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            (V2){40, 80},
-                            1.0f);
-                
-            } break;
-            
-            case EntityType_sword:
-            {
-                Entity_update_sword(sim_region, entity_sim, delta_time);
-                push_bitmap(&piece_group,
-                            &game_state->shadow,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            (V2){72, 182},
-                            1.0f);
-                
-                push_bitmap(&piece_group,
-                            &game_state->sword,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            (V2){29, 10},
-                            1.0f);
-            } break;
-            
-            case EntityType_friendly: 
-            {
-                Entity_update_friendly(sim_region, entity_sim, delta_time);
-                
-                entity_sim->bob_t += delta_time;
-                
-                if(entity_sim->bob_t > (2.0f * PI_32BIT))
+                case EntityType_wall:
                 {
-                    entity_sim->bob_t -= 2.0f * PI_32BIT;
-                }
+                    push_bitmap(&piece_group,
+                                &game_state->tree,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                (V2){40, 80},
+                                1.0f);
+                    
+                } break;
                 
-                f32 bobsin = math_sin(2.0f * entity_sim->bob_t);
+                case EntityType_sword:
+                {
+                    Entity_update_sword(sim_region, entity_sim, delta_time);
+                    push_bitmap(&piece_group,
+                                &game_state->shadow,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                (V2){72, 182},
+                                1.0f);
+                    
+                    push_bitmap(&piece_group,
+                                &game_state->sword,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                (V2){29, 10},
+                                1.0f);
+                } break;
                 
-                push_bitmap(&piece_group,
-                            &game_state->shadow,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            (0.5f * shadow_alpha) + 0.2f * bobsin);
+                case EntityType_friendly: 
+                {
+                    Entity_update_friendly(sim_region, entity_sim, delta_time);
+                    
+                    entity_sim->bob_t += delta_time;
+                    
+                    if(entity_sim->bob_t > (2.0f * PI_32BIT))
+                    {
+                        entity_sim->bob_t -= 2.0f * PI_32BIT;
+                    }
+                    
+                    f32 bobsin = math_sin(2.0f * entity_sim->bob_t);
+                    
+                    push_bitmap(&piece_group,
+                                &game_state->shadow,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                (0.5f * shadow_alpha) + 0.2f * bobsin);
+                    
+                    push_bitmap(&piece_group,
+                                &playerbitmaps->head,
+                                (V3){0, 0, 1.0f * bobsin},
+                                0.0f,
+                                playerbitmaps->align,
+                                1.0f);
+                    
+                } break;
                 
-                push_bitmap(&piece_group,
-                            &playerbitmaps->head,
-                            (V3){0, 0, 1.0f * bobsin},
-                            0.0f,
-                            playerbitmaps->align,
-                            1.0f);
+                case EntityType_hostile: 
+                {
+                    Entity_update_hostile(sim_region, entity_sim, delta_time);
+                    PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
+                    
+                    push_bitmap(&piece_group,
+                                &game_state->shadow,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                shadow_alpha);
+                    
+                    push_bitmap(&piece_group,
+                                &playerbitmaps->torso,
+                                (V3){0, 0, 0},
+                                0.0f,
+                                playerbitmaps->align,
+                                1.0f);
+                    
+                    draw_hitpoint(entity_sim, &piece_group);
+                } break;
                 
-            } break;
-            
-            case EntityType_hostile: 
-            {
-                Entity_update_hostile(sim_region, entity_sim, delta_time);
-                PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
-                
-                push_bitmap(&piece_group,
-                            &game_state->shadow,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            shadow_alpha);
-                
-                push_bitmap(&piece_group,
-                            &playerbitmaps->torso,
-                            (V3){0, 0, 0},
-                            0.0f,
-                            playerbitmaps->align,
-                            1.0f);
-                
-                draw_hitpoint(entity_sim, &piece_group);
-            } break;
-            
-            default:
-            {
-                INVALID_CODE_PATH;
-            } break;
-        }
-        
-        f32 gravity = -9.8f;
-        
-        // JUMP CODE
-        entity_sim->z = 0.5f * gravity * square(delta_time) + entity_sim->delta_z * delta_time + entity_sim->z;
-        entity_sim->delta_z = gravity * delta_time + entity_sim->delta_z;
-        
-        if(entity_sim->z < 0.0f)
-        {
-            entity_sim->z = 0.0f;
-        }
-        // END OF JUMP CODE
-        
-        f32 entity_ground_point_x = screen_center.x + meters_to_pixels * entity_sim->position.x;
-        f32 entity_ground_point_y = screen_center.y - meters_to_pixels * entity_sim->position.y;
-        f32 entity_z = -meters_to_pixels * entity_sim->z;
-        
-        for(u32 piece_index = 0; piece_index < piece_group.piece_count; piece_index++)
-        {
-            EntityVisiblePiece *piece = piece_group.pieces + piece_index;
-            
-            V2 center =
-            {
-                entity_ground_point_x + piece->offset.x,
-                entity_ground_point_y + piece->offset.y + piece->offset.z + piece->entity_zc * entity_z
-            }; 
-            
-            if(piece->bitmap)
-            {
-                
-                Game_draw_bitmap(back_buffer,
-                                 piece->bitmap,
-                                 center.x,
-                                 center.y,
-                                 piece->color.a);
+                default:
+                {
+                    INVALID_CODE_PATH;
+                } break;
             }
-            else
+            
+            f32 gravity = -9.8f;
+            
+            // JUMP CODE
+            entity_sim->z = 0.5f * gravity * square(delta_time) + entity_sim->delta_z * delta_time + entity_sim->z;
+            entity_sim->delta_z = gravity * delta_time + entity_sim->delta_z;
+            
+            if(entity_sim->z < 0.0f)
             {
-                V2 halfdim = piece->dim ;
-                V2_scale(0.5f, &halfdim);
-                RectV2 piece_rect = { 0 };
-                V2_sub(center, halfdim, &piece_rect.min);
-                V2_add(center, halfdim, &piece_rect.max);
+                entity_sim->z = 0.0f;
+            }
+            // END OF JUMP CODE
+            
+            f32 entity_ground_point_x = screen_center.x + meters_to_pixels * entity_sim->position.x;
+            f32 entity_ground_point_y = screen_center.y - meters_to_pixels * entity_sim->position.y;
+            f32 entity_z = -meters_to_pixels * entity_sim->z;
+            
+            for(u32 piece_index = 0; piece_index < piece_group.piece_count; piece_index++)
+            {
+                EntityVisiblePiece *piece = piece_group.pieces + piece_index;
                 
-                Game_draw_rectangle(back_buffer,
-                                    piece_rect.min,
-                                    piece_rect.max,
-                                    (V4){piece->color.r, piece->color.g, piece->color.b, 0.5f},
-                                    1);
+                V2 center =
+                {
+                    entity_ground_point_x + piece->offset.x,
+                    entity_ground_point_y + piece->offset.y + piece->offset.z + piece->entity_zc * entity_z
+                }; 
+                
+                if(piece->bitmap)
+                {
+                    
+                    Game_draw_bitmap(back_buffer,
+                                     piece->bitmap,
+                                     center.x,
+                                     center.y,
+                                     piece->color.a);
+                }
+                else
+                {
+                    V2 halfdim = piece->dim ;
+                    V2_scale(0.5f, &halfdim);
+                    RectV2 piece_rect = { 0 };
+                    V2_sub(center, halfdim, &piece_rect.min);
+                    V2_add(center, halfdim, &piece_rect.max);
+                    
+                    Game_draw_rectangle(back_buffer,
+                                        piece_rect.min,
+                                        piece_rect.max,
+                                        (V4){piece->color.r, piece->color.g, piece->color.b, 1.0f},
+                                        1);
+                }
             }
         }
     }
+    
     //UX1
     //SimRegion DEBUG
     V4 color  = { 0 };

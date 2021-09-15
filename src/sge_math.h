@@ -408,4 +408,16 @@ RectV2_max_corner(RectV2 rect)
     
     return result;
 }
+
+inline RectV2 
+RectV2_add_radius_to(RectV2 a, f32 radius_w, f32 radius_h)
+{
+    RectV2 result;
+    
+    V2_sub(a.min, (V2){radius_w, radius_w}, &result.min);
+    V2_add(a.max, (V2){radius_h, radius_h}, &result.max);
+    
+    return result;
+}
+
 #endif //SGE_MATH_H

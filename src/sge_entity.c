@@ -22,7 +22,7 @@ Entity_update_friendly(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
     EntitySim *test_entity = sim_region->entities;
     for(u32 test_entity_index = 0;
         test_entity_index < sim_region->entity_count;
-        test_entity_index++)
+        test_entity++, test_entity_index++)
     {
         if(test_entity->type == EntityType_player)
         {
@@ -42,7 +42,7 @@ Entity_update_friendly(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
     }
     
     V2 acceleration = { 0 };
-    if(closest_player && (player_search_diametersq > square(30.0f)))
+    if(closest_player && (player_search_diametersq > square(3.0f)))
     {
         f32 coef = 0.5f;
         f32 one_over_length = coef / square_root(player_search_diametersq);
@@ -81,11 +81,11 @@ Entity_update_sword(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
         // TODO(MIGUEL): fix it
         MoveSpec movespec = default_movespec();
         movespec.unitmaxaccel = 1;
-        movespec.speed = 3.0f;
-        movespec.drag  = 1.0f;
+        movespec.speed = 0.0f;
+        movespec.drag  = 0.0f;
         
         V2 old_pos = entity->position;
-        SimRegion_move_entity(sim_region, entity, &movespec, delta_t, (V2){0,0});
+        SimRegion_move_entity(sim_region, entity, &movespec, delta_t, (V2){0, 0});
         V2 result = { 0 };
         V2_sub(entity->position, old_pos , &result);
         

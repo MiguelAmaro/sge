@@ -71,6 +71,21 @@ SimRegion_get_entity_by_storage_index(SimRegion *sim_region, u32 index_storage)
 internal EntitySim *
 SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source);
 
+inline V2 SimRegion_get_sim_space_position(SimRegion *sim_region, EntityLow *entity_stored)
+{
+    V2 result = ENTITY_INVALID_POSITION;
+    
+    if(!Entity_is_entity_sim_flags_set(&entity_stored->sim, EntitySimFlag_nonspatial))
+    {
+        WorldDifference diff = World_subtract(sim_region->world,
+                                              &entity_stored->position,
+                                              &sim_region->origin);
+        result = diff.dxy;
+    }
+    
+    return result;
+}
+
 inline void
 SimRegion_load_entity_reference(GameState *game_state, SimRegion *sim_region, EntityReference *ref)
 {
@@ -81,6 +96,10 @@ SimRegion_load_entity_reference(GameState *game_state, SimRegion *sim_region, En
         if(entry->ptr == NULLPTR)
         {
             entry->index = ref->index;
+            
+            EntityLow *entity_low = Entity_get_entity_low(game_state, ref->index);
+            V2 sim_pos = SimRegion_get_sim_space_position(sim_region, entity_low);
+            
             SimRegion_add_entity_raw(game_state,
                                      sim_region,
                                      ref->index,
@@ -125,7 +144,8 @@ SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index
             }
             
             entity->index_storage = index_storage; // NOTE(MIGUEL): why is this out here???
-        }
+            entity->updatable = 0;
+        }  
         else
         {
             INVALID_CODE_PATH;
@@ -135,21 +155,6 @@ SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index
     return entity;
 }
 
-//EntityStored *entity_stored)
-inline V2 SimRegion_get_sim_space_position(SimRegion *sim_region, EntityLow *entity_stored)
-{
-    V2 result = ENTITY_INVALID_POSITION;
-    
-    if(!Entity_is_entity_sim_flags_set(&entity_stored->sim, EntitySimFlag_nonspatial))
-    {
-        WorldDifference diff = World_subtract(sim_region->world,
-                                              &entity_stored->position,
-                                              &sim_region->origin);
-        result = diff.dxy;
-    }
-    
-    return result;
-}
 
 internal EntitySim *
 SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source, V2 *sim_position)
@@ -160,7 +165,8 @@ SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_sto
     {
         if(sim_position)
         {
-            dest->position = *sim_position;
+            dest->position  = *sim_position;
+            dest->updatable = RectV2_is_in_rect(sim_region->updatable_bounds, dest->position);
         }
         else
         {
@@ -179,10 +185,15 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
     
     //ASSERT(validate_sim_entities(sim_region));
     
+    f32 update_saftey_margin = 1.0f;
+    
     sim_region->world  = world;
     sim_region->origin = region_origin;
-    sim_region->bounds = region_bounds;
-    
+    sim_region->bounds = region_bounds;/*
+    sim_region->updatable_bounds = RectV2_add_radius_to(sim_region->updatable_bounds,
+                                                        update_saftey_margin,
+                                                        update_saftey_margin);
+    */
     sim_region->max_entity_count = 4096;
     sim_region->entity_count     = 0;
     sim_region->entities   = MEMORY_ARENA_PUSH_ARRAY(sim_arena, sim_region->max_entity_count, EntitySim);

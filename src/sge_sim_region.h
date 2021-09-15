@@ -42,6 +42,7 @@ struct EntitySim
 {
     u32 index_storage;
     u32 index_high;
+    b32 updatable;
     
     f32 z;
     V2 position;
@@ -83,6 +84,7 @@ struct SimRegion
     World *world;
     WorldCoord origin;
     RectV2     bounds;
+    RectV2     updatable_bounds;
     
     u32 max_entity_count;
     u32 entity_count;
