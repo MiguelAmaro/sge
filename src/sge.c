@@ -208,6 +208,7 @@ Game_draw_mini_map(GameState *game_state,
     // NOTE(MIGUEL): This is only good for positioning of the camera
     EntityLow *camera_following_entity = Entity_get_entity_low(game_state,
                                                                game_state->camera_following_entity_index);
+    
     f32 meters_to_pixels = ((f32)tile_side_in_pixels / (f32)world->side_in_meters_tile);
     
     /// CAMERA BASIS CHANGE
@@ -249,7 +250,7 @@ Game_draw_mini_map(GameState *game_state,
     camera_range_in_meters.x *= view_scale;
     camera_range_in_meters.y *= view_scale;
     
-    
+    /// PALLETE
     V4 color  = { 0 };
     V4 red    = {1.0f, 0.0f, 0.0f, 0.5};
     V4 green  = {0.0f, 1.0f, 0.0f, 0.5};
@@ -369,7 +370,110 @@ Game_draw_mini_map(GameState *game_state,
                         yellow,
                         0);
     
+#if 1
+    WorldCoord min = World_map_to_chunkspace(world,
+                                             game_state->camera_position,
+                                             sim_region->bounds.min);
     
+    WorldCoord max = World_map_to_chunkspace(world,
+                                             game_state->camera_position,
+                                             sim_region->bounds.max);
+    
+    for(s32 chunk_y = min.chunk_y;
+        chunk_y <= max.chunk_y;
+        chunk_y++)
+    {
+        for(s32 chunk_x = min.chunk_x;
+            chunk_x <= max.chunk_x;
+            chunk_x++)
+        {
+            WorldChunk *chunk = World_get_worldchunk(world,
+                                                     chunk_x,
+                                                     chunk_y,
+                                                     sim_region->origin.chunk_z,
+                                                     NULLPTR);
+            if(chunk)
+            {
+                for(WorldEntityBlock *block = &chunk->first_block;
+                    block; block = block->next)
+                {
+                    for(u32 entityindexindex = 0; 
+                        entityindexindex < block->entity_count;
+                        entityindexindex++)
+                    {
+                        u32 entity_low_index = block->entity_indices_low[entityindexindex];
+                        EntityLow *entity_low = game_state->entities_low + entity_low_index;
+                        
+                        
+                        V4 draw_color = red;
+                        
+                        draw_pos.x = entity_low->sim.position.x * meters_to_pixels_with_zoom_comp;
+                        draw_pos.y = entity_low->sim.position.y * meters_to_pixels_with_zoom_comp;
+                        
+                        draw_size_in_meters.x = 1.3f * meters_to_pixels_with_zoom_comp;
+                        draw_size_in_meters.y = 1.3f * meters_to_pixels_with_zoom_comp;
+                        
+                        EntitySimHash *entry = SimRegion_get_hash_from_storage_index(sim_region, entity_low_index);
+                        
+                        switch(entity_low->sim.type)
+                        {
+                            case EntityType_player:
+                            {
+                                draw_color = blue;
+                            } break;
+                            
+                            case EntityType_friendly:
+                            {
+                                draw_color = yellow;
+                            } break;
+                            
+                            case EntityType_hostile:
+                            {
+                                draw_color = red;
+                            } break;
+                            
+                            case EntityType_wall:
+                            {
+                                draw_color = purple;
+                            } break;
+                            
+                            case EntityType_sword:
+                            {
+                                draw_color = grey;
+                            } break;
+                            
+                            case EntityType_null:
+                            {
+                                draw_color = dark_gray;
+                            } break;
+                            
+                        }
+                        
+                        if(entry->ptr == NULLPTR)
+                        {
+                            draw_color = (V4){0.5f, 0.8f, 0.2f, 0.5f};
+                            
+                        }
+                        
+                        Game_draw_rectangle(back_buffer,
+                                            (V2)
+                                            {
+                                                (minimap_center.x + draw_pos.x) - (draw_size_in_meters.x * 0.5f),
+                                                (minimap_center.y - draw_pos.y) - (draw_size_in_meters.y * 0.5f)
+                                            },
+                                            (V2)
+                                            {
+                                                (minimap_center.x + draw_pos.x) + (draw_size_in_meters.x * 0.5f),
+                                                (minimap_center.y - draw_pos.y) + (draw_size_in_meters.y * 0.5f),
+                                            },
+                                            draw_color,
+                                            0);
+                    }
+                }
+            }
+        }
+    }
+#else
     for(u32 entity_low_index = 1;
         entity_low_index < game_state->entity_count_low;
         entity_low_index++, entity_low++)
@@ -438,7 +542,7 @@ Game_draw_mini_map(GameState *game_state,
                             draw_color,
                             0);
     }
-    
+#endif
     return;
 }
 
@@ -617,7 +721,7 @@ push_rect(EntityVisiblePieceGroup *group,
           V2 dim, V3 offset, f32 entity_zc,
           V4 color)
 {
-    //V2_scale(group->game_state->meters_to_pixels, &dim);
+    V2_scale(group->game_state->meters_to_pixels, &dim);
     
     push_piece(group, NULLPTR, dim, offset, (V2){0.0f,0.0f}, entity_zc, color);
     
@@ -1117,6 +1221,7 @@ SGE_UPDATE(SGEUpdate)
                                     V2 delta_sword = player->delta_sword;
                                     V2_scale(5.0f, &delta_sword);
                                     
+                                    sword->distance_remaining = 10.0f; //UNITS: meters
                                     Entity_make_spatial(sword,
                                                         entity_sim->position,
                                                         delta_sword);
@@ -1171,6 +1276,7 @@ SGE_UPDATE(SGEUpdate)
                 case EntityType_sword:
                 {
                     Entity_update_sword(sim_region, entity_sim, delta_time);
+                    
                     push_bitmap(&piece_group,
                                 &game_state->shadow,
                                 (V3){0, 0, 0},
@@ -1289,7 +1395,7 @@ SGE_UPDATE(SGEUpdate)
                     Game_draw_rectangle(back_buffer,
                                         piece_rect.min,
                                         piece_rect.max,
-                                        (V4){piece->color.r, piece->color.g, piece->color.b, 1.0f},
+                                        piece->color,
                                         1);
                 }
             }

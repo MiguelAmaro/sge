@@ -77,10 +77,11 @@ Entity_update_sword(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
     }
     else
     {
+        
         // NOTE(MIGUEL): sword accerlerates even though theres no acceleration
         // TODO(MIGUEL): fix it
         MoveSpec movespec = default_movespec();
-        movespec.unitmaxaccel = 1;
+        movespec.unitmaxaccel = 0;
         movespec.speed = 0.0f;
         movespec.drag  = 0.0f;
         
@@ -92,10 +93,12 @@ Entity_update_sword(SimRegion *sim_region, EntitySim *entity, f32 delta_t)
         f32 distance_travaled = V2_length(result);
         
         entity->distance_remaining -= distance_travaled;
+        
         if(entity->distance_remaining < 0.0f)
         {
-            Entity_make_nonspatial(entity );
+            Entity_make_nonspatial(entity);
         }
+        
     }
     
     return;

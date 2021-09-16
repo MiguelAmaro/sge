@@ -30,7 +30,7 @@ struct WorldChunk
     
     WorldEntityBlock first_block;
     
-    WorldChunk *next;
+    WorldChunk *next; ///External chaining
 };
 
 typedef struct WorldDifference WorldDifference;

@@ -221,9 +221,6 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
                         
                         V2 sim_space_pos = SimRegion_get_sim_space_position(sim_region, entity_low);
                         
-                        ASSERT(index_low);
-                        ASSERT(index_low != 92034);
-                        
                         if(!Entity_is_entity_sim_flags_set(&entity_low->sim, EntitySimFlag_nonspatial))
                         {
                             
