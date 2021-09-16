@@ -709,6 +709,8 @@ internal void
 push_bitmap(EntityVisiblePieceGroup *group, BitmapData *bitmap,
             V3 offset, f32 entity_zc, V2 align, f32 alpha)
 {
+    offset.z *= -1;
+    
     push_piece(group, bitmap, (V2){0,0}, offset, align, entity_zc, (V4){1.0f, 1.0f, 1.0f, alpha});
     
     return;
@@ -1240,21 +1242,21 @@ SGE_UPDATE(SGEUpdate)
                     
                     push_bitmap(&piece_group,
                                 &playerbitmaps->torso,
-                                (V3){0, 0, 0},
+                                (V3){0, 0, entity_sim->z},
                                 0.0f,
                                 playerbitmaps->align,
                                 1.0f);
                     
                     push_bitmap(&piece_group,
                                 &playerbitmaps->cape,
-                                (V3){0, 0, 0},
+                                (V3){0, 0, entity_sim->z},
                                 0.0f,
                                 playerbitmaps->align,
                                 1.0f); 
                     
                     push_bitmap(&piece_group,
                                 &playerbitmaps->head,
-                                (V3){0, 0, 0},
+                                (V3){0, 0, entity_sim->z},
                                 0.0f,
                                 playerbitmaps->align,
                                 1.0f);
@@ -1277,19 +1279,22 @@ SGE_UPDATE(SGEUpdate)
                 {
                     Entity_update_sword(sim_region, entity_sim, delta_time);
                     
-                    push_bitmap(&piece_group,
-                                &game_state->shadow,
-                                (V3){0, 0, 0},
-                                0.0f,
-                                (V2){72, 182},
-                                1.0f);
-                    
-                    push_bitmap(&piece_group,
-                                &game_state->sword,
-                                (V3){0, 0, 0},
-                                0.0f,
-                                (V2){29, 10},
-                                1.0f);
+                    if(!Entity_is_entity_sim_flags_set(entity_sim, EntitySimFlag_nonspatial))
+                    {
+                        push_bitmap(&piece_group,
+                                    &game_state->shadow,
+                                    (V3){0, 0, 0},
+                                    0.0f,
+                                    (V2){72, 182},
+                                    1.0f);
+                        
+                        push_bitmap(&piece_group,
+                                    &game_state->sword,
+                                    (V3){0, 0, 0},
+                                    0.0f,
+                                    (V2){29, 10},
+                                    1.0f);
+                    }
                 } break;
                 
                 case EntityType_friendly: 
