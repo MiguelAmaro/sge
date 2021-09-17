@@ -49,7 +49,7 @@ Entity_create_entity_low(GameState *game_state, EntityType type, WorldCoord posi
     
     EntityLow *entity_low = game_state->entities_low + index_low;
     
-    memset(entity_low, 0, sizeof(EntitySim));
+    memset(entity_low, 0, sizeof(EntityLow));
     entity_low->sim.type     = type;
     entity_low->position = World_null_position();
     
@@ -94,7 +94,6 @@ Game_add_sword(GameState *game_state)
     
     result.entity_low->sim.height          = 0.5f; //           UNITS: meters
     result.entity_low->sim.width           = 1.0f; //           UNITS: meters
-    Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_nonspatial);
     
     return result;
 }
@@ -194,6 +193,73 @@ Game_add_wall(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_ab
     return result;
 }
 
+void 
+Game_draw_bounding_box(GameBackBuffer *back_buffer,
+                       V2              origin,
+                       RectV2          bounds,
+                       f32             scale,
+                       V4               color)
+{
+    V4 red    = {1.0f, 0.0f, 0.0f, 0.5};
+    V4 green  = {0.0f, 1.0f, 0.0f, 0.5};
+    V4 blue   = {0.0f, 0.0f, 1.0f, 0.5};
+    V4 yellow = {1.0f, 1.0f, 0.0f, 0.5};
+    V4 purple = {1.0f, 0.0f, 1.0f, 0.5};
+    V4 grey   = {0.6f, 0.6f, 0.6f, 0.5};
+    V4 white  = {1.0f, 1.0f, 1.0f, 0.5};
+    V4 black  = {0.0f, 0.0f, 0.0f, 0.5};
+    V4 dark_gray = {0.3f, 0.3f, 0.3f, 0.5};
+    
+    
+    RectV2 bounds_in_minimap_space = bounds;
+    // TODO(MIGUEL): fix the coordinate bullshit with point whatever
+    //V2_scale(-1.0f, &bounds_in_minimap_space.min);
+    //V2_scale(-1.0f, &bounds_in_minimap_space.max);
+    
+    V2_scale(scale, &bounds_in_minimap_space.min);
+    V2_scale(scale, &bounds_in_minimap_space.max);
+    V2_add(bounds_in_minimap_space.min, origin, &bounds_in_minimap_space.min);
+    V2_add(bounds_in_minimap_space.max, origin, &bounds_in_minimap_space.max);
+    
+    RectV2 bounds_top    = bounds_in_minimap_space;
+    RectV2 bounds_bottom = bounds_in_minimap_space;
+    RectV2 bounds_left   = bounds_in_minimap_space;
+    RectV2 bounds_right  = bounds_in_minimap_space;
+    
+    bounds_top.min.y = bounds_in_minimap_space.max.y - 2;
+    Game_draw_rectangle(back_buffer,
+                        bounds_top.min,
+                        bounds_top.max,
+                        red,
+                        0);
+    
+    
+    bounds_bottom.max.y = bounds_in_minimap_space.min.y + 2;
+    Game_draw_rectangle(back_buffer,
+                        bounds_bottom.min,
+                        bounds_bottom.max,
+                        blue,
+                        0);
+    
+    bounds_left.min.x = bounds_in_minimap_space.max.x - 2;
+    Game_draw_rectangle(back_buffer,
+                        bounds_left.min,
+                        bounds_left.max,
+                        purple,
+                        0);
+    
+    
+    bounds_right.max.x = bounds_in_minimap_space.min.x + 2;
+    Game_draw_rectangle(back_buffer,
+                        bounds_right.min,
+                        bounds_right.max,
+                        yellow,
+                        0);
+    
+    
+    return;
+}
+
 internal void
 Game_draw_mini_map(GameState *game_state,
                    GameBackBuffer *back_buffer,
@@ -272,6 +338,13 @@ Game_draw_mini_map(GameState *game_state,
     // NOTE(MIGUEL): APPLY THIS TO EVERYTHING!!!!
     f32 meters_to_pixels_with_zoom_comp = (f32)meters_to_pixels * ((10.0f * normalized_zoom));
     EntityLow *entity_low = game_state->entities_low;
+    
+    // DRAW UPDATABLE BOUNDS
+    Game_draw_bounding_box(back_buffer,
+                           minimap_center,
+                           sim_region->updatable_bounds,
+                           meters_to_pixels_with_zoom_comp,
+                           blue);
     
     
     // DRAW CAMERA BOUNDS
@@ -1182,10 +1255,12 @@ SGE_UPDATE(SGEUpdate)
             }
             // END OF JUMP CODE
             
+            MoveSpec movespec = default_movespec();
+            V2 acceleration = { 0 };
+            
             PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
             switch(entity_sim->type )
             {
-                
                 case EntityType_player:
                 {
                     for(u32 player_index = 0;
@@ -1203,16 +1278,10 @@ SGE_UPDATE(SGEUpdate)
                                 entity_sim->delta_z = player->delta_z;
                             }
                             
-                            MoveSpec movespec = default_movespec();
                             movespec.unitmaxaccel = 1;
                             movespec.speed = 300.0f;
                             movespec.drag  = 12.0f;
-                            
-                            SimRegion_move_entity(sim_region,
-                                                  entity_sim,
-                                                  &movespec,
-                                                  delta_time,
-                                                  player->acceleration);
+                            acceleration = player->acceleration;
                             
                             if((player->delta_sword.x != 0.0f) || (player->delta_sword.y != 0.0f))
                             {
@@ -1277,7 +1346,24 @@ SGE_UPDATE(SGEUpdate)
                 
                 case EntityType_sword:
                 {
-                    Entity_update_sword(sim_region, entity_sim, delta_time);
+                    // NOTE(MIGUEL): sword accerlerates even though theres no acceleration 
+                    // TODO(MIGUEL): fix it
+                    movespec.unitmaxaccel = 0;
+                    movespec.speed = 200.0f;
+                    movespec.drag  = 0.0f;
+                    
+                    V2 old_pos = entity_sim->position;
+                    V2 result = { 0 };
+                    V2_sub(entity_sim->position, old_pos , &result);
+                    
+                    f32 distance_travaled = V2_length(result);
+                    
+                    entity_sim->distance_remaining -= distance_travaled;
+                    
+                    if(entity_sim->distance_remaining < 0.0f)
+                    {
+                        Entity_make_nonspatial(entity_sim);
+                    }
                     
                     if(!Entity_is_entity_sim_flags_set(entity_sim, EntitySimFlag_nonspatial))
                     {
@@ -1299,7 +1385,46 @@ SGE_UPDATE(SGEUpdate)
                 
                 case EntityType_friendly: 
                 {
-                    Entity_update_friendly(sim_region, entity_sim, delta_time);
+                    EntitySim *closest_player = NULLPTR;
+                    f32    player_search_diametersq = square(30.0f);
+                    
+                    EntitySim *test_entity = sim_region->entities;
+                    for(u32 test_entity_index = 0;
+                        test_entity_index < sim_region->entity_count;
+                        test_entity++, test_entity_index++)
+                    {
+                        if(test_entity->type == EntityType_player)
+                        {
+                            //follow
+                            V2 position_delta;
+                            V2_sub(test_entity->position, entity_sim->position, &position_delta);
+                            f32 test_dsq = V2_length_sq(position_delta);
+                            
+                            if(player_search_diametersq > test_dsq)
+                            {
+                                closest_player = test_entity;
+                                player_search_diametersq = test_dsq;
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    //V2 acceleration = { 0 };
+                    if(closest_player && (player_search_diametersq > square(3.0f)))
+                    {
+                        f32 coef = 0.5f;
+                        f32 one_over_length = coef / square_root(player_search_diametersq);
+                        
+                        V2_sub(closest_player->position, entity_sim->position, &acceleration);
+                        V2_scale(one_over_length, &acceleration);
+                        
+                        movespec.unitmaxaccel = 1;
+                        movespec.speed = 300.0f;
+                        movespec.drag  = 12.0f;
+                        
+                    }
+                    
                     
                     entity_sim->bob_t += delta_time;
                     
@@ -1328,7 +1453,6 @@ SGE_UPDATE(SGEUpdate)
                 
                 case EntityType_hostile: 
                 {
-                    Entity_update_hostile(sim_region, entity_sim, delta_time);
                     PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity_sim->facing_direction];
                     
                     push_bitmap(&piece_group,
@@ -1354,17 +1478,10 @@ SGE_UPDATE(SGEUpdate)
                 } break;
             }
             
-            f32 gravity = -9.8f;
-            
-            // JUMP CODE
-            entity_sim->z = 0.5f * gravity * square(delta_time) + entity_sim->delta_z * delta_time + entity_sim->z;
-            entity_sim->delta_z = gravity * delta_time + entity_sim->delta_z;
-            
-            if(entity_sim->z < 0.0f)
+            if(!Entity_is_entity_sim_flags_set(entity_sim, EntitySimFlag_nonspatial))
             {
-                entity_sim->z = 0.0f;
+                SimRegion_move_entity(sim_region, entity_sim, &movespec, delta_time, acceleration);
             }
-            // END OF JUMP CODE
             
             f32 entity_ground_point_x = screen_center.x + meters_to_pixels * entity_sim->position.x;
             f32 entity_ground_point_y = screen_center.y - meters_to_pixels * entity_sim->position.y;

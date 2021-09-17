@@ -157,7 +157,10 @@ SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index
 
 
 internal EntitySim *
-SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_storage, EntityLow *source, V2 *sim_position)
+SimRegion_add_entity(GameState *game_state,
+                     SimRegion *sim_region,
+                     u32 index_storage,
+                     EntityLow *source, V2 *sim_position)
 {
     EntitySim *dest = SimRegion_add_entity_raw(game_state, sim_region, index_storage, source);
     
@@ -178,22 +181,29 @@ SimRegion_add_entity(GameState *game_state, SimRegion *sim_region, u32 index_sto
 }
 
 internal SimRegion *
-SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world, WorldCoord region_origin, RectV2 region_bounds, GameBackBuffer *back_buffer)
+SimRegion_begin_sim(MemoryArena    *sim_arena,
+                    GameState      *game_state,
+                    World          *world,
+                    WorldCoord      region_origin,
+                    RectV2          region_bounds,
+                    GameBackBuffer *back_buffer)
 {
     SimRegion *sim_region = MEMORY_ARENA_PUSH_STRUCT(sim_arena, SimRegion);
     MEMORY_ARENA_ZERO_STRUCT(sim_region->hash);
     
     //ASSERT(validate_sim_entities(sim_region));
     
-    f32 update_saftey_margin = 1.0f;
+    f32 update_saftey_margin = 1.0f; //UNIT: meters
     
     sim_region->world  = world;
     sim_region->origin = region_origin;
-    sim_region->bounds = region_bounds;/*
+    sim_region->bounds = region_bounds;
+    
+    sim_region->updatable_bounds = region_bounds;
     sim_region->updatable_bounds = RectV2_add_radius_to(sim_region->updatable_bounds,
                                                         update_saftey_margin,
                                                         update_saftey_margin);
-    */
+    
     sim_region->max_entity_count = 4096;
     sim_region->entity_count     = 0;
     sim_region->entities   = MEMORY_ARENA_PUSH_ARRAY(sim_arena, sim_region->max_entity_count, EntitySim);
@@ -218,6 +228,12 @@ SimRegion_begin_sim(MemoryArena *sim_arena, GameState *game_state, World *world,
                     {
                         u32 index_low = block->entity_indices_low[entityindexindex];
                         EntityLow *entity_low = game_state->entities_low + index_low;
+                        
+                        if(entity_low->sim.type == EntityType_sword)
+                        {
+                            int dbg_int = 12;
+                            dbg_int += 5;
+                        }
                         
                         V2 sim_space_pos = SimRegion_get_sim_space_position(sim_region, entity_low);
                         
@@ -440,6 +456,17 @@ SimRegion_move_entity(SimRegion *sim_region,  EntitySim *entity, MoveSpec *moves
     V2_scale(delta_t, &a);
     V2_add  (a, entity->velocity, &entity->velocity);
     
+    f32 gravity = -9.8f;
+    
+    // JUMP CODE
+    entity->z = 0.5f * gravity * square(delta_t) + entity->delta_z * delta_t + entity->z;
+    entity->delta_z = gravity * delta_t + entity->delta_z;
+    
+    if(entity->z < 0.0f)
+    {
+        entity->z = 0.0f;
+    }
+    // END OF JUMP CODE
     
     for(u32 collision_resolve_attempt = 0; 
         collision_resolve_attempt < 4;

@@ -25,9 +25,10 @@ typedef struct EntitySim EntitySim;
 typedef enum EntitySimFlags EntitySimFlags;
 enum EntitySimFlags
 {
-    EntitySimFlag_collides   = (1 << 1),
-    EntitySimFlag_nonspatial = (1 << 2),
-    EntitySimFlag_simming    = (1 << 3),
+    EntitySimFlag_collides   = (1 << 0),
+    EntitySimFlag_nonspatial = (1 << 1),
+    
+    EntitySimFlag_simming    = (1 << 30),
 };
 
 typedef union EntityReference EntityReference;
