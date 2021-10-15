@@ -114,12 +114,12 @@ struct PlayerBitmaps
 typedef enum EntityType EntityType;
 enum EntityType
 {
-    EntityType_null,
-    EntityType_player,
-    EntityType_friendly,
-    EntityType_hostile,
-    EntityType_wall,
-    EntityType_sword,
+    EntityType_null     = 0,
+    EntityType_player   = 1,
+    EntityType_friendly = 2,
+    EntityType_hostile  = 3,
+    EntityType_wall     = 4,
+    EntityType_sword    = 5,
 };
 
 typedef struct EntityLow EntityLow;
@@ -134,9 +134,19 @@ struct ControlledPlayer
 {
     u32 entity_index; // NOTE(MIGUEL): index_low
     // NOTE(MIGUEL): controller request for simulation
-    V2 acceleration;
-    V2 delta_sword;
+    V2  acceleration;
+    V2  delta_sword;
     f32 delta_z;
+};
+
+typedef struct PairWiseCollisionRule PairWiseCollisionRule;
+struct PairWiseCollisionRule
+{
+    b32 should_collide;
+    u32 storage_index_a;
+    u32 storage_index_b;
+    
+    PairWiseCollisionRule *next_in_hash;
 };
 
 typedef struct GameState GameState;
@@ -173,6 +183,9 @@ struct GameState
     f32 clock;
     
     f32 meters_to_pixels;
+    
+    PairWiseCollisionRule *collision_rule_hash[256];
+    PairWiseCollisionRule *first_free_collision_rule_node;
 };
 
 
@@ -246,6 +259,10 @@ inline GameControllerInput *get_controller(GameInput *input, u32 controller_inde
     
     return result;
 }
+
+
+internal void
+add_collision_rule(GameState *game_state, u32 storage_index_a, u32 storage_index_b, b32 should_collide);
 
 #endif //SGE_H
 

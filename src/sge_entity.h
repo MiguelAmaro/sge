@@ -3,7 +3,7 @@
 #ifndef SGE_ENTITY_H
 #define SGE_ENTITY_H
 
-#define ENTITY_INVALID_POSITION (V2){100000.0f, 100000.0f}
+#define ENTITY_INVALID_POSITION (V3){100000.0f, 100000.0f, 100000.0f}
 
 inline void Entity_set_entity_sim_flags(EntitySim *entity, u32 flags)
 {
@@ -36,11 +36,11 @@ Entity_make_nonspatial(EntitySim *entity)
 }
 
 inline void
-Entity_make_spatial(EntitySim *entity, V2 pos, V2 vel)
+Entity_make_spatial(EntitySim *entity, V3 pos, V3 vel)
 {
     Entity_clear_entity_sim_flags(entity, EntitySimFlag_nonspatial);
-    entity->position = pos;
-    entity->velocity = vel;
+    entity->position  = pos;
+    entity->velocity  = vel;
     
     return;
 }

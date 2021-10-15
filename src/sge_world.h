@@ -33,13 +33,6 @@ struct WorldChunk
     WorldChunk *next; ///External chaining
 };
 
-typedef struct WorldDifference WorldDifference;
-struct WorldDifference
-{
-    V2  dxy;
-    f32 dz;
-};
-
 typedef struct WorldCoord WorldCoord;
 struct WorldCoord
 {
@@ -47,14 +40,17 @@ struct WorldCoord
     s32 chunk_y;
     s32 chunk_z;
     
-    V2  rel_;
+    V3  rel_;
 };
 
 typedef struct World World;
 struct World
 {
-    f32 side_in_meters_tile ;
-    f32 side_in_meters_chunk;
+    //f32 side_in_meters_tile;
+    //f32 depth_in_meters_tile;
+    
+    V3 tile_dim_in_meters;
+    V3 chunk_dim_in_meters;
     
     WorldChunk chunk_hash[4096];
     

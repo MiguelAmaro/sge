@@ -25,6 +25,7 @@ typedef struct EntitySim EntitySim;
 typedef enum EntitySimFlags EntitySimFlags;
 enum EntitySimFlags
 {
+    EntitySimFlag_noflags    = (0 << 0),
     EntitySimFlag_collides   = (1 << 0),
     EntitySimFlag_nonspatial = (1 << 1),
     
@@ -45,14 +46,13 @@ struct EntitySim
     u32 index_high;
     b32 updatable;
     
-    f32 z;
-    V2 position;
-    V2  velocity;
+    V3  position;
+    V3  velocity;
     
     s32 tile_abs_z; // NOTE(MIGUEL): should this be chunk z??
     u32 facing_direction;
     
-    f32 delta_z;
+    f32 distance_limit;
     
     EntitySimFlags flags;
     EntityType type;
@@ -69,7 +69,6 @@ struct EntitySim
     HitPoint hit_points[16];
     
     EntityReference sword;
-    f32 distance_remaining; // sword 
 };
 
 typedef struct EntitySimHash EntitySimHash;
@@ -82,10 +81,10 @@ struct EntitySimHash
 typedef struct SimRegion SimRegion;
 struct SimRegion
 {
-    World *world;
+    World     *world;
     WorldCoord origin;
-    RectV2     bounds;
-    RectV2     updatable_bounds;
+    RectV3     bounds;
+    RectV3     updatable_bounds;
     
     u32 max_entity_count;
     u32 entity_count;

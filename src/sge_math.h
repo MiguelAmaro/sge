@@ -49,7 +49,19 @@ union V3
     struct
     {
         V2 xy;
-        f32 r; //remainder? lol
+        V2 ignored_;
+    };
+    struct
+    {
+        f32 r;
+        f32 g;
+        f32 b;
+    };
+    struct
+    {
+        f32 w;
+        f32 h;
+        f32 d;
     };
     f32 e[3];
     
@@ -77,11 +89,67 @@ union V4
         V2 xy;
         V2 zw;
     };
+    struct
+    {
+        V2 xyx;
+        V2 ignored_;
+    };
     f32 e[4];
 };
 
+//~ RECTANGLES
 
-//~ Vec2
+
+typedef struct RectV2 RectV2;
+struct RectV2
+{
+    V2 min;
+    V2 max;
+};
+
+typedef struct RectV3 RectV3;
+struct RectV3
+{
+    V3 min;
+    V3 max;
+};
+
+
+//~ VECTOR 2D
+
+inline V2
+V2_init_uniform(f32 a)
+{
+    V2 result;
+    
+    result.x = a;
+    result.y = a;
+    
+    return result;
+}
+
+inline V2
+V2_init_2f32(f32 x, f32 y)
+{
+    V2 result;
+    
+    result.x = x;
+    result.y = y;
+    
+    return result;
+}
+
+inline V2
+V2_init_f32(f32 x)
+{
+    V2 result;
+    
+    result.x = x;
+    result.y = 0.0f;
+    
+    return result;
+}
+
 inline V2
 V2_negate(V2 a)
 {
@@ -137,9 +205,9 @@ V2_hadamard(V2 a, V2 b, V2 *dest)
     return;
 }
 
-// aka inner product
+/// DOT PRODUCT
 inline f32
-V2_dot(V2 a, V2 b)
+V2_inner(V2 a, V2 b)
 {
     f32 result = (a.x * b.x) + (a.y * b.y);
     
@@ -149,7 +217,7 @@ V2_dot(V2 a, V2 b)
 inline f32
 V2_length_sq(V2 a)
 {
-    f32 result = V2_dot(a, a);
+    f32 result = V2_inner(a, a);
     
     return result;
 }
@@ -162,25 +230,55 @@ V2_length(V2 a)
     return result;
 }
 
-typedef struct RectV2 RectV2;
-struct RectV2
-{
-    V2 min;
-    V2 max;
-};
+//~ VECTOR 3D
 
-inline RectV2
-RectV2_min_max(V2 min, V2 max)
+inline V3
+V3_init_uniform(f32 a)
 {
-    RectV2 result;
+    V3 result;
     
-    result.min = min;
-    result.max = max;
+    result.x = a;
+    result.y = a;
+    result.z = a;
     
     return result;
 }
 
-//~ VEC3
+inline V3
+V3_init_3f32(f32 x, f32 y, f32 z)
+{
+    V3 result;
+    
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    
+    return result;
+}
+
+inline V3
+V3_init_2f32(f32 x, f32 y)
+{
+    V3 result;
+    
+    result.x = x;
+    result.y = y;
+    result.z = 0.0f;
+    
+    return result;
+}
+
+inline V3
+V3_init_v2(V2 xy, f32 z)
+{
+    V3 result;
+    
+    result.xy = xy;
+    result.z  =  z;
+    
+    return result;
+}
+
 inline V3
 V3_negate(V3 a)
 {
@@ -241,9 +339,10 @@ V3_hadamard(V3 a, V3 b, V3 *dest)
     return;
 }
 
-// aka inner product
+// TODO(MIGUEL): BROKEN AF!!! FIND THE CORRECT MATH!!!
+/// DOT PRODUCT 
 inline f32
-V3_dot(V3 a, V3 b)
+V3_inner(V3 a, V3 b)
 {
     f32 result =
         (a.x * b.x) +
@@ -256,13 +355,21 @@ V3_dot(V3 a, V3 b)
 inline f32
 V3_length_sq(V3 a)
 {
-    f32 result = V3_dot(a, a);
+    f32 result = V3_inner(a, a);
+    
+    return result;
+}
+
+inline f32
+V3_length(V3 a)
+{
+    f32 result = square_root(V3_length_sq(a)); 
     
     return result;
 }
 
 
-//~ VEC3
+//~ VECTOR 4D
 inline V4
 V4_negate(V4 a)
 {
@@ -349,7 +456,19 @@ V4_length_sq(V4 a)
     return result;
 }
 
-//~ Rect
+//~ RECTANGLE 2D
+
+inline RectV2
+RectV2_min_max(V2 min, V2 max)
+{
+    RectV2 result;
+    
+    result.min = min;
+    result.max = max;
+    
+    return result;
+}
+
 inline RectV2
 RectV2_min_dim(V2 min, V2 max)
 {
@@ -414,10 +533,78 @@ RectV2_add_radius_to(RectV2 a, f32 radius_w, f32 radius_h)
 {
     RectV2 result;
     
-    V2_sub(a.min, (V2){radius_w, radius_w}, &result.min);
-    V2_add(a.max, (V2){radius_h, radius_h}, &result.max);
+    V2_sub(a.min, (V2){radius_w, radius_h}, &result.min);
+    V2_add(a.max, (V2){radius_w, radius_h}, &result.max);
     
     return result;
 }
 
+
+//~ RECTANGLE 3D
+
+inline RectV3
+RectV3_min_max(V3 min, V3 max)
+{
+    RectV3 result;
+    
+    result.min = min;
+    result.max = max;
+    
+    return result;
+}
+
+inline b32
+RectV3_is_in_rect(RectV3 rect, V3 test_position)
+{
+    b32 result = ((test_position.x >= rect.min.x) &&
+                  (test_position.x <= rect.max.x) &&
+                  (test_position.y >= rect.min.y) &&
+                  (test_position.y <= rect.max.y) &&
+                  (test_position.z >= rect.min.z) &&
+                  (test_position.z <= rect.max.z));
+    
+    return result;
+}
+
+
+inline V3
+RectV3_min_corner(RectV3 rect)
+{
+    V3 result = rect.min;
+    
+    return result;
+}
+
+inline V3
+RectV3_max_corner(RectV3 rect)
+{
+    V3 result = rect.max;
+    
+    return result;
+}
+
+inline RectV3 
+RectV3_add_radius_to(RectV3 a, V3 radius)
+{
+    RectV3 result;
+    
+    V3_sub(a.min, radius, &result.min);
+    V3_add(a.max, radius, &result.max);
+    
+    return result;
+}
+
+inline RectV3
+RectV3_center_half_dim(V3 center, V3 half_dim)
+{
+    RectV3 result;
+    
+    V3_sub(center, half_dim, &result.min);
+    V3_add(center, half_dim, &result.max);
+    
+    return result;
+}
+
+
 #endif //SGE_MATH_H
+
