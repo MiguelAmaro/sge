@@ -40,6 +40,13 @@ inline b32 validate_sim_entities(SimRegion *sim_region)
         // NOTE(MIGUEL): This is the same as the test above againt null entities being 
         //               present in the sim region.
         ASSERT(!(entity->index_storage == 0));
+        
+        // NOTE(MIGUEL): Maybe wall should have some velocity on z becaue of gravity. Does
+        //               this make sense if the entity is fixed in space like a wall. This 
+        //               assertion is invalid because all entites will have a negative z in
+        //               their velocity vector if there isn't any code do zero it when the
+        //               position below zero.
+        //ASSERT((entity->type != EntityType_wall) || ((entity->type == EntityType_wall) && V3_are_equal(entity->velocity, V3_init_uniform(0.0f))));
     }
     
     return result;
@@ -181,6 +188,17 @@ SimRegion_add_entity_raw(GameState *game_state, SimRegion *sim_region, u32 index
     return entity;
 }
 
+internal b32
+entity_overlaps_rect(V3 pos, V3 dim, RectV3 bounds)
+{
+    
+    V3_scale(0.5f, &dim);
+    
+    RectV3 grown  = RectV3_add_radius_to(bounds, dim);
+    b32    result = RectV3_is_in_rect(grown, pos);
+    
+    return result;
+}
 
 internal EntitySim *
 SimRegion_add_entity(GameState *game_state,
@@ -195,8 +213,7 @@ SimRegion_add_entity(GameState *game_state,
         if(sim_position)
         {
             dest->position  = *sim_position;
-            dest->updatable = RectV3_is_in_rect(sim_region->updatable_bounds,
-                                                dest->position);
+            dest->updatable = entity_overlaps_rect(dest->position, dest->dim, sim_region->updatable_bounds);
         }
         else
         {
@@ -213,24 +230,34 @@ SimRegion_begin_sim(MemoryArena    *sim_arena,
                     World          *world,
                     WorldCoord      region_origin,
                     RectV3          region_bounds,
-                    GameBackBuffer *back_buffer)
+                    GameBackBuffer *back_buffer,
+                    f32             delta_t)
 {
     SimRegion *sim_region = MEMORY_ARENA_PUSH_STRUCT(sim_arena, SimRegion);
     MEMORY_ARENA_ZERO_STRUCT(sim_region->hash);
     
     //ASSERT(validate_sim_entities(sim_region));
     
-    f32 update_safety_margin = 1.0f; //UNIT: meters
+    sim_region->max_entity_margin      =  5.0f; //UNIT: meters
+    sim_region->max_entity_velocity_magnitude   = 30.0f; //UNIT: meters/seconds
+    f32 update_safety_margin   = sim_region->max_entity_margin + sim_region->max_entity_velocity_magnitude * delta_t; //UNIT: meters
+    f32 update_safety_margin_z = 1.0f; //UNIT: meters
+    
     
     sim_region->world  = world;
     sim_region->origin = region_origin;
-    sim_region->bounds = region_bounds;
     
-    sim_region->updatable_bounds = region_bounds;
-    sim_region->updatable_bounds = RectV3_add_radius_to(sim_region->updatable_bounds,
-                                                        V3_init_uniform(update_safety_margin));
+    sim_region->updatable_bounds = RectV3_add_radius_to(region_bounds,
+                                                        V3_init_3f32(sim_region->max_entity_margin,
+                                                                     sim_region->max_entity_margin,
+                                                                     sim_region->max_entity_margin));
     
-    sim_region->max_entity_count = 4096;
+    sim_region->bounds = RectV3_add_radius_to(sim_region->updatable_bounds,
+                                              V3_init_3f32(update_safety_margin,
+                                                           update_safety_margin,
+                                                           update_safety_margin_z));
+    
+    sim_region->max_entity_count = 4096; 
     sim_region->entity_count     = 0;
     sim_region->entities   = MEMORY_ARENA_PUSH_ARRAY(sim_arena, sim_region->max_entity_count, EntitySim);
     
@@ -282,7 +309,7 @@ SimRegion_begin_sim(MemoryArena    *sim_arena,
                         {
                             ASSERT(!Entity_is_entity_sim_flags_set(&entity_low->sim, EntitySimFlag_nonspatial));
                             
-                            if(RectV3_is_in_rect(region_bounds, sim_space_pos))
+                            if(entity_overlaps_rect(sim_space_pos, entity_low->sim.dim, sim_region->bounds))
                             {
                                 SimRegion_add_entity(game_state, sim_region, index_low, entity_low, &sim_space_pos);
                             }
@@ -530,6 +557,20 @@ handle_collision(EntitySim *a, EntitySim *b)
         --a->hit_point_max;
         Entity_make_nonspatial(b);
     }
+#if 0
+    if((b->type == EntityType_hostile) &&
+       (a->type == EntityType_player))
+    {
+        --a->hit_point_max;
+    }
+    
+    if((b->type == EntityType_hostile) &&
+       (a->type == EntityType_friendly))
+    {
+        --a->hit_point_max;
+        --b->hit_point_max;
+    }
+#endif
     
     return stops_on_collision;
 }
@@ -554,12 +595,12 @@ SimRegion_move_entity(SimRegion *sim_region,
     
     
     ///DEBUG
-    if(entity->type == EntityType_player)
+    //if(entity->type == EntityType_player)
+    if(entity->index_storage == 9)
     {
         int dbg_int = 0;
         dbg_int += 13;
     }
-    
     
     if(movespec->unitmaxaccel)
     {
@@ -571,17 +612,16 @@ SimRegion_move_entity(SimRegion *sim_region,
         }
     }
     
-    
     V3 gravity        = V3_init_3f32(0.0f, 0.0f, -9.8f);
     V3 position_delta = { 0 };
     
-    V3 a = acceleration; 
-    V3 v = entity->velocity;
+    V3  a = acceleration; 
+    V3  v = entity->velocity;
     
-    V3_scale(movespec->speed, &acceleration); // Tune the accleration with speed
-    V3_scale(-movespec->drag, &v);            // Apply friction to acceleration
-    V3_add  (v, gravity, &v);
-    V3_add  (acceleration, v, &acceleration);
+    V3_scale(movespec->speed, &a); // Tune the accleration with speed
+    V3_scale(-movespec->drag, &v); // Apply friction to acceleration
+    V3_add  (a, v, &a);
+    V3_add  (a, gravity, &acceleration);
     
     a = acceleration;
     v = entity->velocity;
@@ -591,16 +631,21 @@ SimRegion_move_entity(SimRegion *sim_region,
     
     // VELOCITY COMPONENT 
     V3_scale(delta_t , &v);
-    // JOIN ACCEL & VELOCITY COMPONENT [ (accel / 2) * t^2 + (vel * t) ]
+    // JOIN ACCEL & VELOCITY COMPONENT [Displacement = (accel / 2) * t^2 + (vel * t) ]
     V3_add  (a, v, &position_delta); // NOTE(MIGUEL): do not alter value! used a bit lower in the function
     
     // STORE VELOCITY EQUATION
     a = acceleration;
     v = entity->velocity;
-    V3_add  (a, v, &a);
-    V3_scale(0.5f , &a);
     V3_scale(delta_t, &a);
-    V3_add  (a, entity->velocity, &entity->velocity);
+    V3_add  (a, v, &entity->velocity);
+    
+    
+    // NOTE(MIGUEL): Gravity is applied to every entity in the world.
+    //               Why would the velocity go up infinitely if a constant 
+    //               acceleration e.g. gravity is being applied per frame.
+    ASSERT((V3_length_sq(entity->velocity) <= 
+            square(sim_region->max_entity_velocity_magnitude)));
     
     f32 distance_remaining = entity->distance_limit;
     if(distance_remaining == 0.0f)
@@ -613,7 +658,7 @@ SimRegion_move_entity(SimRegion *sim_region,
         collision_resolve_attempt++)
     {
         f32 normalized_time_of_pos_delta  = 1.0f; 
-        f32 player_movement_vector_length = V2_length(position_delta.xy);
+        f32 player_movement_vector_length = V3_length(position_delta);
         
         if(player_movement_vector_length > 0.0f)
         {
@@ -653,9 +698,9 @@ SimRegion_move_entity(SimRegion *sim_region,
                     { 
                         
                         // NOTE(MIGUEL): Minkowski sum
-                        V3 minkowski_diameter = V3_init_3f32(test_entity->width  + entity->width,
-                                                             test_entity->height + entity->height,
-                                                             2.0f * world->tile_dim_in_meters.z);
+                        V3 minkowski_diameter = V3_init_3f32(test_entity->dim.w + entity->dim.w,
+                                                             test_entity->dim.h + entity->dim.h,
+                                                             test_entity->dim.d + entity->dim.d);
                         
                         V3 min_corner = minkowski_diameter;
                         V3 max_corner = minkowski_diameter;
@@ -747,21 +792,19 @@ SimRegion_move_entity(SimRegion *sim_region,
                     
                     // UPDATE VELOCITY VECTOR 
                     f32 velocity_to_normal_axis_projection_scalar =
-                        V2_inner(entity->velocity.xy, wall_normal.xy);
+                        V3_inner(entity->velocity, wall_normal);
                     
-                    V2_scale(velocity_to_normal_axis_projection_scalar, &new_velocity.xy);
-                    V2_scale(1.0f, &new_velocity.xy);
-                    V2_sub  (entity->velocity.xy, new_velocity.xy, &entity->velocity.xy);
+                    V3_scale(velocity_to_normal_axis_projection_scalar, &new_velocity);
+                    V3_scale(1.0f, &new_velocity);
+                    V3_sub  (entity->velocity, new_velocity, &entity->velocity);
                     
-                    /*
-    */
                     V3 new_position_delta = wall_normal;
                     f32 position_delta_to_normal_axis_projection_scalar =
                         V2_inner(position_delta.xy, wall_normal.xy);
                     // UPDATE MOVEMENT VECTOR
-                    V2_scale(position_delta_to_normal_axis_projection_scalar, &new_position_delta.xy);
-                    V2_scale(1.0f, &new_position_delta.xy);
-                    V2_sub  (position_delta.xy, new_position_delta.xy, &position_delta.xy);
+                    V3_scale(position_delta_to_normal_axis_projection_scalar, &new_position_delta);
+                    V3_scale(1.0f, &new_position_delta);
+                    V3_sub  (position_delta, new_position_delta, &position_delta);
                 }
                 else
                 {
@@ -798,6 +841,7 @@ SimRegion_move_entity(SimRegion *sim_region,
     if(entity->position.z < 0.0f)
     {
         entity->position.z = 0.0f;
+        entity->velocity.z = 0.0f;
     }
     
     if(entity->distance_limit != 0.0f)

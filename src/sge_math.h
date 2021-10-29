@@ -279,6 +279,16 @@ V3_init_v2(V2 xy, f32 z)
     return result;
 }
 
+inline b32
+V3_are_equal(V3 a, V3 b)
+{
+    b32 result = ((a.x == b.x) &&
+                  (a.y == b.y) &&
+                  (a.z == b.z));
+    
+    return result;
+}
+
 inline V3
 V3_negate(V3 a)
 {

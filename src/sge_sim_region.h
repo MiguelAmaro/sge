@@ -57,8 +57,7 @@ struct EntitySim
     EntitySimFlags flags;
     EntityType type;
     
-    
-    f32 width, height;
+    V3 dim;
     
     f32 bob_t;
     
@@ -82,7 +81,11 @@ typedef struct SimRegion SimRegion;
 struct SimRegion
 {
     World     *world;
-    WorldCoord origin;
+    
+    f32 max_entity_margin  ;
+    f32 max_entity_velocity_magnitude;
+    
+    WorldCoord origin; 
     RectV3     bounds;
     RectV3     updatable_bounds;
     

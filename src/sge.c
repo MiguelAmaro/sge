@@ -93,8 +93,8 @@ Game_add_sword(GameState *game_state)
                                                             EntityType_sword,
                                                             World_null_position());
     
-    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
-    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.dim.h          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.dim.w           = 1.0f; //           UNITS: meters
     
     return result;
 }
@@ -118,8 +118,8 @@ Game_add_player(GameState *game_state, u32 player_number)
     
     add_collision_rule(game_state, weapon.index_low, result.index_low, 1);
     
-    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
-    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.dim.h          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.dim.w         = 1.0f; //           UNITS: meters
     Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     if(game_state->camera_following_entity_index == 0)
@@ -145,8 +145,8 @@ Game_add_friendly(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 til
     
     //init_hitpoint(result.entity_low, 3); // NOTE(MIGUEL): these have no hitpoints yet
     
-    result.entity_low->sim.height          = 0.5f; // UNITS: meters
-    result.entity_low->sim.width           = 1.0f; // UNITS: meters
+    result.entity_low->sim.dim.h          = 0.5f; // UNITS: meters
+    result.entity_low->sim.dim.w           = 1.0f; // UNITS: meters
     Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
@@ -169,8 +169,8 @@ Game_add_hostile(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile
     init_hitpoint(result.entity_low, 3);
     
     
-    result.entity_low->sim.height          = 0.5f; //           UNITS: meters
-    result.entity_low->sim.width           = 1.0f; //           UNITS: meters
+    result.entity_low->sim.dim.h          = 0.5f; //           UNITS: meters
+    result.entity_low->sim.dim.w          = 1.0f; //           UNITS: meters
     Entity_set_entity_sim_flags(&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
@@ -189,8 +189,8 @@ Game_add_wall(GameState *game_state, s32 tile_abs_x, s32 tile_abs_y, s32 tile_ab
                                                             EntityType_wall,
                                                             position);
     
-    result.entity_low->sim.height   = game_state->world->tile_dim_in_meters.y; //UNITS: meters
-    result.entity_low->sim.width    = result.entity_low->sim.height; //UNITS: meters
+    result.entity_low->sim.dim.h   = game_state->world->tile_dim_in_meters.y; //UNITS: meters
+    result.entity_low->sim.dim.w   = result.entity_low->sim.dim.h           ; //UNITS: meters
     Entity_set_entity_sim_flags (&result.entity_low->sim, EntitySimFlag_collides);
     
     return result;
@@ -287,7 +287,8 @@ Game_draw_bounding_box(GameBackBuffer *back_buffer,
                        V2              origin,
                        RectV2          bounds,
                        f32             scale,
-                       V4               color)
+                       V4              color,
+                       b32             debug)
 {
     V4 red    = {1.0f, 0.0f, 0.0f, 0.5};
     V4 green  = {0.0f, 1.0f, 0.0f, 0.5};
@@ -300,49 +301,66 @@ Game_draw_bounding_box(GameBackBuffer *back_buffer,
     V4 dark_gray = {0.3f, 0.3f, 0.3f, 0.5};
     
     
-    RectV2 bounds_in_minimap_space = bounds;
+    //RectV2 bounds_in_minimap_space = bounds;
     // TODO(MIGUEL): fix the coordinate bullshit with point whatever
     //V2_scale(-1.0f, &bounds_in_minimap_space.min);
     //V2_scale(-1.0f, &bounds_in_minimap_space.max);
     
-    V2_scale(scale, &bounds_in_minimap_space.min);
-    V2_scale(scale, &bounds_in_minimap_space.max);
-    V2_add(bounds_in_minimap_space.min, origin, &bounds_in_minimap_space.min);
-    V2_add(bounds_in_minimap_space.max, origin, &bounds_in_minimap_space.max);
+    V2_scale(scale, &bounds.min);
+    V2_scale(scale, &bounds.max);
+    V2_add(bounds.min, origin, &bounds.min);
+    V2_add(bounds.max, origin, &bounds.max);
     
-    RectV2 bounds_top    = bounds_in_minimap_space;
-    RectV2 bounds_bottom = bounds_in_minimap_space;
-    RectV2 bounds_left   = bounds_in_minimap_space;
-    RectV2 bounds_right  = bounds_in_minimap_space;
+    RectV2 bounds_top    = bounds;
+    RectV2 bounds_bottom = bounds;
+    RectV2 bounds_left   = bounds;
+    RectV2 bounds_right  = bounds;
     
-    bounds_top.min.y = bounds_in_minimap_space.max.y - 2;
+    V4 colors[4];
+    
+    if(debug)
+    {
+        colors[0] = red;
+        colors[1] = blue;
+        colors[2] = purple;
+        colors[3] = yellow;
+    }
+    else
+    {
+        colors[0] = color;
+        colors[1] = color;
+        colors[2] = color;
+        colors[3] = color;
+    }
+    
+    bounds_top.min.y = bounds.max.y - 2;
     Game_draw_rectangle(back_buffer,
                         bounds_top.min,
                         bounds_top.max,
-                        red,
+                        colors[0],
                         0);
     
     
-    bounds_bottom.max.y = bounds_in_minimap_space.min.y + 2;
+    bounds_bottom.max.y = bounds.min.y + 2;
     Game_draw_rectangle(back_buffer,
                         bounds_bottom.min,
                         bounds_bottom.max,
-                        blue,
+                        colors[1],
                         0);
     
-    bounds_left.min.x = bounds_in_minimap_space.max.x - 2;
+    bounds_left.min.x = bounds.max.x - 2;
     Game_draw_rectangle(back_buffer,
                         bounds_left.min,
                         bounds_left.max,
-                        purple,
+                        colors[2],
                         0);
     
     
-    bounds_right.max.x = bounds_in_minimap_space.min.x + 2;
+    bounds_right.max.x = bounds.min.x + 2;
     Game_draw_rectangle(back_buffer,
                         bounds_right.min,
                         bounds_right.max,
-                        yellow,
+                        colors[3],
                         0);
     
     
@@ -350,15 +368,30 @@ Game_draw_bounding_box(GameBackBuffer *back_buffer,
 }
 
 internal void
-Game_draw_mini_map(GameState *game_state,
+Game_draw_mini_map(GameState      *game_state,
                    GameBackBuffer *back_buffer,
-                   SimRegion *sim_region,
-                   s32 tile_side_in_pixels,
-                   V2 camera_range_in_meters,
-                   s32 x, s32 y, f32 normalized_zoom)
+                   GameInput      *input,
+                   SimRegion      *sim_region,
+                   s32             tile_side_in_pixels,
+                   V2              camera_range_in_meters)
 {
     World *world = game_state->world;
     
+    f32 mouse_wheel = input->mouse_wheel_integral * 0.01f;
+    
+    if(mouse_wheel > 1.0f)
+    {
+        mouse_wheel = 1.0f;
+    }
+    if(mouse_wheel < -0.25f)
+    {
+        mouse_wheel = -0.25f;
+    }
+    
+    f32 normalized_zoom = mouse_wheel + 0.25f;
+    
+    s32 x = (s32)(back_buffer->width  / -2.0f) + input->mouse_x;
+    s32 y = (s32)(back_buffer->height / -2.0f) + input->mouse_y;
     
     // NOTE(MIGUEL): This is only good for positioning of the camera
     EntityLow *camera_following_entity = Entity_get_entity_low(game_state,
@@ -434,6 +467,23 @@ Game_draw_mini_map(GameState *game_state,
     f32 meters_to_pixels_with_zoom_comp = (f32)meters_to_pixels * ((10.0f * normalized_zoom));
     EntityLow *entity_low = game_state->entities_low;
     
+    // DRAW CAMERA BOUNDS
+    
+    V2 view_tile_span = { 17, 9 };
+    V2_scale(world->tile_dim_in_meters.x, &view_tile_span);
+    V2_scale(0.5f, &view_tile_span);
+    
+    RectV2 camera_bounds = RectV2_center_half_dim((V2){0 , 0},
+                                                  view_tile_span);
+    
+    Game_draw_bounding_box(back_buffer,
+                           minimap_center,
+                           camera_bounds,
+                           meters_to_pixels_with_zoom_comp,
+                           red,
+                           0);
+    
+    
     // DRAW UPDATABLE BOUNDS
     
     RectV2 updatable_bounds = RectV2_min_max(sim_region->updatable_bounds.min.xy,
@@ -443,121 +493,31 @@ Game_draw_mini_map(GameState *game_state,
                            minimap_center,
                            updatable_bounds,
                            meters_to_pixels_with_zoom_comp,
-                           blue);
-    
-    
-    // DRAW CAMERA BOUNDS
-    
-    V2 view_tile_span = { 17, 9 };
-    V2_scale(world->tile_dim_in_meters.x, &view_tile_span);
-    V2_scale(0.5f, &view_tile_span);
-    
-    RectV2 camera_bounds_in_minimap_space = RectV2_center_half_dim((V2){0 , 0},
-                                                                   view_tile_span);
-    
-    V2_scale(meters_to_pixels_with_zoom_comp, &camera_bounds_in_minimap_space.min);
-    V2_scale(meters_to_pixels_with_zoom_comp, &camera_bounds_in_minimap_space.max);
-    V2_add(camera_bounds_in_minimap_space.min, minimap_center, &camera_bounds_in_minimap_space.min);
-    V2_add(camera_bounds_in_minimap_space.max, minimap_center, &camera_bounds_in_minimap_space.max);
-    
-    RectV2 camera_bounds_top    = camera_bounds_in_minimap_space;
-    RectV2 camera_bounds_bottom = camera_bounds_in_minimap_space;
-    RectV2 camera_bounds_left   = camera_bounds_in_minimap_space;
-    RectV2 camera_bounds_right  = camera_bounds_in_minimap_space;
-    
-    camera_bounds_top.min.y = camera_bounds_in_minimap_space.max.y - 2;
-    Game_draw_rectangle(back_buffer,
-                        camera_bounds_top.min,
-                        camera_bounds_top.max,
-                        red,
-                        0);
-    
-    
-    camera_bounds_bottom.max.y = camera_bounds_in_minimap_space.min.y + 2;
-    Game_draw_rectangle(back_buffer,
-                        camera_bounds_bottom.min,
-                        camera_bounds_bottom.max,
-                        blue,
-                        0);
-    
-    camera_bounds_left.min.x = camera_bounds_in_minimap_space.max.x - 2;
-    Game_draw_rectangle(back_buffer,
-                        camera_bounds_left.min,
-                        camera_bounds_left.max,
-                        purple,
-                        0);
-    
-    
-    camera_bounds_right.max.x = camera_bounds_in_minimap_space.min.x + 2;
-    Game_draw_rectangle(back_buffer,
-                        camera_bounds_right.min,
-                        camera_bounds_right.max,
-                        yellow,
-                        0);
+                           blue,
+                           0);
     
     
     // DRAW SIMREGION BOUNDS
     RectV2 sim_region_bounds = RectV2_min_max(sim_region->bounds.min.xy,
                                               sim_region->bounds.max.xy);
     
-    RectV2 sim_region_bounds_in_minimap_space = sim_region_bounds;
-    // TODO(MIGUEL): fix the coordinate bullshit with point whatever
-    //V2_scale(-1.0f, &sim_region_bounds_in_minimap_space.min);
-    //V2_scale(-1.0f, &sim_region_bounds_in_minimap_space.max);
-    
-    V2_scale(meters_to_pixels_with_zoom_comp, &sim_region_bounds_in_minimap_space.min);
-    V2_scale(meters_to_pixels_with_zoom_comp, &sim_region_bounds_in_minimap_space.max);
-    V2_add(sim_region_bounds_in_minimap_space.min, minimap_center, &sim_region_bounds_in_minimap_space.min);
-    V2_add(sim_region_bounds_in_minimap_space.max, minimap_center, &sim_region_bounds_in_minimap_space.max);
-    
-    RectV2 sim_region_bounds_top    = sim_region_bounds_in_minimap_space;
-    RectV2 sim_region_bounds_bottom = sim_region_bounds_in_minimap_space;
-    RectV2 sim_region_bounds_left   = sim_region_bounds_in_minimap_space;
-    RectV2 sim_region_bounds_right  = sim_region_bounds_in_minimap_space;
-    
-    sim_region_bounds_top.min.y = sim_region_bounds_in_minimap_space.max.y - 2;
-    Game_draw_rectangle(back_buffer,
-                        sim_region_bounds_top.min,
-                        sim_region_bounds_top.max,
-                        red,
-                        0);
+    Game_draw_bounding_box(back_buffer,
+                           minimap_center,
+                           sim_region_bounds,
+                           meters_to_pixels_with_zoom_comp,
+                           yellow,
+                           0);
     
     
-    sim_region_bounds_bottom.max.y = sim_region_bounds_in_minimap_space.min.y + 2;
-    Game_draw_rectangle(back_buffer,
-                        sim_region_bounds_bottom.min,
-                        sim_region_bounds_bottom.max,
-                        blue,
-                        0);
-    
-    sim_region_bounds_left.min.x = sim_region_bounds_in_minimap_space.max.x - 2;
-    Game_draw_rectangle(back_buffer,
-                        sim_region_bounds_left.min,
-                        sim_region_bounds_left.max,
-                        purple,
-                        0);
-    
-    
-    sim_region_bounds_right.max.x = sim_region_bounds_in_minimap_space.min.x + 2;
-    Game_draw_rectangle(back_buffer,
-                        sim_region_bounds_right.min,
-                        sim_region_bounds_right.max,
-                        yellow,
-                        0);
-    
-    V3 sim_bounds = { 0 };
-    
-    sim_bounds.x = sim_region->bounds.min.x;
-    sim_bounds.y = sim_region->bounds.min.y;
-    sim_bounds.z = 0;
+    V3 sim_bounds = V3_init_2f32(sim_bounds.x = sim_region->bounds.min.x,
+                                 sim_bounds.y = sim_region->bounds.min.y);
     
     WorldCoord min = World_map_to_chunkspace(world,
                                              game_state->camera_position,
                                              sim_bounds);
     
-    sim_bounds.x = sim_region->bounds.max.x;
-    sim_bounds.y = sim_region->bounds.max.y;
-    sim_bounds.z = 0;
+    sim_bounds = V3_init_2f32(sim_region->bounds.max.x,
+                              sim_region->bounds.max.y);
     
     WorldCoord max = World_map_to_chunkspace(world,
                                              game_state->camera_position,
@@ -578,6 +538,15 @@ Game_draw_mini_map(GameState *game_state,
                                                      NULLPTR);
             if(chunk)
             {
+                V2 chunk_center = { 0 };
+                RectV2 chunk_bounds = { 0 };
+                Game_draw_bounding_box(back_buffer,
+                                       minimap_center,
+                                       chunk_bounds,
+                                       meters_to_pixels_with_zoom_comp,
+                                       cyan,
+                                       0);
+                
                 for(WorldEntityBlock *block = &chunk->first_block;
                     block; block = block->next)
                 {
@@ -1260,10 +1229,20 @@ SGE_UPDATE(SGEUpdate)
             if((friendly_offset_x != 0) &&
                (friendly_offset_y != 0))
             {
-                Game_add_friendly(game_state,
-                                  camera_tile_x + friendly_offset_x,
-                                  camera_tile_y + friendly_offset_y,
-                                  camera_tile_z);
+                if(friendly_index < (20.0f / 2.0f))
+                {
+                    Game_add_friendly(game_state,
+                                      camera_tile_x + friendly_offset_x,
+                                      camera_tile_y + friendly_offset_y,
+                                      camera_tile_z);
+                }
+                else
+                {
+                    Game_add_hostile(game_state,
+                                     camera_tile_x + friendly_offset_x,
+                                     camera_tile_y + friendly_offset_y,
+                                     camera_tile_z);
+                }
             }
         }
         
@@ -1378,7 +1357,8 @@ SGE_UPDATE(SGEUpdate)
                                                 game_state->world,
                                                 game_state->camera_position,
                                                 high_frequency_bounds,
-                                                back_buffer);
+                                                back_buffer,
+                                                input->delta_t);
     
     ASSERT(validate_sim_entities(sim_region));
     
@@ -1459,8 +1439,8 @@ SGE_UPDATE(SGEUpdate)
                             }
                             
                             movespec.unitmaxaccel = 1;
-                            movespec.speed = 300.0f;
-                            movespec.drag  = 12.0f;
+                            movespec.speed = 80.0f;
+                            movespec.drag  = 4.0f;
                             acceleration   = V3_init_v2(player->acceleration, 0.0f);
                             
                             if((player->delta_sword.x != 0.0f) ||
@@ -1606,8 +1586,8 @@ SGE_UPDATE(SGEUpdate)
                     }
                     
                     movespec.unitmaxaccel = 1;
-                    movespec.speed = 200.0f;
-                    movespec.drag  = 12.0f;
+                    movespec.speed = 80.0f;
+                    movespec.drag  = 8.0f;
                     
                     
                     entity->bob_t += delta_time;
@@ -1637,6 +1617,55 @@ SGE_UPDATE(SGEUpdate)
                 
                 case EntityType_hostile: 
                 {
+                    EntitySim *closest_player = NULLPTR;
+                    f32    player_search_diametersq = square(30.0f);
+                    
+                    EntitySim *test_entity = sim_region->entities;
+                    for(u32 test_entity_index = 0;
+                        test_entity_index < sim_region->entity_count;
+                        test_entity++, test_entity_index++)
+                    {
+                        if(test_entity->type == EntityType_player)
+                        {
+                            //follow
+                            V2 position_delta;
+                            V2_sub((V2){test_entity->position.x, test_entity->position.y},
+                                   (V2){     entity->position.x,      entity->position.y},
+                                   &position_delta);
+                            
+                            f32 test_dsq = V2_length_sq(position_delta);
+                            
+                            if(player_search_diametersq > test_dsq)
+                            {
+                                closest_player = test_entity;
+                                player_search_diametersq = test_dsq;
+                            }
+                            
+                        }
+                        
+                    }
+                    
+                    if(closest_player && (player_search_diametersq > square(0.0f)))
+                    {
+                        f32 coef = 0.5f;
+                        f32 one_over_length = coef / square_root(player_search_diametersq);
+                        
+                        V2 scratch_delta = { 0 };
+                        
+                        V2_sub((V2){closest_player->position.x, closest_player->position.y},
+                               (V2){        entity->position.x,         entity->position.y},
+                               &scratch_delta);
+                        
+                        V2_scale(one_over_length, &scratch_delta);
+                        
+                        acceleration = V3_init_v2(scratch_delta, 0.0f);
+                    }
+                    
+                    movespec.unitmaxaccel = 1;
+                    movespec.speed = 90.0f;
+                    movespec.drag  = 4.0f;
+                    
+                    
                     PlayerBitmaps *playerbitmaps = &game_state->playerbitmaps[entity->facing_direction];
                     
                     push_bitmap(&piece_group,
@@ -1717,30 +1746,16 @@ SGE_UPDATE(SGEUpdate)
                     back_buffer,
                     sim_region);
     
-    f32 mouse_wheel = input->mouse_wheel_integral * 0.01f;
-    
-    if(mouse_wheel > 1.0f)
-    {
-        mouse_wheel = 1.0f;
-    }
-    if(mouse_wheel < -0.25f)
-    {
-        mouse_wheel = -0.25f;
-    }
-    
-    s32 mouse_x = (s32)(back_buffer->width  / -2.0f) + input->mouse_x;
-    s32 mouse_y = (s32)(back_buffer->height / -2.0f) + input->mouse_y;
     
     Game_draw_mini_map(game_state,
                        back_buffer,
+                       input,
                        sim_region,
                        4,
-                       (V2){120.0f, 80.0f},
-                       mouse_x,
-                       mouse_y,
-                       mouse_wheel + 0.25f);
+                       (V2){120.0f, 80.0f});
     
     SimRegion_end_sim  (sim_region, game_state);
+    
     return;
 }
 
