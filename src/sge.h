@@ -165,6 +165,7 @@ struct GameState
     BitmapData  shadow;
     BitmapData  sword;
     
+    BitmapData  stairwell;
     
     BitmapData  debug_bmp;
     BitmapData  tree;

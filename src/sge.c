@@ -990,16 +990,20 @@ SGE_UPDATE(SGEUpdate)
         Entity_create_entity_low(game_state, EntityType_null, World_null_position());
         
         //~ BITMAP LOADING
-        game_state->back_drop = Game_debug_load_bmp(thread,
-                                                    sge_memory->debug_platform_read_entire_file,
-                                                    "../res/images/test_background.bmp");
-        game_state->shadow    = Game_debug_load_bmp(thread,
-                                                    sge_memory->debug_platform_read_entire_file,
-                                                    "../res/images/test_hero_shadow.bmp");
+        game_state->back_drop  = Game_debug_load_bmp(thread,
+                                                     sge_memory->debug_platform_read_entire_file,
+                                                     "../res/images/test_background.bmp");
+        game_state->shadow     = Game_debug_load_bmp(thread,
+                                                     sge_memory->debug_platform_read_entire_file,
+                                                     "../res/images/test_hero_shadow.bmp");
         
-        game_state->tree      = Game_debug_load_bmp(thread,
-                                                    sge_memory->debug_platform_read_entire_file,
-                                                    "../res/images/tree00.bmp");
+        game_state->tree       = Game_debug_load_bmp(thread,
+                                                     sge_memory->debug_platform_read_entire_file,
+                                                     "../res/images/tree00.bmp");
+        
+        game_state->stairwell  = Game_debug_load_bmp(thread,
+                                                     sge_memory->debug_platform_read_entire_file,
+                                                     "../res/images/rock01.bmp");
         
         game_state->sword      = Game_debug_load_bmp(thread,
                                                      sge_memory->debug_platform_read_entire_file,
@@ -1076,7 +1080,7 @@ SGE_UPDATE(SGEUpdate)
         {
             ASSERT(random_number_index < ARRAYCOUNT(random_number_table));
             u32 random_choice;
-            if(1) //(door_up || door_down)
+            if(door_up || door_down)
             {
                 random_choice = random_number_table[random_number_index++] % 2;
                 
@@ -1958,4 +1962,3 @@ internal void Game_render_weird_shit(GameBackBuffer *buffer, s32 x_offset, s32 y
     return;
 }
 #endif
-

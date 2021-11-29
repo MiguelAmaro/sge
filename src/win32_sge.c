@@ -3,14 +3,15 @@
 #endif
 
 #include <windows.h>
+#include "win32_sge.h"
+#include "win32_network.h"
+#include "sge_program_options.h"
 #include <xinput.h>
 #include <math.h>
 #include <mmsystem.h>
 #include <dsound.h>
-#include "Win32_SGE.h"
 #include "cglm/mat4.h"
 #include "math.h"
-#include "SGE_Program_Options.h"
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb/stb_image.h"
 //#include <stdio.h>
@@ -224,47 +225,6 @@ win32_xinput_load_functions()
 internal void
 win32_process_pending_messages(win32_state *state, GameInput *input, GameControllerInput *keyboard_controller);
 
-// ************************
-// OPENGL ABSTRACTIONS
-// -----------------------
-// VERTEX BUFFER SETUP
-// INDEX BUFFER SETUP
-// VERTEX ARRAYS
-// ***********************
-//
-//global win32_state win32_state_;
-//
-//global Entity Sprite = {0};
-//global OpenGL_Render_Info sprite_render_info;
-//global vec4 vec_color       = { 1.0f, 1.0f, 1.0f };
-//
-//global mat4 translation = GLM_MAT4_ZERO_INIT;// NOTE(MIGUEL): This is in the App stuct
-//global mat4 scale       = GLM_MAT4_ZERO_INIT;
-//global mat4 rotation    = GLM_MAT4_ZERO_INIT;
-//global vec3 scalefactor = { 100.0f, 100.0f, 0.0f };
-// TODO(MIGUEL): 
-// NOTE(MIGUEL): Should there just be one projectin matrix for everthing
-//global Entity Nick = {0};
-//global OpenGL_Render_Info nick_render_info;
-//
-//global vec4 nick_color       = { 1.0f, 1.0f, 1.0f };
-//global mat4 nick_translation = GLM_MAT4_ZERO_INIT;
-//global mat4 nick_scale       = GLM_MAT4_ZERO_INIT;
-//global mat4 nick_rotation    = GLM_MAT4_ZERO_INIT;
-//global vec3 nick_scalefactor = { 100.0f, 100.0f, 0.0f };
-//
-//
-//global BITMAPINFO BitmapInfo;
-//global void *BitmapMemory;
-//global int   BitmapWidth ;
-//global int   BitmapHeight;
-//global int   BytesPerPixel = 4;
-//
-//#define true  (1)
-//#define false (0)
-///*
-//*/
-//
 internal 
 void win32_print_last_sys_error(void)
 {
@@ -924,6 +884,11 @@ WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR command_line, int sho
 #endif
             u32 load_counter = 120; // Frames
             
+#if NETWORK_SERVER
+            win32_network_server_init();
+#else
+            win32_network_client_init();
+#endif
             
             /*************************************************************************/
             /*************************************************************************/

@@ -132,12 +132,11 @@ echo ============================================================
 rem del *.pdb > NUL 2> NUL
 rem echo WAITING FOR PDB > lock.tmp
 
-rem -std:c17 ^
 cl ^
 %MSVC_FLAGS% ^
 %BUILD_MODES% ^
 %INCLUDE_PATHS% ^
-F:\Dev\SimpleGameEngine\src\%PROJECT_NAME%.c ^
+F:\Dev\SimpleGameEngine\src\%PROJECT_NAME%.c^
 -Fmwin32_%PROJECT_NAME%.map ^
 glad.obj win32_OpenGL.obj ^
 -LD /link -PDB:%PROJECT_NAME%_%random%.pdb ^
